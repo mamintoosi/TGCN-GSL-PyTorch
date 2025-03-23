@@ -1,0 +1,19 @@
+fit:
+  trainer:
+    max_epochs: 50
+    accelerator: cuda
+    devices: 1
+  data:
+    dataset_name: losloop
+    batch_size: 64
+    seq_len: 12
+    pre_len: 2
+  model:
+    model:
+      class_path: models.GCN
+      init_args:
+        hidden_dim: 64
+        use_gsl: 2
+    learning_rate: 0.001
+    weight_decay: 0
+    loss: mse
