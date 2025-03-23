@@ -3,14 +3,13 @@
 This repository introduces a novel approach to traffic prediction by incorporating Graph Structure Learning (GSL) techniques. We enhance two fundamental architectures - the Graph Convolutional Network (GCN) proposed by [Kipf & Welling (2017)](https://arxiv.org/abs/1609.02907) and its temporal extension T-GCN introduced in [T-GCN: A Temporal Graph Convolutional Network for Traffic Prediction](https://arxiv.org/abs/1811.05320). The key innovation lies in automatically learning the optimal graph adjacency matrix from the data, rather than relying on predefined graph structures, which significantly improves the traffic prediction performance of both models.
 
 ## Overview
+Building upon the foundational Graph Convolutional Network (GCN) introduced by Kipf & Welling (2017), we present GCN-GSL and its temporal extension TGCN-GSL. These models enhance the original GCN architecture by incorporating Graph Structure Learning (GSL) techniques. This innovative approach automatically learns and optimizes graph structures from traffic data, eliminating the need for predefined adjacency matrices. The models dynamically adapt to capture complex spatiotemporal dependencies and evolving traffic patterns in the network.
 
-TGCN-GSL enhances the original T-GCN model by integrating Graph Structure Learning (GSL) techniques to automatically discover optimal graph structures for temporal graph data. This approach eliminates the dependency on pre-defined adjacency matrices and can better capture the inherent relationships in the data.
-
-Key features:
-- Implementation of T-GCN with Graph Structure Learning
-- Support for different prediction horizons
-- Evaluation on multiple real-world traffic datasets (Shenzhen and Los Angeles)
-- Comparison with baseline models (GCN and TGCN)
+Key features and innovations:
+- Advanced implementation of GCN/T-GCN with Graph Structure Learning
+- Flexible prediction capabilities supporting multiple time horizons (1-4 steps ahead)
+- Comprehensive evaluation on diverse real-world traffic datasets
+- Extensive comparative analysis with baseline models
 
 ## Requirements
 
