@@ -1,6 +1,6 @@
 # Graph Structure Learning for Traffic Prediction
 
-This repository contains the implementation of Temporal Graph Convolutional Networks with Graph Structure Learning (TGCN-GSL), an extension of the original T-GCN architecture introduced in [T-GCN: A Temporal Graph Convolutional Network for Traffic Prediction](https://arxiv.org/abs/1811.05320).
+This repository introduces a novel approach to traffic prediction by incorporating Graph Structure Learning (GSL) techniques. We enhance two fundamental architectures - the Graph Convolutional Network (GCN) proposed by [Kipf & Welling (2017)](https://arxiv.org/abs/1609.02907) and its temporal extension T-GCN introduced in [T-GCN: A Temporal Graph Convolutional Network for Traffic Prediction](https://arxiv.org/abs/1811.05320). The key innovation lies in automatically learning the optimal graph adjacency matrix from the data, rather than relying on predefined graph structures, which significantly improves the traffic prediction performance of both models.
 
 ## Overview
 
@@ -119,10 +119,6 @@ For convenience, we provide two Jupyter notebooks that can be used to reproduce 
 
 2. **main-TGCN-GSL-Colab.ipynb**: Runs all TGCN experiments (with and without GSL) on both datasets with different prediction horizons.
    [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mamintoosi/TGCN-GSL-PyTorch/blob/main/main-TGCN-GSL-Colab.ipynb)
-
-1. **main_GCN_GSL_Colab.ipynb**: Runs all GCN experiments (with and without GSL) on both datasets with different prediction horizons.
-
-2. **main_TGCN_GSL_Colab.ipynb**: Runs all TGCN experiments (with and without GSL) on both datasets with different prediction horizons.
 
 These notebooks automatically execute the training process for all configurations and collect the results. They can be run in Google Colab or any Jupyter environment with the required dependencies installed.
 
