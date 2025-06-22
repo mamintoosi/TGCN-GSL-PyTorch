@@ -5,11 +5,18 @@ This repository introduces a novel approach to traffic prediction by incorporati
 ## Overview
 Building upon the foundational Graph Convolutional Network (GCN) introduced by Kipf & Welling (2017), we present GCN-GSL and its temporal extension TGCN-GSL. These models enhance the original GCN architecture by incorporating Graph Structure Learning (GSL) techniques. This innovative approach automatically learns and optimizes graph structures from traffic data, eliminating the need for predefined adjacency matrices. The models dynamically adapt to capture complex spatiotemporal dependencies and evolving traffic patterns in the network.
 
-Key features and innovations:
+### Key features and innovations:
+
 - Advanced implementation of GCN/T-GCN with Graph Structure Learning
 - Flexible prediction capabilities supporting multiple time horizons (1-4 steps ahead)
 - Comprehensive evaluation on diverse real-world traffic datasets
 - Extensive comparative analysis with baseline models
+
+## Emergence of Graph-based Methods
+
+We present a keyword co-occurrence network generated from a dataset of 784 articles related to traffic forecasting, published between 2000 and 2025. The network was created using semantic similarity grouping, where each node represents a cluster of related keywords with at least 10 occurrences, and the colors indicate the average publication year of the keywords. This visualization helps to illustrate the evolution of research topics within the field, notably highlighting the recent surge in graph-based methods, which are represented by the nodes on the right side of the network. This bibliometric analysis underscores the increasing importance of graph techniques in traffic prediction research. The dataset used for this analysis is available in the file `data/scopus.ris`, and the `vosviewer_keyword_mapper.py` script clusters the keywords and generates a map for use in the VOSviewer program. An explanation of this process is included in the main text, and the final output is provided in the format at the beginning of this file.
+
+![](scopus-clustered.png)
 
 ## Requirements
 
@@ -164,6 +171,8 @@ The models are evaluated using several metrics:
 ## Results
 
 Our experimental results demonstrate that incorporating Graph Structure Learning (GSL) for adjacency matrix estimation significantly enhances prediction performance compared to traditional GCN-based methods (GCN & TGCN) across various prediction horizons and datasets. The GSL approach enables the discovery of optimized graph structures that better capture the underlying traffic patterns, resulting in improved prediction accuracy. Detailed quantitative results and comparisons are presented in our paper, showing consistent performance gains across different evaluation metrics.
+
+## Bibliometric Analysis
 
 ## License
 
