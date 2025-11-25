@@ -2,7 +2,10 @@
 
 This repository introduces a novel approach to traffic prediction by incorporating Graph Structure Learning (GSL) techniques. We enhance two fundamental architectures - the Graph Convolutional Network (GCN) proposed by [Kipf & Welling (2017)](https://arxiv.org/abs/1609.02907) and its temporal extension T-GCN introduced in [T-GCN: A Temporal Graph Convolutional Network for Traffic Prediction](https://arxiv.org/abs/1811.05320). The key innovation lies in automatically learning the optimal graph adjacency matrix from the data, rather than relying on predefined graph structures, which significantly improves the traffic prediction performance of both models.
 
+This code is the official implementation of the paper **Graph Structure Learning for Traffic Prediction**.
+
 ## Overview
+
 Building upon the foundational Graph Convolutional Network (GCN) introduced by Kipf & Welling (2017), we present GCN-GSL and its temporal extension TGCN-GSL. These models enhance the original GCN architecture by incorporating Graph Structure Learning (GSL) techniques. This innovative approach automatically learns and optimizes graph structures from traffic data, eliminating the need for predefined adjacency matrices. The models dynamically adapt to capture complex spatiotemporal dependencies and evolving traffic patterns in the network.
 
 ### Key features and innovations:
@@ -14,17 +17,17 @@ Building upon the foundational Graph Convolutional Network (GCN) introduced by K
 
 ## Emergence of Graph-based Methods
 
-The following figure shows a keyword co-occurrence network generated from a dataset of 784 articles related to traffic forecasting, published between 2000 and 2025. The network was created using semantic similarity grouping, where each node represents a cluster of related keywords with at least 10 occurrences, and the colors indicate the average publication year of the keywords. This visualization helps to illustrate the evolution of research topics within the field, notably highlighting the recent surge in graph-based methods, which are represented by the nodes on the right side of the network. This bibliometric analysis underscores the increasing importance of graph techniques in traffic prediction research. The dataset used for this analysis is available in the file `data/scopus.ris`, and the `vosviewer_keyword_mapper.py` script clusters the keywords and generates a map for use in the VOSviewer program. 
+The following figure shows a keyword co-occurrence network generated from a dataset of 784 articles related to traffic forecasting, published between 2000 and 2025. The network was created using semantic similarity grouping, where each node represents a cluster of related keywords with at least 10 occurrences, and the colors indicate the average publication year of the keywords. This visualization helps to illustrate the evolution of research topics within the field, notably highlighting the recent surge in graph-based methods, which are represented by the nodes on the right side of the network. This bibliometric analysis underscores the increasing importance of graph techniques in traffic prediction research. The dataset used for this analysis is available in the file `data/scopus.ris`, and the `vosviewer_keyword_mapper.py` script clusters the keywords and generates a map for use in the VOSviewer program.
 
 ![](scopus-clustered.png)
 
 ## Requirements
 
-* numpy
-* pandas
-* torch
-* torchmetrics>=0.11
-* dagma (for Graph Structure Learning)
+- numpy
+- pandas
+- torch
+- torchmetrics>=0.11
+- dagma (for Graph Structure Learning)
 
 For a complete list of dependencies with specific versions, see `requirements.txt`.
 
@@ -52,6 +55,7 @@ TGCN-GSL combines the temporal modeling capability of Gated Recurrent Units (GRU
 ## Datasets
 
 The repository includes support for two traffic datasets:
+
 - **Shenzhen (sz)**: Traffic speed data from Shenzhen, China
 - **Los Angeles (los)**: Traffic speed data from the Los Angeles highway system
 
@@ -68,6 +72,7 @@ python main.py --config configs/<configuration-file>.yaml
 ```
 
 Examples:
+
 ```bash
 # Run GCN on Shenzhen dataset with prediction length 1, no GSL
 python main.py --config configs/gcn-sz-pre_len1.yaml
@@ -108,9 +113,11 @@ fit:
 ### Configuration Naming Convention
 
 The configuration files follow this naming convention:
-* `<model>-<dataset>-[gsl]-[adj]-pre_len<prediction_length>.yaml`
+
+- `<model>-<dataset>-[gsl]-[adj]-pre_len<prediction_length>.yaml`
 
 Where:
+
 - `<model>`: Model type (gcn, tgcn)
 - `<dataset>`: Dataset name (sz for Shenzhen, los for Los Angeles loop)
 - `[gsl]`: Optional, include if using Graph Structure Learning
@@ -120,6 +127,7 @@ Where:
 ### Reproducing Paper Results with Jupyter Notebooks
 
 For convenience, we provide two Jupyter notebooks that can be used to reproduce the results presented in our paper:
+
 1. **main-GCN-GSL-Colab.ipynb**: Runs all GCN experiments (with and without GSL) on both datasets with different prediction horizons.
    [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mamintoosi/TGCN-GSL-PyTorch/blob/main/main-GCN-GSL-Colab.ipynb)
 
@@ -129,6 +137,7 @@ For convenience, we provide two Jupyter notebooks that can be used to reproduce 
 These notebooks automatically execute the training process for all configurations and collect the results. They can be run in Google Colab or any Jupyter environment with the required dependencies installed.
 
 Example of what these notebooks do:
+
 ```python
 # Loop through datasets and prediction lengths to run all experiments
 datasets = ['sz', 'los']  # sz=shenzhen, los=losloop
@@ -153,8 +162,9 @@ The model incorporates Graph Structure Learning (GSL) using the DAGMA algorithm 
    If the required adjacency matrix file isn't found, the program estimates it using GSL. Once computed, the adjacency matrix is saved for future use. The program provides a log to indicate this process:
 
    Example output:
+
    ```
-   100%|██████████| 180000/180000.0 [10:03<00:00, 298.33it/s]  
+   100%|██████████| 180000/180000.0 [10:03<00:00, 298.33it/s]
    [2025-03-05 13:39:45,765 INFO]Using device: cuda
    File data/W_est_losloop_pre_len1.npy did not exist. The adjacency matrix estimated by GSL is computed and saved.
    ```
@@ -162,6 +172,7 @@ The model incorporates Graph Structure Learning (GSL) using the DAGMA algorithm 
 ## Evaluation Metrics
 
 The models are evaluated using several metrics:
+
 - Mean Absolute Error (MAE)
 - Root Mean Square Error (RMSE)
 - Accuracy
