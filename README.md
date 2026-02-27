@@ -214,7 +214,7 @@ For the preliminary conference version:
 
 ```bibtex
 @inproceedings{amintoosi1403aimc55,
-  title={Graph Structure Learning for Traffic Prediction: A Temporal Graph Convolutional Network Approach},
+  title={Urban traffic prediction with learning based graph convolutional networks},
   author={Amintoosi, Mahmood},
   booktitle={Proceedings of the 55th Annual Iranian Mathematics Conference},
   year={2024}
