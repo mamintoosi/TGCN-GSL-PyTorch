@@ -1,0 +1,195 @@
+Dear Dr Amintoosi,
+
+Your manuscript, "Graph Structure Learning for Traffic Prediction", has now been assessed.
+
+We invite you to revise your paper, carefully addressing the comments from the reviewers and the editor. Please ensure the results are accurately reported, any overstated conclusions are rewritten and the limitations of the work fully explained. When your revision is ready, please submit the updated manuscript and a point-by-point response. This will help us move to a swift decision.
+
+We recommend submitting all revisions within the mentioned deadline.
+
+If you need more time, please contact us and include your submission ID.
+
+Kind regards,
+
+Joao Gama
+Editor
+International Journal of Data Science and Analytics
+
+
+# Reviewer 1
+
+Review: “Graph Structure Learning for Traffic
+Prediction”
+
+Summary
+
+The paper proposes learning the
+adjacency matrix for GCN and T-GCN traffic forecasting models directly from
+data via continuous DAG optimization (NOTEARS/DAGMA), rather than using a fixed
+physical-proximity graph. Two variants are tested — an acyclic learned graph
+(GSL) and a symmetrized cyclic version (cGSL) — and evaluated on SZ-Taxi and
+Los-loop, showing consistent RMSE improvements (up to 21.6% for GCN, 24.7% for
+T-GCN). A notable finding is that GCN benefits more from the cyclic variant
+while T-GCN benefits more from the acyclic variant, which Section 5 attempts to
+explain via a spatial-graph/temporal-dependency-graph distinction.
+
+# Strengths
+
+•        
+The core motivation — physical
+proximity is a poor proxy for functional traffic dependency — is well argued
+and nicely illustrated (Fig. 2).
+
+•        
+The paragraph at the top of page 3
+(motivating the shift from implicit attention weighting to explicit structure
+discovery) is a strong, clear articulation of the paper's central contribution.
+
+•        
+Consistent gains across two datasets,
+four horizons, and four metrics, with reasonable ablations and ample
+convergence plots.
+
+•        
+The GSL vs. cGSL asymmetry between GCN
+and T-GCN is a genuinely interesting empirical finding.
+
+•        
+The bibliometric analysis is a
+thorough piece of motivating work.
+
+# Weaknesses
+
+1.         
+**The bibliometric analysis (Appendix A)
+is thorough but underused in the main text.** Either lean on it harder in the
+Introduction to more directly motivate the GSL approach, or trim it
+substantially to save space for the core experimental contribution.
+
+2.         
+**Sections 2.2 and 2.3 (GCN and T-GCN
+background) will be familiar to most readers of this venue.** Suggest condensing both to
+a short paragraph with equation references, freeing up space for additional
+analysis (e.g., variance reporting, extra figures below).
+
+3.         
+**The notation switch in Section 3.2 (A
+→ W) is unexplained beyond a footnote,** and combined with the ambiguity around
+how DAGMA is actually applied to the traffic data (see next point), it makes
+the method harder to follow than necessary. Suggest either keeping consistent
+notation throughout or explaining the switch in the main text rather than a
+footnote, right where W is introduced.
+
+4.         
+**The temporal interpretation of the
+learned DAG in Section 5.1 is asserted rather than demonstrated.** The claim that an edge j →
+i represents “j at time t predicting i at time t+1” doesn't obviously follow
+from the description in 3.2, where X appears to be fed to DAGMA as a matrix of
+contemporaneous road-speed observations. Please clarify explicitly how the
+input to DAGMA is constructed (is there an explicit lag between variable
+blocks, or is the DAG learned over simultaneous per-road observations?), since
+this is load-bearing for the Section 5 discussion of why acyclic graphs suit
+T-GCN.
+
+5.         
+**No hyperparameter optimization was
+performed for the baselines/learned models, and the learned graphs are likely
+much sparser than the physical graph.** Please report the density/degree
+distribution of learned vs. physical graphs, and check whether some of the
+reported gains are attributable to reduced oversmoothing from sparsity rather
+than the specific learned structure. A minimal hyper-parameter sweep (e.g., on
+GCN's aggregation depth or the physical graph's own sparsification) would help
+establish whether a fairer baseline narrows the gap.
+
+6.         
+**No significance testing, variance, or
+multiple seeds are reported,** despite acknowledging stochastic elements in training.
+Please report mean ± std over at least 3–5 seeds for the main results tables,
+given DAGMA itself is deterministic and the variance would isolate
+training-related randomness.
+
+7.         
+**Results are only reported up to
+prediction horizon 4.** Please report how performance (and the GSL/cGSL gap)
+evolves at longer horizons, since this is where graph-structure quality is
+likely to matter most or least.
+
+8.         
+**Section 5 is somewhat repetitive and
+doesn't clearly tie back to the paper's opening claims.** Consider consolidating
+5.1–5.3 into a single subsection and explicitly linking the “spatial vs.
+temporal graph” resolution back to the physical-vs-functional-dependency
+framing introduced in Section 1.
+
+9.         
+**The paper lacks an explicit
+limitations/weaknesses discussion.** Please add a paragraph (e.g., in
+Section 6) addressing scalability of DAGMA to larger road networks, sensitivity
+to the sparsity hyperparameter λ, and the fact that only two (relatively dated)
+backbones were tested.
+
+10.      **Metric
+definitions (Eqs. 4.1–4.4) are standard and likely unnecessary** to spell out in full;
+consider replacing with a one-line reference and citation, using the freed
+space for additional qualitative results.
+
+11.      **Figures
+5–8 (per-epoch training curves across 4 metrics × 4 horizons × 2 datasets) are
+dense and consume a lot of space for information that is mostly “ours converges
+lower.”** Consider
+replacing with compact bar charts of final metric values (with error bars per
+the variance point above) and moving the full curve grids to an appendix.
+
+12.      **Citation
+style inconsistency:** several citations appear as bare “[number]” where the surrounding
+sentence would read more naturally as “Author et al. [number]” (e.g., in the
+Background and Method sections). Please standardize per venue style.
+
+# Questions
+
+•        
+Could you show a side-by-side
+visualization of the physical road-network graph versus the learned (GSL/cGSL)
+graph for one dataset segment? This would make the “physical proximity ≠
+functional dependency” claim concrete rather than only asserted.
+
+•        
+Could you add example plots of
+predicted vs. actual traffic speed time series for a few individual road nodes,
+to complement the aggregate RMSE/MAE tables with a qualitative sense of where
+the learned graph helps or hurts?
+
+•        
+Regarding the time-varying graph
+extension mentioned in the Conclusion as future work — do you have a concrete
+plan for how incremental graph updates would be computed (e.g., sliding-window
+DAGMA), and roughly what computational overhead that would add relative to the
+current \~2-minute one-off structure learning?
+
+•        
+On the DAG/traffic paradox discussed
+in Section 5: since the resolution hinges on DAGMA learning a temporal rather
+than spatial graph, can you provide direct evidence (e.g., the lagged data
+construction, or an ablation feeding genuinely simultaneous vs. lagged data
+into DAGMA) that supports this interpretation, rather than it being inferred
+post hoc from the GSL/cGSL performance split?
+
+\---
+**Reviewer 2**
+
+Looking at the abstract, it seems like there might be a mix-up with one of the numbers. It states "up to 21.6% and 24.7% reduction in RMSE for GCN and T-GCN baselines, respectively," but when checking against the results in Section 4.4, the 24.7% looks like it comes from the GCN average on Los-loop, not the T-GCN result. Section 4.4 appears to show the T-GCN best average as 21.8% on Los-loop. So it looks like the abstract might need to be adjusted to match what the paper actually shows.
+
+The Introduction and Conclusion talk about the method providing "explicit insights into hidden causal structure" for urban planners. That is an interesting claim, but when looking through the paper, it's hard to find support for it. There doesn't appear to be a visualization or heatmap of the learned matrix, and no comparison with the physical proximity graph to check if the high-weight edges match known traffic corridors. Figure 9 looks more like a conceptual illustration than an analysis of the actual results. It could be that a heatmap or some kind of visualization for one of the datasets in Section 5, along with a brief discussion, might help show whether this claim holds up. Without something like that, it's hard to tell if the interpretability aspect has been tested.
+
+In Section 3.1, it says "the learned graph structure is static, the GRU's temporal modeling allows the influence of each road to vary dynamically." But then item 3 in Section 3.2's list seems to say "Our method can adapt to changing traffic patterns over time, as the graph structure is learned from the data rather than being fixed." These two statements don't quite line up. The first says the graph is static, but the second makes it sound like the graph adapts. When looking at the code, it appears the graph is indeed computed once and stays the same. Maybe the intent was to say that, unlike fixed proximity graphs, the learned structure captures real dependencies, and then the GRU models how those play out dynamically? If so, rephrasing item 3 might clear things up.
+
+The symmetrisation formula for cGSL is introduced in Section 5.3, but cGSL is already being evaluated in Section 4. It might make sense to put that definition and justification earlier instead.
+
+The convergence plots in Figures 5-8 are very hard to read with 16 subplots in each one. Breaking them into separate figures or maybe a summary table could help readability.
+
+On a smaller note, there is a typo in Section 4.4: "avergae".
+
+\----
+
+نظرت در مورد ایرادات داوران چیست؟
+
+بدون تغییر اساسی در کد و ایده اصلی و داده ها قابل انجام است؟
