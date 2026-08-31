@@ -74,7 +74,7 @@ class ExperimentConfig:
         assert self.dataset_name in ("shenzhen", "losloop"), f"Unknown dataset: {self.dataset_name}"
         assert 1 <= self.pre_len <= 4, f"pre_len must be 1-4, got {self.pre_len}"
         assert self.model_name in ("GCN", "TGCN"), f"model must be GCN or TGCN, got {self.model_name}"
-        assert self.graph_type in (0, 1, 2, 3, 4), f"graph_type must be 0-4, got {self.graph_type}"
+        assert self.graph_type in (0, 1, 2, 3, 4, 5, 6), f"graph_type must be 0-6, got {self.graph_type}"
 
 
 # Dataset-specific DAGMA configurations (from paper)

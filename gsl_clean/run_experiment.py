@@ -89,7 +89,8 @@ def load_graph(
     Args:
         dataset_name: "shenzhen" or "losloop"
         pre_len: prediction horizon (1-4)
-        graph_type: 0=physical, 1=GSL, 2=cGSL, 3=random-sparse
+        graph_type: 0=physical, 1=GSL, 2=cGSL, 3=random-sparse,
+                    4=correlation, 5=physical-sparse
         feat: raw feature data (T, N)
         seq_len: historical window
         split_ratio: train/test split
@@ -134,6 +135,43 @@ def load_graph(
                 f"Sparse random graph not found: {sparse_path}. "
                 "Run generate_sparse_random_graphs.py first."
             )
+
+    elif graph_type == 4:
+        # Correlation-based graph (density-matched to GSL)
+        corr_path = f"data/correlation_{dataset_name}_pre_len{pre_len}.npy"
+        if os.path.exists(corr_path):
+            adj = np.load(corr_path).astype(np.float32)
+            label = f"Correlation ({dataset_name}, PH={pre_len})"
+        else:
+            raise FileNotFoundError(
+                f"Correlation graph not found: {corr_path}. "
+                "Run generate_baselines.py first."
+            )
+
+    elif graph_type == 5:
+        # Physical-sparse graph (top-K physical edges, symmetric, GSL density)
+        ps_path = f"data/physical_sparse_{dataset_name}_pre_len{pre_len}.npy"
+        if os.path.exists(ps_path):
+            adj = np.load(ps_path).astype(np.float32)
+            label = f"Phys-Sparse ({dataset_name}, PH={pre_len})"
+        else:
+            raise FileNotFoundError(
+                f"Physical-sparse graph not found: {ps_path}. "
+                "Run generate_baselines.py first."
+            )
+
+    elif graph_type == 6:
+        # Physical-sparse directed (top-K physical entries, matching GSL density exactly)
+        psd_path = f"data/physical_sparse_directed_{dataset_name}_pre_len{pre_len}.npy"
+        if os.path.exists(psd_path):
+            adj = np.load(psd_path).astype(np.float32)
+            label = f"Phys-SparseDir ({dataset_name}, PH={pre_len})"
+        else:
+            raise FileNotFoundError(
+                f"Physical-sparse directed graph not found: {psd_path}. "
+                "Run the generation script first."
+            )
+
     else:
         raise ValueError(f"Unknown graph_type: {graph_type}")
 
@@ -266,7 +304,7 @@ def run_single_experiment(
         max_epochs=max_epochs,
     )
 
-    graph_names = {0: "physical", 1: "GSL", 2: "cGSL", 3: "random-sparse"}
+    graph_names = {0: "physical", 1: "GSL", 2: "cGSL", 3: "random-sparse", 4: "correlation", 5: "phys-sparse", 6: "phys-sparse-dir"}
     graph_name = graph_names[graph_type]
 
     print(f"\n  Running: {dataset_name} / {model_name} / PH={pre_len} / {graph_name} / seed={seed}")
@@ -375,6 +413,12 @@ def format_results_table(results: List[Dict]) -> str:
     lines.append("=" * 120)
 
     # Group by dataset and model
+    graph_order = ["physical", "GSL", "cGSL", "random-sparse", "correlation", "phys-sparse", "phys-sparse-dir"]
+    
+    # Check if we have multi-seed results
+    seeds = sorted(set(r.get("seed", 42) for r in results if "error" not in r))
+    multi_seed = len(seeds) > 1
+    
     for ds in ["shenzhen", "losloop"]:
         for model in ["GCN", "TGCN"]:
             ds_results = [r for r in results if r.get("dataset") == ds and r.get("model") == model and "error" not in r]
@@ -383,13 +427,36 @@ def format_results_table(results: List[Dict]) -> str:
 
             ds_label = "SZ-Taxi" if ds == "shenzhen" else "Los-loop"
             lines.append(f"\n--- {ds_label} / {model} ---")
-            lines.append(f"{'PH':>3} {'Graph':>15} {'RMSE':>8} {'MAE':>8} {'R2':>8} {'Edges':>6} {'Isol.':>6} {'Time':>7}")
-            lines.append("-" * 70)
+            if multi_seed:
+                lines.append(f"{'PH':>3} {'Graph':>15} {'RMSE':>12} {'MAE':>12} {'R2':>12} {'Edges':>6} {'Isol.':>6}")
+                lines.append("-" * 75)
+            else:
+                lines.append(f"{'PH':>3} {'Graph':>15} {'RMSE':>8} {'MAE':>8} {'R2':>8} {'Edges':>6} {'Isol.':>6} {'Time':>7}")
+                lines.append("-" * 70)
 
             for ph in range(1, 5):
-                for gt_name in ["physical", "GSL", "cGSL", "random-sparse"]:
+                for gt_name in graph_order:
                     matching = [r for r in ds_results if r["pre_len"] == ph and r["graph_type"] == gt_name]
-                    if matching:
+                    if not matching:
+                        continue
+                    
+                    if multi_seed:
+                        # Compute mean ± std across seeds
+                        rmses = [r["metrics"]["RMSE"] for r in matching]
+                        maes = [r["metrics"]["MAE"] for r in matching]
+                        r2s = [r["metrics"]["R2"] for r in matching]
+                        n_edges = matching[0]["graph_stats"]["n_edges"]
+                        n_isol = matching[0]["graph_stats"].get("n_isolated_nodes", "N/A")
+                        
+                        rmse_str = f"{np.mean(rmses):.4f}±{np.std(rmses):.4f}" if len(rmses) > 1 else f"{rmses[0]:.4f}"
+                        mae_str = f"{np.mean(maes):.4f}±{np.std(maes):.4f}" if len(maes) > 1 else f"{maes[0]:.4f}"
+                        r2_str = f"{np.mean(r2s):.4f}±{np.std(r2s):.4f}" if len(r2s) > 1 else f"{r2s[0]:.4f}"
+                        
+                        lines.append(
+                            f"{ph:>3} {gt_name:>15} {rmse_str:>12} {mae_str:>12} "
+                            f"{r2_str:>12} {n_edges:>6} {n_isol:>6}"
+                        )
+                    else:
                         r = matching[0]
                         m = r["metrics"]
                         g = r["graph_stats"]
@@ -414,36 +481,41 @@ def format_results_table(results: List[Dict]) -> str:
 
             ds_label = "SZ-Taxi" if ds == "shenzhen" else "Los-loop"
             lines.append(f"\n--- {ds_label} / {model} ---")
-            lines.append(f"{'PH':>3} {'GSL vs Phys':>12} {'cGSL vs Phys':>13} {'Rand vs Phys':>13} {'GSL vs Rand':>12}")
-            lines.append("-" * 60)
+            lines.append(f"{'PH':>3} {'GSL':>8} {'cGSL':>8} {'Rand':>8} {'Corr':>8} {'PhysSp':>8} {'PSDir':>8} {'GSL>Corr':>9} {'GSL>PSD':>9} {'cGSL>PS':>9}")
+            lines.append("-" * 90)
 
             for ph in range(1, 5):
-                phys = [r for r in ds_results if r["pre_len"] == ph and r["graph_type"] == "physical"]
-                gsl = [r for r in ds_results if r["pre_len"] == ph and r["graph_type"] == "GSL"]
-                cgsl = [r for r in ds_results if r["pre_len"] == ph and r["graph_type"] == "cGSL"]
-                rand = [r for r in ds_results if r["pre_len"] == ph and r["graph_type"] == "random-sparse"]
-
-                if phys and gsl and cgsl:
-                    p_rmse = phys[0]["metrics"]["RMSE"]
-                    g_rmse = gsl[0]["metrics"]["RMSE"]
-                    c_rmse = cgsl[0]["metrics"]["RMSE"]
-
-                    gsl_imp = (p_rmse - g_rmse) / p_rmse * 100
-                    cgsl_imp = (p_rmse - c_rmse) / p_rmse * 100
-
-                    rand_str = "N/A"
-                    gsl_rand_str = "N/A"
-                    if rand:
-                        r_rmse = rand[0]["metrics"]["RMSE"]
-                        rand_imp = (p_rmse - r_rmse) / p_rmse * 100
-                        gsl_rand_imp = (r_rmse - g_rmse) / r_rmse * 100
-                        rand_str = f"{rand_imp:+.1f}%"
-                        gsl_rand_str = f"{gsl_rand_imp:+.1f}%"
-
-                    lines.append(
-                        f"{ph:>3} {gsl_imp:>+11.1f}% {cgsl_imp:>+12.1f}% "
-                        f"{rand_str:>13} {gsl_rand_str:>12}"
-                    )
+                def get_rmse(gt_name):
+                    matching = [r for r in ds_results if r["pre_len"] == ph and r["graph_type"] == gt_name and "error" not in r]
+                    if matching:
+                        if multi_seed:
+                            return np.mean([r["metrics"]["RMSE"] for r in matching])
+                        return matching[0]["metrics"]["RMSE"]
+                    return None
+                
+                p = get_rmse("physical")
+                g = get_rmse("GSL")
+                c = get_rmse("cGSL")
+                rand = get_rmse("random-sparse")
+                corr = get_rmse("correlation")
+                ps = get_rmse("phys-sparse")
+                psd = get_rmse("phys-sparse-dir")
+                
+                def fmt_imp(base, val):
+                    if base is None or val is None:
+                        return "N/A"
+                    return f"{(base - val) / base * 100:+.1f}%"
+                
+                def fmt_vs(base, val):
+                    if base is None or val is None:
+                        return "N/A"
+                    return f"{(base - val) / base * 100:+.1f}%"
+                
+                lines.append(
+                    f"{ph:>3} {fmt_imp(p, g):>8} {fmt_imp(p, c):>8} {fmt_imp(p, rand):>8} "
+                    f"{fmt_imp(p, corr):>8} {fmt_imp(p, ps):>8} {fmt_imp(p, psd):>8} "
+                    f"{fmt_vs(corr, g):>9} {fmt_vs(psd, g):>9} {fmt_vs(ps, c):>12}"
+                )
 
     return "\n".join(lines)
 
@@ -512,8 +584,8 @@ def main():
     parser.add_argument("--pre_len", type=int, default=None,
                         help="Prediction horizon (default: 1-4)")
     parser.add_argument("--graph_type", type=int, default=None,
-                        choices=[0, 1, 2, 3],
-                        help="Graph type (0=phys, 1=GSL, 2=cGSL, 3=rand)")
+                        choices=[0, 1, 2, 3, 4, 5, 6],
+                        help="Graph type (0=phys, 1=GSL, 2=cGSL, 3=rand, 4=corr, 5=phys-sparse, 6=phys-sparse-dir)")
     parser.add_argument("--seeds", type=int, nargs="+", default=[42],
                         help="Random seeds (default: [42])")
     parser.add_argument("--max_epochs", type=int, default=50,
@@ -528,7 +600,7 @@ def main():
     datasets = [args.dataset] if args.dataset else ["shenzhen", "losloop"]
     models = [args.model] if args.model else ["GCN", "TGCN"]
     pre_lens = [args.pre_len] if args.pre_len else [1, 2, 3, 4]
-    graph_types = [args.graph_type] if args.graph_type is not None else [0, 1, 2, 3]
+    graph_types = [args.graph_type] if args.graph_type is not None else [0, 1, 2, 3, 4, 5, 6]
 
     print("=" * 80)
     print("CLEAN-ROOM GSL EXPERIMENT")
