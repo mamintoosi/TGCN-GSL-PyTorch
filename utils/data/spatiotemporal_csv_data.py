@@ -71,9 +71,17 @@ class SpatioTemporalCSVData:
         This method should be called after get_datasets() to ensure train_data is available.  
         """  
         if not hasattr(self, 'train_data'):  
-            raise AttributeError("train_data is not available. Please call get_datasets() first.")  
+            raise AttributeError("train_data is not available. Please call get_datasets() first.")
 
-        if self.use_gsl > 0:  
+        if self.use_gsl == 3:  
+            # Sparse random physical graph ablation: load a pre-computed sparse random graph
+            sparse_file = f"data/sparse_random_{self.dataset_name}_pre_len{self.pre_len}.npy"  
+            if os.path.exists(sparse_file):  
+                self._adj = np.load(sparse_file).astype(np.float32)  
+                print(f'Loaded sparse random graph: {sparse_file} (edges={int(np.sum(self._adj > 0))})')  
+            else:  
+                raise FileNotFoundError(f"Sparse random graph not found: {sparse_file}. Run generate_sparse_random_graphs.py first.")  
+        elif self.use_gsl > 0:  
             W_est_file_name = f"data/W_est_{self.dataset_name}_pre_len{self.pre_len}.npy"  
 
             # Check if the file exists  
@@ -114,7 +122,7 @@ class SpatioTemporalCSVData:
                 adj = np.zeros(W_est.shape, dtype=int)  
                 adj[W_est > 0] = 1  
                 self._adj = adj  + adj.T
-                print('GSL computed: GSL for directed cyclic graph')
+                print('GSL computed: GSL for directed cyclic graph')  
             else:  # (GSL + adj)  
                 self._adj[W_est > 0] = 1  
                 print('GSL computed: GSL+Adj')
