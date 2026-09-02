@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
 Stage 20.5 Phase B: Analyze temporal DAGMA results.
-Loads saved W matrices from Phase A, then runs:
+Loads saved W matrices from Phase A (ZERO DAGMA computation), then runs:
   - Edge identification and threshold sensitivity
-  - Top-K edge experiment
-  - Directional sanity check (synthetic)
+  - Top-K edge experiment  
+  - Directional sanity check (synthetic, tiny DAGMA — only for direction verification)
   - Training comparison (threshold sweep + Top-K)
-Estimated time: ~5-8 min (24 small training runs, no DAGMA).
+
+Estimated time: ~5-8 min (training runs only, no large DAGMA).
 """
 import os, sys, time, json, random
 import numpy as np
@@ -19,7 +20,6 @@ sys.path.insert(0, PROJECT_ROOT)
 RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", "stage20_5_validation")
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
-from dagma.linear import DagmaLinear
 from models.gcn import GCN
 from models.tgcn import TGCN
 from tasks.supervised import SupervisedForecastTask
@@ -104,8 +104,9 @@ def graph_stats(adj, N):
 
 def directional_sanity_check():
     """Synthetic test: x3(t) = 0.9*x1(t-1) + noise"""
+    from dagma.linear import DagmaLinear
     print("\n" + "=" * 70)
-    print("DIRECTIONAL SANITY CHECK")
+    print("DIRECTIONAL SANITY CHECK (tiny synthetic DAGMA — ~5s)")
     print("=" * 70)
     set_seed(42)
     N = 3
@@ -124,13 +125,13 @@ def directional_sanity_check():
     Z[:, N:2 * N] = x[1:]
 
     print(f"  Ground truth: x3(t) = 0.9*x1(t-1) + noise")
-    print(f"  Z shape: {Z.shape}")
+    print(f"  Z shape: {Z.shape} (tiny — 3 variables, fast)")
 
     model = DagmaLinear(loss_type='l2', verbose=False)
+    np.random.seed(42)
     W = model.fit(Z, lambda1=0.01, w_threshold=0.0)
 
     W_cross = W[N:2 * N, 0:N]
-    W_cc = W[N:2 * N, N:2 * N]
 
     print(f"\n  W_cross (past→current):")
     for i in range(N):
@@ -156,21 +157,46 @@ def main():
     print(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 80)
 
-    # --- Load saved matrices from Phase A ---
-    W_thresh = np.load(os.path.join(RESULTS_DIR, "sz_ph1_W_thresh_temporal.npy"))
-    W_raw = np.load(os.path.join(RESULTS_DIR, "sz_ph1_W_raw_temporal.npy"))
+    # --- Load saved matrices from Phase A (NO DAGMA computation) ---
+    W_raw_temp = np.load(os.path.join(RESULTS_DIR, "sz_ph1_W_raw_temporal.npy"))
     W_cross = np.load(os.path.join(RESULTS_DIR, "sz_ph1_W_cross_raw.npy"))
     W_cc = np.load(os.path.join(RESULTS_DIR, "sz_ph1_W_cc_raw.npy"))
+    W_past_past = np.load(os.path.join(RESULTS_DIR, "sz_ph1_W_past_past_raw.npy"))
+    W_past_curr = np.load(os.path.join(RESULTS_DIR, "sz_ph1_W_past_curr_raw.npy"))
     W_orig = np.load(os.path.join(RESULTS_DIR, "sz_ph1_W_orig_contemp.npy"))
 
     with open(os.path.join(RESULTS_DIR, "phase_a_metadata.json")) as f:
         meta = json.load(f)
 
     N = meta["N"]
-    print(f"Loaded Phase A results: N={N}, W_raw nonzero={meta['W_raw_nonzero']}")
-    print(f"  W_cross nonzero: {meta['W_cross_nonzero']}, W_cc nonzero: {meta['W_cc_nonzero']}")
+    print(f"Loaded Phase A results: N={N}, 2N={2*N}")
+    print(f"  W_raw_temporal nonzero: {meta['W_raw_temporal_nonzero']}")
+    print(f"  W_cross nonzero: {meta['W_cross_nonzero']}")
+    print(f"  W_cc nonzero: {meta['W_cc_nonzero']}")
+    print(f"  W_past_past nonzero: {meta['W_past_past_nonzero']}")
+    print(f"  W_past_curr nonzero: {meta['W_past_curr_nonzero']} (should be ~0)")
     print(f"  W_orig nonzero: {meta['W_orig_nonzero']}")
-    print(f"  Phase A time: {meta['time_thresh_s'] + meta['time_raw_s'] + meta['time_orig_s']:.1f}s")
+    print(f"  Phase A total time: {meta['time_temporal_s'] + meta['time_original_s']:.1f}s")
+
+    # --- Additional block analysis ---
+    print("\n" + "=" * 70)
+    print("ADDITIONAL BLOCK ANALYSIS")
+    print("=" * 70)
+    for name, W_block in [("W_past_past", W_past_past), ("W_past_curr", W_past_curr)]:
+        abs_b = np.abs(W_block)
+        nz = np.sum(abs_b > 0)
+        print(f"\n  {name}: nonzero={nz}")
+        if nz > 0:
+            flat = np.argsort(abs_b.ravel())[::-1]
+            print(f"  Top 5 entries:")
+            count = 0
+            for idx in flat:
+                i, j = divmod(idx, N)
+                if abs_b[i, j] > 0:
+                    count += 1
+                    print(f"    [{i:3d},{j:3d}] = {W_block[i, j]:.6f}  |w|={abs_b[i, j]:.6f}")
+                    if count >= 5:
+                        break
 
     # --- Load data for training ---
     train_data, test_data, adj_phys, feat_max, N = load_data("shenzhen")
@@ -178,7 +204,7 @@ def main():
     pre_len = 1
     trX, trY = gen_seq(train_data, seq_len, pre_len)
     teX, teY = gen_seq(test_data, seq_len, pre_len)
-    print(f"Training data: trX={trX.shape}, teX={teX.shape}")
+    print(f"\nTraining data: trX={trX.shape}, teX={teX.shape}")
 
     seed = 42
     epochs = 50
@@ -238,7 +264,7 @@ def main():
             print(f"    {model_name}: RMSE={m['RMSE']:.4f}, MAE={m['MAE']:.4f}")
 
     # ================================================================
-    # Baselines (using Stage 20 existing results or retrain)
+    # Baselines
     # ================================================================
     print("\n" + "=" * 70)
     print("BASELINES")
@@ -246,7 +272,8 @@ def main():
 
     baselines = {
         "Physical": adj_phys.astype(np.float32),
-        "OriginalDAGMA": (np.abs(W_orig) > 0.3).astype(np.float32),
+        "OriginalDAGMA_raw": (np.abs(W_orig) > 0).astype(np.float32),
+        "OriginalDAGMA_0.3": (np.abs(W_orig) > 0.3).astype(np.float32),
         "TempDAGMA_thr0.3": (abs_cross > 0.3).astype(np.float32),
     }
 
@@ -277,8 +304,11 @@ def main():
 
     # Summary table
     print("\n=== SUMMARY TABLE ===")
-    pivot = df.pivot_table(index=["method", "n_edges"], columns="model", values=["rmse", "mae"])
-    print(pivot.to_string())
+    try:
+        pivot = df.pivot_table(index=["method", "n_edges"], columns="model", values=["rmse", "mae"])
+        print(pivot.to_string())
+    except Exception:
+        print(df.to_string())
 
     # Save full summary
     summary = {
@@ -286,9 +316,8 @@ def main():
         "dataset": "shenzhen", "PH": 1, "seed": seed, "epochs": epochs,
         "N": N,
         "phase_a_times": {
-            "thresholded_s": meta["time_thresh_s"],
-            "raw_s": meta["time_raw_s"],
-            "original_s": meta["time_orig_s"],
+            "temporal_s": meta["time_temporal_s"],
+            "original_s": meta["time_original_s"],
         },
         "results": all_results,
         "synthetic_test": synth,

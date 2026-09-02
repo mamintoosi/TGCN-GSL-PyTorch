@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """
-Stage 20.5 Phase A: Run 3 DAGMA experiments and save raw matrices.
-  1. Temporal DAGMA with w_threshold=0.3 (paper setting)
-  2. Temporal DAGMA with w_threshold=0.0 (raw weights for analysis)
-  3. Original (contemporaneous) DAGMA with w_threshold=0.3 (baseline)
-Estimated time: ~20-25 min total.
+Stage 20.5 Phase A: Run 2 DAGMA experiments and save raw matrices.
+  1. Temporal DAGMA with w_threshold=0.0 (save full raw W)
+  2. Original (contemporaneous) DAGMA with w_threshold=0.0
+
+w_threshold is PURELY POST-PROCESSING inside DagmaLinear:
+  self.W_est[np.abs(self.W_est) < w_threshold] = 0
+Therefore running with w_threshold=0.3 and again with w_threshold=0.0 is redundant.
+Phase B will apply any desired threshold to the saved raw matrices.
+
+Estimated time: ~10-12 min total (2 DAGMA runs on 312x312 and 156x156).
 """
 import os, sys, time, json
 import numpy as np
@@ -20,7 +25,7 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 
 def main():
     print("=" * 80)
-    print("STAGE 20.5 PHASE A: DAGMA RUNS")
+    print("STAGE 20.5 PHASE A: DAGMA RUNS (optimized — 2 runs only)")
     print(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 80)
 
@@ -52,95 +57,109 @@ def main():
     Z[:, N:2 * N] = X_orig[1:]
     print(f"Temporal Z shape: {Z.shape}  (2N = {2 * N})")
 
-    # --- Run 1: Temporal DAGMA, threshold=0.3 ---
+    # --- Run 1: Temporal DAGMA, w_threshold=0.0 (raw) ---
     print("\n" + "=" * 60)
-    print("RUN 1: Temporal DAGMA, w_threshold=0.3")
+    print("RUN 1: Temporal DAGMA, w_threshold=0.0 (raw)")
     print("=" * 60)
     np.random.seed(42)
     t0 = time.time()
     m1 = DagmaLinear(loss_type='l2', verbose=True)
-    W_thresh = m1.fit(Z, lambda1=0.01, w_threshold=0.3)
+    W_raw_temp = m1.fit(Z, lambda1=0.01, w_threshold=0.0)
     dt1 = time.time() - t0
-    np.save(os.path.join(RESULTS_DIR, "sz_ph1_W_thresh_temporal.npy"), W_thresh)
-    print(f"  Time: {dt1:.1f}s, nonzero: {np.sum(np.abs(W_thresh) > 0)}")
 
-    # --- Run 2: Temporal DAGMA, threshold=0.0 (raw) ---
+    # Save full raw temporal W
+    np.save(os.path.join(RESULTS_DIR, "sz_ph1_W_raw_temporal.npy"), W_raw_temp)
+
+    # Extract blocks from the raw W
+    W_cross = W_raw_temp[N:2 * N, 0:N]       # past → current
+    W_cc = W_raw_temp[N:2 * N, N:2 * N]      # contemporaneous
+    W_past_past = W_raw_temp[0:N, 0:N]        # past → past
+    W_past_curr = W_raw_temp[0:N, N:2 * N]    # current → past (should be ~0)
+
+    np.save(os.path.join(RESULTS_DIR, "sz_ph1_W_cross_raw.npy"), W_cross)
+    np.save(os.path.join(RESULTS_DIR, "sz_ph1_W_cc_raw.npy"), W_cc)
+    np.save(os.path.join(RESULTS_DIR, "sz_ph1_W_past_past_raw.npy"), W_past_past)
+    np.save(os.path.join(RESULTS_DIR, "sz_ph1_W_past_curr_raw.npy"), W_past_curr)
+
+    print(f"  Time: {dt1:.1f}s")
+    print(f"  Full W nonzero: {np.sum(np.abs(W_raw_temp) > 0)}")
+    print(f"  W_cross nonzero: {np.sum(np.abs(W_cross) > 0)}")
+    print(f"  W_cc nonzero: {np.sum(np.abs(W_cc) > 0)}")
+    print(f"  W_past_past nonzero: {np.sum(np.abs(W_past_past) > 0)}")
+    print(f"  W_past_curr nonzero: {np.sum(np.abs(W_past_curr) > 0)}")
+
+    # Also save thresholded versions from the same raw W
+    for thr in [0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.5]:
+        W_thresh = W_raw_temp.copy()
+        W_thresh[np.abs(W_thresh) < thr] = 0
+        n = np.sum(np.abs(W_thresh) > 0)
+        n_cross = np.sum(np.abs(W_cross) > thr)
+        print(f"  Threshold {thr:.3f}: full nonzero={n}, cross edges={n_cross}")
+
+    # --- Run 2: Original (contemporaneous) DAGMA, w_threshold=0.0 (raw) ---
     print("\n" + "=" * 60)
-    print("RUN 2: Temporal DAGMA, w_threshold=0.0 (raw)")
+    print("RUN 2: Original DAGMA (contemporaneous), w_threshold=0.0")
     print("=" * 60)
     np.random.seed(42)
     t0 = time.time()
     m2 = DagmaLinear(loss_type='l2', verbose=True)
-    W_raw = m2.fit(Z, lambda1=0.01, w_threshold=0.0)
+    W_orig = m2.fit(X_orig, lambda1=0.01, w_threshold=0.0)
     dt2 = time.time() - t0
-    np.save(os.path.join(RESULTS_DIR, "sz_ph1_W_raw_temporal.npy"), W_raw)
-
-    # Extract blocks
-    W_cross = W_raw[N:2 * N, 0:N]  # past → current
-    W_cc = W_raw[N:2 * N, N:2 * N]  # contemporaneous
-    np.save(os.path.join(RESULTS_DIR, "sz_ph1_W_cross_raw.npy"), W_cross)
-    np.save(os.path.join(RESULTS_DIR, "sz_ph1_W_cc_raw.npy"), W_cc)
-    print(f"  Time: {dt2:.1f}s, nonzero: {np.sum(np.abs(W_raw) > 0)}")
-
-    # --- Run 3: Original (contemporaneous) DAGMA ---
-    print("\n" + "=" * 60)
-    print("RUN 3: Original DAGMA (contemporaneous), w_threshold=0.3")
-    print("=" * 60)
-    np.random.seed(42)
-    t0 = time.time()
-    m3 = DagmaLinear(loss_type='l2', verbose=True)
-    W_orig = m3.fit(X_orig, lambda1=0.01, w_threshold=0.3)
-    dt3 = time.time() - t0
     np.save(os.path.join(RESULTS_DIR, "sz_ph1_W_orig_contemp.npy"), W_orig)
-    print(f"  Time: {dt3:.1f}s, nonzero: {np.sum(np.abs(W_orig) > 0)}")
 
-    # === Edge analysis ===
+    print(f"  Time: {dt2:.1f}s, nonzero: {np.sum(np.abs(W_orig) > 0)}")
+
+    # --- Edge analysis on raw W_cross ---
     print("\n" + "=" * 60)
-    print("TEMPORAL DAGMA EDGE ANALYSIS (from raw W)")
+    print("TEMPORAL DAGMA EDGE ANALYSIS (from raw W_cross)")
     print("=" * 60)
 
     abs_cross = np.abs(W_cross)
     print(f"\nW_cross shape: {W_cross.shape}, nonzero: {np.sum(abs_cross > 0)}")
-    print(f"Weight range: [{W_cross.min():.6f}, {W_cross.max():.6f}]")
-    print(f"|weight| range: [{abs_cross.min():.6f}, {abs_cross.max():.6f}]")
+    nonzero_vals = W_cross[abs_cross > 0]
+    if len(nonzero_vals) > 0:
+        print(f"Weight range: [{W_cross.min():.6f}, {W_cross.max():.6f}]")
+        print(f"|weight| stats: min={abs_cross[abs_cross > 0].min():.6f} "
+              f"max={abs_cross[abs_cross > 0].max():.6f} "
+              f"mean={abs_cross[abs_cross > 0].mean():.6f}")
 
     # Top 20 edges
     flat_idx = np.argsort(abs_cross.ravel())[::-1]
     print(f"\nTop 20 temporal edges (|W_cross[i,j]|):")
-    print(f"  {'Rank':>4s}  {'past_i':>7s}  {'curr_j':>7s}  {'weight':>10s}  {'|weight|':>10s}")
+    print(f"  {'Rank':>4s}  {'past_i':>7s}  {'curr_j':>7s}  {'weight':>12s}  {'|weight|':>12s}")
     for rank, idx in enumerate(flat_idx[:20], 1):
         i, j = divmod(idx, N)
-        print(f"  {rank:4d}  sensor_{i:03d}  sensor_{j:03d}  {W_cross[i, j]:10.6f}  {abs_cross[i, j]:10.6f}")
+        if abs_cross[i, j] < 1e-10:
+            break
+        print(f"  {rank:4d}  sensor_{i:03d}  sensor_{j:03d}  {W_cross[i, j]:12.6f}  {abs_cross[i, j]:12.6f}")
 
-    # Threshold sweep
-    print("\nThreshold sweep on W_cross:")
-    for thr in [0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.5]:
-        n = int(np.sum(abs_cross > thr))
-        print(f"  |W_cross| > {thr:.3f}: {n} edges")
-
-    # Contemporaneous block
+    # Contemporaneous block analysis
     abs_cc = np.abs(W_cc)
     print(f"\nW_cc (contemporaneous) nonzero: {np.sum(abs_cc > 0)}")
     if np.sum(abs_cc > 0) > 0:
         flat_cc = np.argsort(abs_cc.ravel())[::-1]
         print("Top 5 contemporaneous edges:")
-        for rank, idx in enumerate(flat_cc[:5], 1):
+        count = 0
+        for idx in flat_cc:
             i, j = divmod(idx, N)
             if abs_cc[i, j] > 0:
-                print(f"  {rank}: sensor_{i:03d}<->sensor_{j:03d}  w={W_cc[i, j]:.6f}")
+                count += 1
+                print(f"  {count}: sensor_{i:03d}<->sensor_{j:03d}  w={W_cc[i, j]:.6f}")
+                if count >= 5:
+                    break
 
     # Save metadata
     meta = {
         "N": N, "D": 2 * N, "M_temporal": M, "M_orig": M_orig,
         "feat_max": float(feat_max), "seed": 42,
         "lambda1": 0.01, "loss_type": "l2",
-        "time_thresh_s": round(dt1, 1),
-        "time_raw_s": round(dt2, 1),
-        "time_orig_s": round(dt3, 1),
-        "W_thresh_nonzero": int(np.sum(np.abs(W_thresh) > 0)),
-        "W_raw_nonzero": int(np.sum(np.abs(W_raw) > 0)),
-        "W_cross_nonzero": int(np.sum(abs_cross > 0)),
-        "W_cc_nonzero": int(np.sum(abs_cc > 0)),
+        "time_temporal_s": round(dt1, 1),
+        "time_original_s": round(dt2, 1),
+        "W_raw_temporal_nonzero": int(np.sum(np.abs(W_raw_temp) > 0)),
+        "W_cross_nonzero": int(np.sum(np.abs(W_cross) > 0)),
+        "W_cc_nonzero": int(np.sum(np.abs(W_cc) > 0)),
+        "W_past_past_nonzero": int(np.sum(np.abs(W_past_past) > 0)),
+        "W_past_curr_nonzero": int(np.sum(np.abs(W_past_curr) > 0)),
         "W_orig_nonzero": int(np.sum(np.abs(W_orig) > 0)),
     }
     with open(os.path.join(RESULTS_DIR, "phase_a_metadata.json"), "w") as f:
@@ -149,13 +168,16 @@ def main():
     print(f"\n{'=' * 80}")
     print("PHASE A COMPLETE")
     print(f"Results saved to: {RESULTS_DIR}/")
-    print(f"  sz_ph1_W_thresh_temporal.npy  (thresholded temporal)")
-    print(f"  sz_ph1_W_raw_temporal.npy     (raw temporal)")
-    print(f"  sz_ph1_W_cross_raw.npy        (past->current block)")
-    print(f"  sz_ph1_W_cc_raw.npy           (contemporaneous block)")
-    print(f"  sz_ph1_W_orig_contemp.npy     (original DAGMA)")
+    print(f"  sz_ph1_W_raw_temporal.npy     (full raw 2Nx2N temporal)")
+    print(f"  sz_ph1_W_cross_raw.npy        (NxN past→current block)")
+    print(f"  sz_ph1_W_cc_raw.npy           (NxN contemporaneous block)")
+    print(f"  sz_ph1_W_past_past_raw.npy    (NxN past→past block)")
+    print(f"  sz_ph1_W_past_curr_raw.npy    (NxN current→past block, should be ~0)")
+    print(f"  sz_ph1_W_orig_contemp.npy     (raw original DAGMA)")
     print(f"  phase_a_metadata.json")
-    print(f"Total DAGMA time: {dt1 + dt2 + dt3:.1f}s ({(dt1 + dt2 + dt3) / 60:.1f} min)")
+    print(f"Total DAGMA time: {dt1 + dt2:.1f}s ({(dt1 + dt2) / 60:.1f} min)")
+    print(f"  Temporal (2N={2*N} vars): {dt1:.1f}s")
+    print(f"  Original (N={N} vars): {dt2:.1f}s")
 
 
 if __name__ == "__main__":
