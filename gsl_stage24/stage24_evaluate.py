@@ -125,7 +125,7 @@ def find_W_path(dataset, ph, seed):
     """Find the raw temporal W matrix, supporting both old and new naming."""
     prefix_map = {
         ("shenzhen", 1, 42): [
-            os.path.join(PROJECT_ROOT, "results/stage20_5_validation/sz_ph1_W_raw_temporal.npy"),
+            os.path.join(PROJECT_ROOT, "results/stage24_validation/sz_ph1_seed42_W_raw_temporal.npy"),
         ],
     }
     
