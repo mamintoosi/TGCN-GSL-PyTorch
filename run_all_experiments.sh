@@ -141,3 +141,112 @@ echo "========================================="
 echo "STAGE 25 EXPERIMENTS COMPLETED!"
 echo "End time: $(date)"
 echo "========================================="
+
+# ============================================================
+# STAGE 26 — FULL-SENSOR MULTI-LAG DAGMA + FORECASTING
+# ============================================================
+# Multi-lag DAGMA with L=3 lags on ALL sensors.
+# SZ-Taxi: (L+1)*N = 4*156 = 624 variables -> 624x624 matrix
+# Los-loop: (L+1)*N = 4*207 = 828 variables -> 828x828 matrix
+# Each DAGMA run: estimated 60-180 min depending on dataset size.
+#
+# Multi-lag block interpretation:
+#   lag_3: W[0:N, L*N:(L+1)*N] = sensor_i(t-3) -> sensor_j(t)
+#   lag_2: W[N:2N, L*N:(L+1)*N] = sensor_i(t-2) -> sensor_j(t)
+#   lag_1: W[2N:3N, L*N:(L+1)*N] = sensor_i(t-1) -> sensor_j(t)
+#   current: W[3N:4N, 3N:4N] = contemporaneous
+
+# ============================================================
+# STAGE 26A: DAGMA EXTRACTION (expensive, ~1-3 hrs per run)
+# ============================================================
+
+# --- SZ-Taxi PH=1 (624x624 matrix, ~60-120 min) ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_run_dagma.py --ph 1 --dataset shenzhen --lags 3 --seed 42" \
+    "results/stage26_validation/stage26A_sz_ph1_dagma_log.txt"
+
+# --- SZ-Taxi PH=2 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_run_dagma.py --ph 2 --dataset shenzhen --lags 3 --seed 42" \
+    "results/stage26_validation/stage26A_sz_ph2_dagma_log.txt"
+
+# --- SZ-Taxi PH=3 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_run_dagma.py --ph 3 --dataset shenzhen --lags 3 --seed 42" \
+    "results/stage26_validation/stage26A_sz_ph3_dagma_log.txt"
+
+# --- SZ-Taxi PH=4 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_run_dagma.py --ph 4 --dataset shenzhen --lags 3 --seed 42" \
+    "results/stage26_validation/stage26A_sz_ph4_dagma_log.txt"
+
+# --- Los-loop PH=1 (828x828 matrix, ~90-180 min) ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_run_dagma.py --ph 1 --dataset losloop --lags 3 --seed 42" \
+    "results/stage26_validation/stage26A_los_ph1_dagma_log.txt"
+
+# --- Los-loop PH=2 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_run_dagma.py --ph 2 --dataset losloop --lags 3 --seed 42" \
+    "results/stage26_validation/stage26A_los_ph2_dagma_log.txt"
+
+# --- Los-loop PH=3 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_run_dagma.py --ph 3 --dataset losloop --lags 3 --seed 42" \
+    "results/stage26_validation/stage26A_los_ph3_dagma_log.txt"
+
+# --- Los-loop PH=4 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_run_dagma.py --ph 4 --dataset losloop --lags 3 --seed 42" \
+    "results/stage26_validation/stage26A_los_ph4_dagma_log.txt"
+
+# ============================================================
+# STAGE 26B: FORECASTING EVALUATION
+# (requires Stage 26A outputs)
+# Each evaluation: ~15-30 min per (dataset, PH) pair
+# ============================================================
+
+# --- SZ-Taxi PH=1 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_evaluate.py --dataset shenzhen --ph 1 --seed 42 --max-epochs 50 --n-lags 3 --threshold 0.1" \
+    "results/stage26_validation/stage26B_sz_ph1_eval_log.txt"
+
+# --- SZ-Taxi PH=2 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_evaluate.py --dataset shenzhen --ph 2 --seed 42 --max-epochs 50 --n-lags 3 --threshold 0.1" \
+    "results/stage26_validation/stage26B_sz_ph2_eval_log.txt"
+
+# --- SZ-Taxi PH=3 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_evaluate.py --dataset shenzhen --ph 3 --seed 42 --max-epochs 50 --n-lags 3 --threshold 0.1" \
+    "results/stage26_validation/stage26B_sz_ph3_eval_log.txt"
+
+# --- SZ-Taxi PH=4 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_evaluate.py --dataset shenzhen --ph 4 --seed 42 --max-epochs 50 --n-lags 3 --threshold 0.1" \
+    "results/stage26_validation/stage26B_sz_ph4_eval_log.txt"
+
+# --- Los-loop PH=1 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_evaluate.py --dataset losloop --ph 1 --seed 42 --max-epochs 50 --n-lags 3 --threshold 0.1" \
+    "results/stage26_validation/stage26B_los_ph1_eval_log.txt"
+
+# --- Los-loop PH=2 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_evaluate.py --dataset losloop --ph 2 --seed 42 --max-epochs 50 --n-lags 3 --threshold 0.1" \
+    "results/stage26_validation/stage26B_los_ph2_eval_log.txt"
+
+# --- Los-loop PH=3 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_evaluate.py --dataset losloop --ph 3 --seed 42 --max-epochs 50 --n-lags 3 --threshold 0.1" \
+    "results/stage26_validation/stage26B_los_ph3_eval_log.txt"
+
+# --- Los-loop PH=4 ---
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage26/stage26_evaluate.py --dataset losloop --ph 4 --seed 42 --max-epochs 50 --n-lags 3 --threshold 0.1" \
+    "results/stage26_validation/stage26B_los_ph4_eval_log.txt"
+
+echo "========================================="
+echo "STAGE 26 EXPERIMENTS COMPLETED!"
+echo "End time: $(date)"
+echo "========================================="
