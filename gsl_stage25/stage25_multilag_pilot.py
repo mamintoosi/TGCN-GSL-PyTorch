@@ -87,11 +87,11 @@ def build_multilag_Z(data, n_lags, n_sensors=None, top_k_sensors=None):
 
 def run_dagma(Z, lambda1=0.01, seed=42, warm_iter=30000, max_iter=60000):
     """Run DAGMA on the multi-lag input."""
-    from dagma.linear import DagDagmaLinear
+    from dagma.linear import DagmaLinear
 
-    model = DagDagmaLinear(lambda1=lambda1)
-    W_est, loss = model.fit(Z, warm_iter=warm_iter, max_iter=max_iter)
-    return W_est, loss
+    model = DagmaLinear(loss_type="l2", verbose=True)
+    W_est = model.fit(Z, lambda1=lambda1, warm_iter=warm_iter, max_iter=max_iter, w_threshold=0.0)
+    return W_est, None
 
 
 def analyze_multilag_W(W_est, n_lags, N_small, threshold=0.1):
