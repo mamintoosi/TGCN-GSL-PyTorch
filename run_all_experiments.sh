@@ -71,3 +71,73 @@ echo "========================================="
 echo "ALL EXPERIMENTS COMPLETED SUCCESSFULLY!"
 echo "End time: $(date)"
 echo "========================================="
+
+# ============================================================
+# STAGE 25: TEMPORAL FUNCTIONAL GRAPH ANALYSIS & EXPERIMENTS
+# ============================================================
+# All DAGMA matrices already computed (Stage 24).
+# These experiments use existing matrices only.
+
+mkdir -p results/stage25_validation
+
+# ============================================================
+# Stage 25A: Graph Structural Analysis (Family A+B+H+I)
+# Fast: no training, pure numpy analysis
+# ============================================================
+echo "=== Stage 25A: Graph Structural Analysis ==="
+/data/python-envs/pytorch/bin/python gsl_stage25/stage25_graph_analysis.py --dataset shenzhen \
+    2>&1 | tee results/stage25_validation/stage25A_sz_analysis.txt
+
+/data/python-envs/pytorch/bin/python gsl_stage25/stage25_graph_analysis.py --dataset losloop \
+    2>&1 | tee results/stage25_validation/stage25A_los_analysis.txt
+
+# ============================================================
+# Stage 25B: Graph Ensembles & Physical-DAGMA Fusion (Family C+D)
+# Evaluates: ensembles, intersections, weighted fusion
+# ~20-40 min per dataset per PH (all baselines + new constructions)
+# ============================================================
+echo "=== Stage 25B: Graph Ensembles & Fusion ==="
+for ph in 1 2 3 4; do
+    run_with_limits \
+        "/data/python-envs/pytorch/bin/python gsl_stage25/stage25_graph_ensembles.py --dataset shenzhen --ph $ph --seed 42 --max-epochs 50" \
+        "results/stage25_validation/stage25B_sz_ph${ph}_ensembles.txt"
+done
+
+for ph in 1 2 3 4; do
+    run_with_limits \
+        "/data/python-envs/pytorch/bin/python gsl_stage25/stage25_graph_ensembles.py --dataset losloop --ph $ph --seed 42 --max-epochs 50" \
+        "results/stage25_validation/stage25B_los_ph${ph}_ensembles.txt"
+done
+
+# ============================================================
+# Stage 25C: Dual-Graph & Warm-Up Refinement (Family E+F)
+# Introduces new model architectures (DualGCN, DualTGCN)
+# ~20-30 min per dataset
+# ============================================================
+echo "=== Stage 25C: Dual-Graph & Warm-Up ==="
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage25/stage25_dual_graph.py --dataset shenzhen --ph 1 --seed 42 --max-epochs 50" \
+    "results/stage25_validation/stage25C_sz_dual_warmup.txt"
+
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage25/stage25_dual_graph.py --dataset losloop --ph 1 --seed 42 --max-epochs 50" \
+    "results/stage25_validation/stage25C_los_dual_warmup.txt"
+
+# ============================================================
+# Stage 25D: Multi-Lag DAGMA Pilot (Family G)
+# Small-scale test with N=20 sensors, 3 lags
+# ~5-10 min
+# ============================================================
+echo "=== Stage 25D: Multi-Lag Pilot ==="
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage25/stage25_multilag_pilot.py --dataset shenzhen --n-sensors 20 --lags 3 --max-iter 30000 --warm-iter 15000" \
+    "results/stage25_validation/stage25D_sz_multilag_pilot.txt"
+
+run_with_limits \
+    "/data/python-envs/pytorch/bin/python gsl_stage25/stage25_multilag_pilot.py --dataset losloop --n-sensors 20 --lags 3 --max-iter 30000 --warm-iter 15000" \
+    "results/stage25_validation/stage25D_los_multilag_pilot.txt"
+
+echo "========================================="
+echo "STAGE 25 EXPERIMENTS COMPLETED!"
+echo "End time: $(date)"
+echo "========================================="

@@ -1,0 +1,1430 @@
+{
+  "dataset": "losloop",
+  "seed": 42,
+  "N": 207,
+  "n_ph_available": 4,
+  "available_phs": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "edge_counts_vs_threshold": {
+    "0.001": {
+      "1": 251,
+      "2": 235,
+      "3": 197,
+      "4": 189
+    },
+    "0.005": {
+      "1": 193,
+      "2": 186,
+      "3": 167,
+      "4": 161
+    },
+    "0.01": {
+      "1": 181,
+      "2": 168,
+      "3": 149,
+      "4": 139
+    },
+    "0.05": {
+      "1": 99,
+      "2": 95,
+      "3": 73,
+      "4": 66
+    },
+    "0.1": {
+      "1": 60,
+      "2": 56,
+      "3": 40,
+      "4": 38
+    },
+    "0.2": {
+      "1": 14,
+      "2": 12,
+      "3": 7,
+      "4": 6
+    },
+    "0.3": {
+      "1": 6,
+      "2": 2,
+      "3": 3,
+      "4": 2
+    },
+    "0.5": {
+      "1": 2,
+      "2": 0,
+      "3": 0,
+      "4": 0
+    }
+  },
+  "top_k_edge_counts": {
+    "1": {
+      "1": 1,
+      "2": 1,
+      "3": 1,
+      "4": 1
+    },
+    "4": {
+      "1": 4,
+      "2": 4,
+      "3": 4,
+      "4": 4
+    },
+    "8": {
+      "1": 8,
+      "2": 8,
+      "3": 8,
+      "4": 8
+    },
+    "16": {
+      "1": 16,
+      "2": 16,
+      "3": 16,
+      "4": 16
+    },
+    "32": {
+      "1": 32,
+      "2": 32,
+      "3": 32,
+      "4": 32
+    },
+    "64": {
+      "1": 64,
+      "2": 64,
+      "3": 64,
+      "4": 64
+    },
+    "128": {
+      "1": 128,
+      "2": 128,
+      "3": 128,
+      "4": 128
+    }
+  },
+  "cross_ph_similarity": {
+    "0.001": {
+      "PH1_vs_PH2": {
+        "jaccard": 0.514,
+        "intersection": 165,
+        "union": 321,
+        "only_in_ph1": 86,
+        "only_in_ph2": 70
+      },
+      "PH1_vs_PH3": {
+        "jaccard": 0.4498,
+        "intersection": 139,
+        "union": 309,
+        "only_in_ph1": 112,
+        "only_in_ph2": 58
+      },
+      "PH1_vs_PH4": {
+        "jaccard": 0.3968,
+        "intersection": 125,
+        "union": 315,
+        "only_in_ph1": 126,
+        "only_in_ph2": 64
+      },
+      "PH2_vs_PH3": {
+        "jaccard": 0.5211,
+        "intersection": 148,
+        "union": 284,
+        "only_in_ph1": 87,
+        "only_in_ph2": 49
+      },
+      "PH2_vs_PH4": {
+        "jaccard": 0.4877,
+        "intersection": 139,
+        "union": 285,
+        "only_in_ph1": 96,
+        "only_in_ph2": 50
+      },
+      "PH3_vs_PH4": {
+        "jaccard": 0.4789,
+        "intersection": 125,
+        "union": 261,
+        "only_in_ph1": 72,
+        "only_in_ph2": 64
+      }
+    },
+    "0.005": {
+      "PH1_vs_PH2": {
+        "jaccard": 0.5282,
+        "intersection": 131,
+        "union": 248,
+        "only_in_ph1": 62,
+        "only_in_ph2": 55
+      },
+      "PH1_vs_PH3": {
+        "jaccard": 0.4062,
+        "intersection": 104,
+        "union": 256,
+        "only_in_ph1": 89,
+        "only_in_ph2": 63
+      },
+      "PH1_vs_PH4": {
+        "jaccard": 0.3937,
+        "intersection": 100,
+        "union": 254,
+        "only_in_ph1": 93,
+        "only_in_ph2": 61
+      },
+      "PH2_vs_PH3": {
+        "jaccard": 0.5348,
+        "intersection": 123,
+        "union": 230,
+        "only_in_ph1": 63,
+        "only_in_ph2": 44
+      },
+      "PH2_vs_PH4": {
+        "jaccard": 0.5153,
+        "intersection": 118,
+        "union": 229,
+        "only_in_ph1": 68,
+        "only_in_ph2": 43
+      },
+      "PH3_vs_PH4": {
+        "jaccard": 0.5185,
+        "intersection": 112,
+        "union": 216,
+        "only_in_ph1": 55,
+        "only_in_ph2": 49
+      }
+    },
+    "0.01": {
+      "PH1_vs_PH2": {
+        "jaccard": 0.5442,
+        "intersection": 123,
+        "union": 226,
+        "only_in_ph1": 58,
+        "only_in_ph2": 45
+      },
+      "PH1_vs_PH3": {
+        "jaccard": 0.4163,
+        "intersection": 97,
+        "union": 233,
+        "only_in_ph1": 84,
+        "only_in_ph2": 52
+      },
+      "PH1_vs_PH4": {
+        "jaccard": 0.3974,
+        "intersection": 91,
+        "union": 229,
+        "only_in_ph1": 90,
+        "only_in_ph2": 48
+      },
+      "PH2_vs_PH3": {
+        "jaccard": 0.5167,
+        "intersection": 108,
+        "union": 209,
+        "only_in_ph1": 60,
+        "only_in_ph2": 41
+      },
+      "PH2_vs_PH4": {
+        "jaccard": 0.4689,
+        "intersection": 98,
+        "union": 209,
+        "only_in_ph1": 70,
+        "only_in_ph2": 41
+      },
+      "PH3_vs_PH4": {
+        "jaccard": 0.5238,
+        "intersection": 99,
+        "union": 189,
+        "only_in_ph1": 50,
+        "only_in_ph2": 40
+      }
+    },
+    "0.05": {
+      "PH1_vs_PH2": {
+        "jaccard": 0.5039,
+        "intersection": 65,
+        "union": 129,
+        "only_in_ph1": 34,
+        "only_in_ph2": 30
+      },
+      "PH1_vs_PH3": {
+        "jaccard": 0.3438,
+        "intersection": 44,
+        "union": 128,
+        "only_in_ph1": 55,
+        "only_in_ph2": 29
+      },
+      "PH1_vs_PH4": {
+        "jaccard": 0.3415,
+        "intersection": 42,
+        "union": 123,
+        "only_in_ph1": 57,
+        "only_in_ph2": 24
+      },
+      "PH2_vs_PH3": {
+        "jaccard": 0.5273,
+        "intersection": 58,
+        "union": 110,
+        "only_in_ph1": 37,
+        "only_in_ph2": 15
+      },
+      "PH2_vs_PH4": {
+        "jaccard": 0.4636,
+        "intersection": 51,
+        "union": 110,
+        "only_in_ph1": 44,
+        "only_in_ph2": 15
+      },
+      "PH3_vs_PH4": {
+        "jaccard": 0.4946,
+        "intersection": 46,
+        "union": 93,
+        "only_in_ph1": 27,
+        "only_in_ph2": 20
+      }
+    },
+    "0.1": {
+      "PH1_vs_PH2": {
+        "jaccard": 0.4872,
+        "intersection": 38,
+        "union": 78,
+        "only_in_ph1": 22,
+        "only_in_ph2": 18
+      },
+      "PH1_vs_PH3": {
+        "jaccard": 0.3158,
+        "intersection": 24,
+        "union": 76,
+        "only_in_ph1": 36,
+        "only_in_ph2": 16
+      },
+      "PH1_vs_PH4": {
+        "jaccard": 0.3243,
+        "intersection": 24,
+        "union": 74,
+        "only_in_ph1": 36,
+        "only_in_ph2": 14
+      },
+      "PH2_vs_PH3": {
+        "jaccard": 0.4769,
+        "intersection": 31,
+        "union": 65,
+        "only_in_ph1": 25,
+        "only_in_ph2": 9
+      },
+      "PH2_vs_PH4": {
+        "jaccard": 0.4242,
+        "intersection": 28,
+        "union": 66,
+        "only_in_ph1": 28,
+        "only_in_ph2": 10
+      },
+      "PH3_vs_PH4": {
+        "jaccard": 0.4182,
+        "intersection": 23,
+        "union": 55,
+        "only_in_ph1": 17,
+        "only_in_ph2": 15
+      }
+    },
+    "0.2": {
+      "PH1_vs_PH2": {
+        "jaccard": 0.1818,
+        "intersection": 4,
+        "union": 22,
+        "only_in_ph1": 10,
+        "only_in_ph2": 8
+      },
+      "PH1_vs_PH3": {
+        "jaccard": 0.1053,
+        "intersection": 2,
+        "union": 19,
+        "only_in_ph1": 12,
+        "only_in_ph2": 5
+      },
+      "PH1_vs_PH4": {
+        "jaccard": 0.1111,
+        "intersection": 2,
+        "union": 18,
+        "only_in_ph1": 12,
+        "only_in_ph2": 4
+      },
+      "PH2_vs_PH3": {
+        "jaccard": 0.2667,
+        "intersection": 4,
+        "union": 15,
+        "only_in_ph1": 8,
+        "only_in_ph2": 3
+      },
+      "PH2_vs_PH4": {
+        "jaccard": 0.125,
+        "intersection": 2,
+        "union": 16,
+        "only_in_ph1": 10,
+        "only_in_ph2": 4
+      },
+      "PH3_vs_PH4": {
+        "jaccard": 0.1818,
+        "intersection": 2,
+        "union": 11,
+        "only_in_ph1": 5,
+        "only_in_ph2": 4
+      }
+    },
+    "0.3": {
+      "PH1_vs_PH2": {
+        "jaccard": 0.0,
+        "intersection": 0,
+        "union": 8,
+        "only_in_ph1": 6,
+        "only_in_ph2": 2
+      },
+      "PH1_vs_PH3": {
+        "jaccard": 0.0,
+        "intersection": 0,
+        "union": 9,
+        "only_in_ph1": 6,
+        "only_in_ph2": 3
+      },
+      "PH1_vs_PH4": {
+        "jaccard": 0.0,
+        "intersection": 0,
+        "union": 8,
+        "only_in_ph1": 6,
+        "only_in_ph2": 2
+      },
+      "PH2_vs_PH3": {
+        "jaccard": 0.6667,
+        "intersection": 2,
+        "union": 3,
+        "only_in_ph1": 0,
+        "only_in_ph2": 1
+      },
+      "PH2_vs_PH4": {
+        "jaccard": 0.0,
+        "intersection": 0,
+        "union": 4,
+        "only_in_ph1": 2,
+        "only_in_ph2": 2
+      },
+      "PH3_vs_PH4": {
+        "jaccard": 0.0,
+        "intersection": 0,
+        "union": 5,
+        "only_in_ph1": 3,
+        "only_in_ph2": 2
+      }
+    },
+    "0.5": {
+      "PH1_vs_PH2": {
+        "jaccard": 0.0,
+        "intersection": 0,
+        "union": 2,
+        "only_in_ph1": 2,
+        "only_in_ph2": 0
+      },
+      "PH1_vs_PH3": {
+        "jaccard": 0.0,
+        "intersection": 0,
+        "union": 2,
+        "only_in_ph1": 2,
+        "only_in_ph2": 0
+      },
+      "PH1_vs_PH4": {
+        "jaccard": 0.0,
+        "intersection": 0,
+        "union": 2,
+        "only_in_ph1": 2,
+        "only_in_ph2": 0
+      },
+      "PH2_vs_PH3": {
+        "jaccard": 1.0,
+        "intersection": 0,
+        "union": 0,
+        "only_in_ph1": 0,
+        "only_in_ph2": 0
+      },
+      "PH2_vs_PH4": {
+        "jaccard": 1.0,
+        "intersection": 0,
+        "union": 0,
+        "only_in_ph1": 0,
+        "only_in_ph2": 0
+      },
+      "PH3_vs_PH4": {
+        "jaccard": 1.0,
+        "intersection": 0,
+        "union": 0,
+        "only_in_ph1": 0,
+        "only_in_ph2": 0
+      }
+    }
+  },
+  "persistence_analysis": {
+    "threshold": 0.1,
+    "total_unique_edges": 95,
+    "persistent_all_phs": 19,
+    "persistent_any_phs": 95,
+    "fraction_persistent_all": 0.2,
+    "edge_details": {
+      "(np.int64(4), np.int64(191))": {
+        "n_phs": 1,
+        "phs": [
+          2
+        ]
+      },
+      "(np.int64(9), np.int64(56))": {
+        "n_phs": 1,
+        "phs": [
+          4
+        ]
+      },
+      "(np.int64(9), np.int64(139))": {
+        "n_phs": 1,
+        "phs": [
+          4
+        ]
+      },
+      "(np.int64(12), np.int64(15))": {
+        "n_phs": 1,
+        "phs": [
+          2
+        ]
+      },
+      "(np.int64(12), np.int64(144))": {
+        "n_phs": 2,
+        "phs": [
+          1,
+          4
+        ]
+      },
+      "(np.int64(12), np.int64(191))": {
+        "n_phs": 3,
+        "phs": [
+          1,
+          2,
+          4
+        ]
+      },
+      "(np.int64(12), np.int64(193))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(28), np.int64(64))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(28), np.int64(79))": {
+        "n_phs": 1,
+        "phs": [
+          3
+        ]
+      },
+      "(np.int64(38), np.int64(48))": {
+        "n_phs": 1,
+        "phs": [
+          2
+        ]
+      },
+      "(np.int64(38), np.int64(81))": {
+        "n_phs": 2,
+        "phs": [
+          2,
+          3
+        ]
+      },
+      "(np.int64(38), np.int64(160))": {
+        "n_phs": 1,
+        "phs": [
+          4
+        ]
+      },
+      "(np.int64(40), np.int64(88))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(43), np.int64(130))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(43), np.int64(148))": {
+        "n_phs": 3,
+        "phs": [
+          1,
+          2,
+          3
+        ]
+      },
+      "(np.int64(47), np.int64(60))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(52), np.int64(47))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(52), np.int64(82))": {
+        "n_phs": 1,
+        "phs": [
+          3
+        ]
+      },
+      "(np.int64(61), np.int64(146))": {
+        "n_phs": 1,
+        "phs": [
+          4
+        ]
+      },
+      "(np.int64(61), np.int64(149))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(61), np.int64(172))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(61), np.int64(195))": {
+        "n_phs": 2,
+        "phs": [
+          1,
+          2
+        ]
+      },
+      "(np.int64(68), np.int64(103))": {
+        "n_phs": 1,
+        "phs": [
+          2
+        ]
+      },
+      "(np.int64(69), np.int64(164))": {
+        "n_phs": 2,
+        "phs": [
+          1,
+          2
+        ]
+      },
+      "(np.int64(70), np.int64(40))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(72), np.int64(61))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(73), np.int64(52))": {
+        "n_phs": 3,
+        "phs": [
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(76), np.int64(82))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(77), np.int64(102))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(77), np.int64(148))": {
+        "n_phs": 3,
+        "phs": [
+          1,
+          2,
+          3
+        ]
+      },
+      "(np.int64(78), np.int64(79))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(79), np.int64(64))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(81), np.int64(198))": {
+        "n_phs": 2,
+        "phs": [
+          2,
+          3
+        ]
+      },
+      "(np.int64(82), np.int64(43))": {
+        "n_phs": 2,
+        "phs": [
+          1,
+          2
+        ]
+      },
+      "(np.int64(82), np.int64(60))": {
+        "n_phs": 1,
+        "phs": [
+          2
+        ]
+      },
+      "(np.int64(97), np.int64(149))": {
+        "n_phs": 3,
+        "phs": [
+          1,
+          2,
+          4
+        ]
+      },
+      "(np.int64(100), np.int64(87))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(100), np.int64(139))": {
+        "n_phs": 1,
+        "phs": [
+          4
+        ]
+      },
+      "(np.int64(100), np.int64(148))": {
+        "n_phs": 1,
+        "phs": [
+          4
+        ]
+      },
+      "(np.int64(100), np.int64(150))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(111), np.int64(142))": {
+        "n_phs": 2,
+        "phs": [
+          1,
+          2
+        ]
+      },
+      "(np.int64(111), np.int64(145))": {
+        "n_phs": 3,
+        "phs": [
+          1,
+          2,
+          3
+        ]
+      },
+      "(np.int64(125), np.int64(174))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(139), np.int64(25))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(144), np.int64(12))": {
+        "n_phs": 1,
+        "phs": [
+          2
+        ]
+      },
+      "(np.int64(144), np.int64(26))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(146), np.int64(158))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(146), np.int64(172))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(149), np.int64(19))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(34))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(39))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(42))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(54))": {
+        "n_phs": 3,
+        "phs": [
+          1,
+          2,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(57))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(74))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(89))": {
+        "n_phs": 2,
+        "phs": [
+          1,
+          2
+        ]
+      },
+      "(np.int64(149), np.int64(94))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(104))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(111))": {
+        "n_phs": 3,
+        "phs": [
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(119))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(134))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(149), np.int64(138))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(142))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(175))": {
+        "n_phs": 3,
+        "phs": [
+          1,
+          2,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(186))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(149), np.int64(199))": {
+        "n_phs": 2,
+        "phs": [
+          1,
+          2
+        ]
+      },
+      "(np.int64(155), np.int64(159))": {
+        "n_phs": 2,
+        "phs": [
+          1,
+          2
+        ]
+      },
+      "(np.int64(157), np.int64(162))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(160), np.int64(82))": {
+        "n_phs": 1,
+        "phs": [
+          3
+        ]
+      },
+      "(np.int64(162), np.int64(145))": {
+        "n_phs": 2,
+        "phs": [
+          2,
+          3
+        ]
+      },
+      "(np.int64(163), np.int64(159))": {
+        "n_phs": 1,
+        "phs": [
+          3
+        ]
+      },
+      "(np.int64(163), np.int64(160))": {
+        "n_phs": 1,
+        "phs": [
+          2
+        ]
+      },
+      "(np.int64(164), np.int64(61))": {
+        "n_phs": 2,
+        "phs": [
+          2,
+          3
+        ]
+      },
+      "(np.int64(164), np.int64(113))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(165), np.int64(174))": {
+        "n_phs": 2,
+        "phs": [
+          1,
+          2
+        ]
+      },
+      "(np.int64(174), np.int64(165))": {
+        "n_phs": 1,
+        "phs": [
+          3
+        ]
+      },
+      "(np.int64(174), np.int64(170))": {
+        "n_phs": 3,
+        "phs": [
+          1,
+          2,
+          3
+        ]
+      },
+      "(np.int64(176), np.int64(2))": {
+        "n_phs": 2,
+        "phs": [
+          2,
+          4
+        ]
+      },
+      "(np.int64(176), np.int64(29))": {
+        "n_phs": 3,
+        "phs": [
+          1,
+          2,
+          3
+        ]
+      },
+      "(np.int64(176), np.int64(78))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(176), np.int64(79))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(176), np.int64(102))": {
+        "n_phs": 4,
+        "phs": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(176), np.int64(103))": {
+        "n_phs": 3,
+        "phs": [
+          2,
+          3,
+          4
+        ]
+      },
+      "(np.int64(186), np.int64(104))": {
+        "n_phs": 1,
+        "phs": [
+          2
+        ]
+      },
+      "(np.int64(187), np.int64(12))": {
+        "n_phs": 2,
+        "phs": [
+          1,
+          2
+        ]
+      },
+      "(np.int64(187), np.int64(160))": {
+        "n_phs": 1,
+        "phs": [
+          2
+        ]
+      },
+      "(np.int64(191), np.int64(12))": {
+        "n_phs": 1,
+        "phs": [
+          3
+        ]
+      },
+      "(np.int64(191), np.int64(144))": {
+        "n_phs": 1,
+        "phs": [
+          3
+        ]
+      },
+      "(np.int64(195), np.int64(192))": {
+        "n_phs": 2,
+        "phs": [
+          1,
+          2
+        ]
+      },
+      "(np.int64(198), np.int64(37))": {
+        "n_phs": 1,
+        "phs": [
+          4
+        ]
+      },
+      "(np.int64(198), np.int64(97))": {
+        "n_phs": 1,
+        "phs": [
+          3
+        ]
+      },
+      "(np.int64(198), np.int64(111))": {
+        "n_phs": 2,
+        "phs": [
+          2,
+          4
+        ]
+      },
+      "(np.int64(198), np.int64(128))": {
+        "n_phs": 1,
+        "phs": [
+          1
+        ]
+      },
+      "(np.int64(198), np.int64(145))": {
+        "n_phs": 1,
+        "phs": [
+          4
+        ]
+      },
+      "(np.int64(198), np.int64(157))": {
+        "n_phs": 2,
+        "phs": [
+          3,
+          4
+        ]
+      }
+    }
+  },
+  "weight_correlation": {
+    "PH1_vs_PH2": 0.7424,
+    "PH1_vs_PH3": 0.566,
+    "PH1_vs_PH4": 0.5135,
+    "PH2_vs_PH3": 0.7745,
+    "PH2_vs_PH4": 0.6759,
+    "PH3_vs_PH4": 0.7493
+  },
+  "degree_distributions": {
+    "1": {
+      "out_degree_mean": 0.29,
+      "out_degree_max": 17,
+      "in_degree_mean": 0.29,
+      "in_degree_max": 2,
+      "n_isolated_out": 175,
+      "n_isolated_in": 155
+    },
+    "2": {
+      "out_degree_mean": 0.27,
+      "out_degree_max": 17,
+      "in_degree_mean": 0.27,
+      "in_degree_max": 2,
+      "n_isolated_out": 179,
+      "n_isolated_in": 162
+    },
+    "3": {
+      "out_degree_mean": 0.19,
+      "out_degree_max": 13,
+      "in_degree_mean": 0.19,
+      "in_degree_max": 2,
+      "n_isolated_out": 186,
+      "n_isolated_in": 171
+    },
+    "4": {
+      "out_degree_mean": 0.18,
+      "out_degree_max": 15,
+      "in_degree_mean": 0.18,
+      "in_degree_max": 2,
+      "n_isolated_out": 193,
+      "n_isolated_in": 172
+    }
+  },
+  "top_edges": {
+    "1": [
+      {
+        "source": 76,
+        "target": 82,
+        "weight": 0.667859,
+        "abs_weight": 0.667859
+      },
+      {
+        "source": 72,
+        "target": 61,
+        "weight": 0.660653,
+        "abs_weight": 0.660653
+      },
+      {
+        "source": 69,
+        "target": 164,
+        "weight": 0.398783,
+        "abs_weight": 0.398783
+      },
+      {
+        "source": 187,
+        "target": 12,
+        "weight": 0.378869,
+        "abs_weight": 0.378869
+      },
+      {
+        "source": 82,
+        "target": 43,
+        "weight": 0.334325,
+        "abs_weight": 0.334325
+      },
+      {
+        "source": 77,
+        "target": 148,
+        "weight": 0.300747,
+        "abs_weight": 0.300747
+      },
+      {
+        "source": 40,
+        "target": 88,
+        "weight": 0.286891,
+        "abs_weight": 0.286891
+      },
+      {
+        "source": 100,
+        "target": 87,
+        "weight": 0.272996,
+        "abs_weight": 0.272996
+      },
+      {
+        "source": 12,
+        "target": 144,
+        "weight": 0.254641,
+        "abs_weight": 0.254641
+      },
+      {
+        "source": 164,
+        "target": 113,
+        "weight": 0.249614,
+        "abs_weight": 0.249614
+      }
+    ],
+    "2": [
+      {
+        "source": 164,
+        "target": 61,
+        "weight": 0.366829,
+        "abs_weight": 0.366829
+      },
+      {
+        "source": 73,
+        "target": 52,
+        "weight": 0.32276,
+        "abs_weight": 0.32276
+      },
+      {
+        "source": 79,
+        "target": 64,
+        "weight": 0.26086,
+        "abs_weight": 0.26086
+      },
+      {
+        "source": 187,
+        "target": 12,
+        "weight": 0.260752,
+        "abs_weight": 0.260752
+      },
+      {
+        "source": 82,
+        "target": 43,
+        "weight": 0.259262,
+        "abs_weight": 0.259262
+      },
+      {
+        "source": 176,
+        "target": 78,
+        "weight": 0.228285,
+        "abs_weight": 0.228285
+      },
+      {
+        "source": 77,
+        "target": 148,
+        "weight": 0.227129,
+        "abs_weight": 0.227129
+      },
+      {
+        "source": 155,
+        "target": 159,
+        "weight": 0.213751,
+        "abs_weight": 0.213751
+      },
+      {
+        "source": 187,
+        "target": 160,
+        "weight": 0.208393,
+        "abs_weight": 0.208393
+      },
+      {
+        "source": 163,
+        "target": 160,
+        "weight": 0.202328,
+        "abs_weight": 0.202328
+      }
+    ],
+    "3": [
+      {
+        "source": 164,
+        "target": 61,
+        "weight": 0.421436,
+        "abs_weight": 0.421436
+      },
+      {
+        "source": 73,
+        "target": 52,
+        "weight": 0.358627,
+        "abs_weight": 0.358627
+      },
+      {
+        "source": 191,
+        "target": 144,
+        "weight": 0.309821,
+        "abs_weight": 0.309821
+      },
+      {
+        "source": 77,
+        "target": 148,
+        "weight": 0.276836,
+        "abs_weight": 0.276836
+      },
+      {
+        "source": 191,
+        "target": 12,
+        "weight": 0.264879,
+        "abs_weight": 0.264879
+      },
+      {
+        "source": 79,
+        "target": 64,
+        "weight": 0.259077,
+        "abs_weight": 0.259077
+      },
+      {
+        "source": 198,
+        "target": 97,
+        "weight": 0.221802,
+        "abs_weight": 0.221802
+      },
+      {
+        "source": 52,
+        "target": 82,
+        "weight": 0.185591,
+        "abs_weight": 0.185591
+      },
+      {
+        "source": 43,
+        "target": 148,
+        "weight": 0.177859,
+        "abs_weight": 0.177859
+      },
+      {
+        "source": 149,
+        "target": 57,
+        "weight": 0.175032,
+        "abs_weight": 0.175032
+      }
+    ],
+    "4": [
+      {
+        "source": 38,
+        "target": 160,
+        "weight": 0.486116,
+        "abs_weight": 0.486116
+      },
+      {
+        "source": 79,
+        "target": 64,
+        "weight": 0.310089,
+        "abs_weight": 0.310089
+      },
+      {
+        "source": 12,
+        "target": 144,
+        "weight": 0.278491,
+        "abs_weight": 0.278491
+      },
+      {
+        "source": 73,
+        "target": 52,
+        "weight": 0.268242,
+        "abs_weight": 0.268242
+      },
+      {
+        "source": 149,
+        "target": 57,
+        "weight": 0.241565,
+        "abs_weight": 0.241565
+      },
+      {
+        "source": 149,
+        "target": 119,
+        "weight": 0.207559,
+        "abs_weight": 0.207559
+      },
+      {
+        "source": 149,
+        "target": 74,
+        "weight": 0.197169,
+        "abs_weight": 0.197169
+      },
+      {
+        "source": 97,
+        "target": 149,
+        "weight": 0.194227,
+        "abs_weight": 0.194227
+      },
+      {
+        "source": 149,
+        "target": 186,
+        "weight": 0.189425,
+        "abs_weight": 0.189425
+      },
+      {
+        "source": 149,
+        "target": 111,
+        "weight": 0.188809,
+        "abs_weight": 0.188809
+      }
+    ]
+  }
+}
