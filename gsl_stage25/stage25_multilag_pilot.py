@@ -204,7 +204,7 @@ def main():
         "total_variables": (args.lags + 1) * args.n_sensors,
         "lambda1": args.lambda1,
         "runtime_s": round(runtime, 1),
-        "final_loss": round(loss, 6),
+        "final_loss": round(loss, 6) if loss is not None else None,
         "sensor_indices": sensor_idx.tolist(),
         "per_lag_analysis": analysis,
     }
