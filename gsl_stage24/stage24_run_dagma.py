@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
 """
-Stage 24 — Run temporal DAGMA for PH=2,3,4 on SZ-Taxi.
+Stage 24 — Run temporal DAGMA for any dataset/PH/seed combination.
 
-For PH=1, reuse the existing matrix from Stage 20.5.
-For PH=2,3,4, run fresh DAGMA and save results.
+Supports:
+  - SZ-Taxi (shenzhen): N=156
+  - Los-loop: N=207
 
 Usage:
-  # Run DAGMA for PH=2 (takes ~10 min)
-  python gsl_stage24/stage24_run_dagma.py --ph 2
-
-  # Run DAGMA for PH=3 (takes ~7 min)
-  python gsl_stage24/stage24_run_dagma.py --ph 3
-
-  # Run DAGMA for PH=4 (takes ~5 min)
-  python gsl_stage24/stage24_run_dagma.py --ph 4
+  python gsl_stage24/stage24_run_dagma.py --ph 1 --seed 42
+  python gsl_stage24/stage24_run_dagma.py --ph 1 --seed 43
+  python gsl_stage24/stage24_run_dagma.py --ph 1 --dataset losloop
 """
 import os
 import sys
@@ -30,30 +26,32 @@ from dagma.linear import DagmaLinear
 RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", "stage24_validation")
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
+# Dataset configurations
+DATASET_CONFIGS = {
+    "shenzhen": {
+        "feat_path": "data/sz_speed.csv",
+        "adj_path": "data/sz_adj.csv",
+        "N": 156,
+    },
+    "losloop": {
+        "feat_path": "data/los_speed.csv",
+        "adj_path": "data/los_adj.csv",
+        "N": 207,
+    },
+}
+
 
 def build_Z_for_ph(train_norm, N, seq_len, ph):
-    """
-    Build DAGMA input Z for a given PH.
-    
-    PH affects the subsampling: data[::ph] means every ph-th row is used.
-    This changes the number of samples in Z.
-    
-    Returns:
-        Z: (M-1, 2N) temporal DAGMA input
-        M_orig: number of rows before Z construction
-    """
-    # Build sliding windows (same as phase_a_run_dagma.py)
+    """Build DAGMA input Z for a given PH."""
     Xs = []
     for i in range(len(train_norm) - seq_len - 1):
         Xs.append(train_norm[i:i + seq_len])
     Xs = np.array(Xs)
     data = Xs[:, 0, :]  # (M, N) — first timestep of each window
     
-    # PH-specific subsampling
-    X_orig = data[::ph]  # Every ph-th row
+    X_orig = data[::ph]
     M_orig = X_orig.shape[0]
     
-    # Build Z = [x(t-1), x(t)]
     M = M_orig - 1
     Z = np.zeros((M, 2 * N), dtype=np.float32)
     Z[:, 0:N] = X_orig[:-1]
@@ -62,40 +60,58 @@ def build_Z_for_ph(train_norm, N, seq_len, ph):
     return Z, M_orig
 
 
+def get_output_prefix(dataset, ph, seed):
+    """Generate output prefix based on dataset/ph/seed."""
+    if dataset == "shenzhen":
+        return f"sz_ph{ph}_seed{seed}"
+    elif dataset == "losloop":
+        return f"los_ph{ph}_seed{seed}"
+    else:
+        return f"{dataset}_ph{ph}_seed{seed}"
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Stage 24: Run temporal DAGMA for specific PH")
+    parser = argparse.ArgumentParser(description="Stage 24: Run temporal DAGMA")
     parser.add_argument("--ph", type=int, required=True, choices=[1, 2, 3, 4],
                         help="Prediction horizon")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    parser.add_argument("--dataset", type=str, default="shenzhen",
+                        choices=["shenzhen", "losloop"],
+                        help="Dataset name")
     parser.add_argument("--lambda1", type=float, default=0.01, help="DAGMA L1 coefficient")
+    parser.add_argument("--force", action="store_true",
+                        help="Force re-run even if output exists")
     args = parser.parse_args()
     
     ph = args.ph
     seed = args.seed
-    N = 156
+    dataset = args.dataset
+    config = DATASET_CONFIGS[dataset]
+    N = config["N"]
+    prefix = get_output_prefix(dataset, ph, seed)
     
     print("=" * 70)
-    print(f"STAGE 24: Temporal DAGMA for PH={ph}, seed={seed}")
-    print(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"STAGE 24: Temporal DAGMA — {dataset}, PH={ph}, seed={seed}")
+    print(f"N={N}, Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 70)
     
-    # Check if PH=1 already exists
-    if ph == 1:
-        existing = os.path.join(PROJECT_ROOT, "results/stage20_5_validation/sz_ph1_W_raw_temporal.npy")
-        if os.path.exists(existing):
-            print(f"\nPH=1 matrix already exists: {existing}")
-            print("Reusing existing matrix. No DAGMA run needed.")
-            return
+    # Check if output already exists
+    W_path = os.path.join(RESULTS_DIR, f"{prefix}_W_raw_temporal.npy")
+    if os.path.exists(W_path) and not args.force:
+        print(f"\nOutput already exists: {W_path}")
+        print("Use --force to re-run.")
+        return
     
     # Load and normalize data
-    feat = np.array(pd.read_csv(os.path.join(PROJECT_ROOT, "data/sz_speed.csv")), dtype=np.float32)
+    feat = np.array(pd.read_csv(os.path.join(PROJECT_ROOT, config["feat_path"])),
+                    dtype=np.float32)
     T_full, N_data = feat.shape
     split = int(T_full * 0.8)
     train = feat[:split]
     feat_max = float(np.max(train))
     train_norm = train / feat_max
     
-    print(f"\nDataset: SZ-Taxi, N={N_data}")
+    print(f"\nDataset: {dataset}, N={N_data}")
     print(f"Train timesteps: {split}")
     print(f"feat_max: {feat_max:.6f}")
     
@@ -103,7 +119,6 @@ def main():
     seq_len = 12
     Z, M_orig = build_Z_for_ph(train_norm, N, seq_len, ph)
     print(f"PH={ph}: X_orig rows = {M_orig}, Z shape = {Z.shape}")
-    print(f"  (PH=1 has {2367} rows, PH={ph} has {M_orig} rows)")
     
     # Run DAGMA
     print(f"\nRunning DAGMA (lambda1={args.lambda1}, w_threshold=0.0)...")
@@ -115,17 +130,16 @@ def main():
     print(f"DAGMA completed in {runtime:.1f}s ({runtime/60:.1f} min)")
     
     # Save raw W
-    W_path = os.path.join(RESULTS_DIR, f"sz_ph{ph}_W_raw_temporal.npy")
     np.save(W_path, W)
     
     # Extract correct temporal block
     W_cross = W[0:N, N:2*N]
-    W_cross_path = os.path.join(RESULTS_DIR, f"sz_ph{ph}_W_cross_correct.npy")
+    W_cross_path = os.path.join(RESULTS_DIR, f"{prefix}_W_cross_correct.npy")
     np.save(W_cross_path, W_cross)
     
     # Save metadata
     metadata = {
-        "dataset": "shenzhen",
+        "dataset": dataset,
         "N": N,
         "PH": ph,
         "seed": seed,
@@ -142,10 +156,9 @@ def main():
         "runtime_min": round(runtime / 60, 1),
         "timestamp": time.strftime('%Y-%m-%d %H:%M:%S'),
         "correct_block": "W[0:N, N:2N] (past -> current)",
-        "wrong_block_Was": "W[N:2N, 0:N] (current -> past) — Stage 20.5 bug",
         "script": "gsl_stage24/stage24_run_dagma.py",
     }
-    meta_path = os.path.join(RESULTS_DIR, f"sz_ph{ph}_metadata.json")
+    meta_path = os.path.join(RESULTS_DIR, f"{prefix}_metadata.json")
     with open(meta_path, "w") as f:
         json.dump(metadata, f, indent=2)
     
@@ -157,7 +170,6 @@ def main():
     print(f"  Max |W|: {abs_cross.max():.6f}")
     print(f"  Mean |W| (nonzero): {abs_cross[abs_cross > 0].mean():.6f}")
     
-    # Top edges
     print(f"\n  Top 10 temporal edges:")
     flat_idx = np.argsort(abs_cross.ravel())[::-1]
     for rank, idx in enumerate(flat_idx[:10], 1):

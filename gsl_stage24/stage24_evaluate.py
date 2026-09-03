@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
 """
-Stage 24 — Evaluate corrected temporal DAGMA across PH=1,2,3,4.
+Stage 24 — Evaluate corrected temporal DAGMA across PH=1,2,3,4 and multiple datasets.
+
+Supports:
+  - SZ-Taxi (shenzhen): N=156
+  - Los-loop: N=207
 
 Reuses existing DAGMA matrices. No DAGMA computation needed.
 
 Usage:
   python gsl_stage24/stage24_evaluate.py
+  python gsl_stage24/stage24_evaluate.py --dataset losloop
+  python gsl_stage24/stage24_evaluate.py --dataset shenzhen --seed 43
 """
 import os
 import sys
 import json
 import time
+import argparse
 import numpy as np
 import pandas as pd
 import torch
@@ -26,16 +33,28 @@ from models.tgcn import TGCN
 from tasks.supervised import SupervisedForecastTask
 
 RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", "stage24_validation")
-STAGE20_DIR = os.path.join(PROJECT_ROOT, "results", "stage20_5_validation")
 os.makedirs(RESULTS_DIR, exist_ok=True)
+
+DATASET_CONFIGS = {
+    "shenzhen": {
+        "feat_path": "data/sz_speed.csv",
+        "adj_path": "data/sz_adj.csv",
+        "N": 156,
+    },
+    "losloop": {
+        "feat_path": "data/los_speed.csv",
+        "adj_path": "data/los_adj.csv",
+        "N": 207,
+    },
+}
 
 
 def load_and_normalize_train_only(dataset_name="shenzhen", split_ratio=0.8):
-    paths = {
-        "shenzhen": ("data/sz_speed.csv", "data/sz_adj.csv"),
-    }
-    feat = np.array(pd.read_csv(os.path.join(PROJECT_ROOT, paths[dataset_name][0])), dtype=np.float32)
-    adj = np.array(pd.read_csv(os.path.join(PROJECT_ROOT, paths[dataset_name][1]), header=None), dtype=np.float32)
+    config = DATASET_CONFIGS[dataset_name]
+    feat = np.array(pd.read_csv(os.path.join(PROJECT_ROOT, config["feat_path"])),
+                    dtype=np.float32)
+    adj = np.array(pd.read_csv(os.path.join(PROJECT_ROOT, config["adj_path"]),
+                               header=None), dtype=np.float32)
     T, N = feat.shape
     train_size = int(T * split_ratio)
     feat_max_val = float(np.max(feat[:train_size]))
@@ -102,15 +121,61 @@ def train_and_evaluate(adj, model_name, train_X, train_Y, test_X, test_Y,
     return metrics
 
 
+def find_W_path(dataset, ph, seed):
+    """Find the raw temporal W matrix, supporting both old and new naming."""
+    prefix_map = {
+        ("shenzhen", 1, 42): [
+            os.path.join(PROJECT_ROOT, "results/stage20_5_validation/sz_ph1_W_raw_temporal.npy"),
+        ],
+    }
+    
+    if (dataset, ph, seed) in prefix_map:
+        for p in prefix_map[(dataset, ph, seed)]:
+            if os.path.exists(p):
+                return p
+    
+    # New naming convention: {prefix}_W_raw_temporal.npy
+    if dataset == "shenzhen":
+        prefix = f"sz_ph{ph}_seed{seed}"
+    elif dataset == "losloop":
+        prefix = f"los_ph{ph}_seed{seed}"
+    else:
+        prefix = f"{dataset}_ph{ph}_seed{seed}"
+    
+    path = os.path.join(RESULTS_DIR, f"{prefix}_W_raw_temporal.npy")
+    if os.path.exists(path):
+        return path
+    
+    # Fallback: try without seed (old naming)
+    prefix_noseed = f"sz_ph{ph}" if dataset == "shenzhen" else f"los_ph{ph}"
+    path_noseed = os.path.join(RESULTS_DIR, f"{prefix_noseed}_W_raw_temporal.npy")
+    if os.path.exists(path_noseed):
+        return path_noseed
+    
+    return None
+
+
 def main():
+    parser = argparse.ArgumentParser(description="Stage 24: Multi-PH Evaluation")
+    parser.add_argument("--dataset", type=str, default="shenzhen",
+                        choices=["shenzhen", "losloop"],
+                        help="Dataset name")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for training")
+    args = parser.parse_args()
+    
+    dataset = args.dataset
+    seed = args.seed
+    config = DATASET_CONFIGS[dataset]
+    N = config["N"]
+    prefix = f"los" if dataset == "losloop" else "sz"
+    
     print("=" * 80)
-    print("STAGE 24 — MULTI-PH EVALUATION")
+    print(f"STAGE 24 — MULTI-PH EVALUATION ({dataset}, seed={seed})")
     print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 80)
     
     t_total = time.time()
-    train_data, test_data, adj_phys, feat_max = load_and_normalize_train_only()
-    N = 156
+    train_data, test_data, adj_phys, feat_max = load_and_normalize_train_only(dataset)
     
     all_results = []
     
@@ -119,20 +184,18 @@ def main():
         print(f"PH={ph}")
         print(f"{'='*60}")
         
-        # Load DAGMA matrix
-        if ph == 1:
-            W_path = os.path.join(STAGE20_DIR, "sz_ph1_W_raw_temporal.npy")
-        else:
-            W_path = os.path.join(RESULTS_DIR, f"sz_ph{ph}_W_raw_temporal.npy")
+        # Find DAGMA matrix
+        W_path = find_W_path(dataset, ph, seed)
         
-        if not os.path.exists(W_path):
-            print(f"  WARNING: {W_path} not found. Skipping PH={ph}.")
-            print(f"  Run: python gsl_stage24/stage24_run_dagma.py --ph {ph}")
+        if W_path is None:
+            print(f"  WARNING: No DAGMA matrix found for {dataset} PH={ph} seed={seed}. Skipping.")
+            print(f"  Run: python gsl_stage24/stage24_run_dagma.py --ph {ph} --dataset {dataset} --seed {seed}")
             continue
         
         W_raw = np.load(W_path)
-        W_cross = W_raw[0:N, N:2*N]  # CORRECT block
-        print(f"  Loaded W: {W_raw.shape}, correct block: {W_cross.shape}")
+        W_cross = W_raw[0:N, N:2*N]  # CORRECT block: past -> current
+        print(f"  Loaded W from: {os.path.basename(W_path)}")
+        print(f"  W shape: {W_raw.shape}, correct block: {W_cross.shape}")
         
         # Generate sequences for this PH
         train_X, train_Y = generate_sequences(train_data, 12, ph)
@@ -143,7 +206,7 @@ def main():
         baselines = {
             "NoGraph": np.eye(N, dtype=np.float32),
             "Physical": adj_phys,
-            "Corr-K8": None,  # built below
+            "Corr-K8": None,
             "Corr-K16": None,
         }
         
@@ -172,11 +235,11 @@ def main():
             np.fill_diagonal(adj_eval, 0)
             n_edges = int(np.sum(adj_eval > 0))
             for model_name in ["GCN", "TGCN"]:
-                set_seed(42)
+                set_seed(seed)
                 m = train_and_evaluate(adj_eval, model_name, train_X, train_Y,
-                                       test_X, test_Y, feat_max, ph)
+                                       test_X, test_Y, feat_max, ph, seed=seed)
                 all_results.append({
-                    "ph": ph, "method": bname, "model": model_name,
+                    "dataset": dataset, "ph": ph, "method": bname, "model": model_name,
                     "n_edges": n_edges, "rmse": round(m["RMSE"], 4),
                     "mae": round(m["MAE"], 4), "r2": round(m["R2"], 6),
                     "block": "baseline", "threshold": None,
@@ -189,11 +252,12 @@ def main():
             np.fill_diagonal(adj, 0)  # Remove self-loops
             n_edges = int(np.sum(adj > 0))
             for model_name in ["GCN", "TGCN"]:
-                set_seed(42)
+                set_seed(seed)
                 m = train_and_evaluate(adj, model_name, train_X, train_Y,
-                                       test_X, test_Y, feat_max, ph)
+                                       test_X, test_Y, feat_max, ph, seed=seed)
                 all_results.append({
-                    "ph": ph, "method": f"TempDAGMA_thr{thr}", "model": model_name,
+                    "dataset": dataset, "ph": ph, "method": f"TempDAGMA_thr{thr}",
+                    "model": model_name,
                     "n_edges": n_edges, "rmse": round(m["RMSE"], 4),
                     "mae": round(m["MAE"], 4), "r2": round(m["R2"], 6),
                     "block": "correct_W0_N_2N", "threshold": thr,
@@ -204,11 +268,12 @@ def main():
         adj_selfloop = (np.abs(W_cross) > 0.2).astype(np.float32)
         n_edges_sl = int(np.sum(adj_selfloop > 0))
         for model_name in ["GCN", "TGCN"]:
-            set_seed(42)
+            set_seed(seed)
             m = train_and_evaluate(adj_selfloop, model_name, train_X, train_Y,
-                                   test_X, test_Y, feat_max, ph)
+                                   test_X, test_Y, feat_max, ph, seed=seed)
             all_results.append({
-                "ph": ph, "method": "TempDAGMA_thr0.2_selfloop", "model": model_name,
+                "dataset": dataset, "ph": ph, "method": "TempDAGMA_thr0.2_selfloop",
+                "model": model_name,
                 "n_edges": n_edges_sl, "rmse": round(m["RMSE"], 4),
                 "mae": round(m["MAE"], 4), "r2": round(m["R2"], 6),
                 "block": "correct_W0_N_2N", "threshold": 0.2,
@@ -217,12 +282,12 @@ def main():
         print(f"  TempDAGMA_0.2_sl:  {n_edges_sl:5d} edges (self-loops retained)")
     
     # Save results
-    csv_path = os.path.join(RESULTS_DIR, "stage24_results.csv")
+    csv_path = os.path.join(RESULTS_DIR, f"stage24_results_{prefix}_seed{seed}.csv")
     pd.DataFrame(all_results).to_csv(csv_path, index=False)
     
     # Summary table
     print("\n" + "=" * 100)
-    print("STAGE 24 SUMMARY")
+    print(f"STAGE 24 SUMMARY ({dataset}, seed={seed})")
     print("=" * 100)
     for ph in [1, 2, 3, 4]:
         ph_results = [r for r in all_results if r["ph"] == ph]
@@ -237,10 +302,12 @@ def main():
     # Save summary JSON
     summary = {
         "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "dataset": dataset,
+        "seed": seed,
         "n_results": len(all_results),
-        "phs_evaluated": list(set(r["ph"] for r in all_results)),
+        "phs_evaluated": sorted(set(r["ph"] for r in all_results)),
     }
-    with open(os.path.join(RESULTS_DIR, "stage24_summary.json"), "w") as f:
+    with open(os.path.join(RESULTS_DIR, f"stage24_summary_{prefix}_seed{seed}.json"), "w") as f:
         json.dump(summary, f, indent=2)
     
     print(f"\nTotal time: {time.time()-t_total:.1f}s ({(time.time()-t_total)/60:.1f} min)")
