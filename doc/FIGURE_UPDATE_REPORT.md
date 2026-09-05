@@ -10,9 +10,9 @@
 **Changes made:**
 1. `paper/generate_figures_extra.py` — rewrote `fig9_predicted_vs_actual()`:
    - 3 rows × 1 column (was 3×2)
-   - Both NoGraph and GatedMulti drawn on same axis per node
+   - Both T-GCN-NoSpatial and T-GCN-MultiGSL-Mix drawn on same axis per node
    - Added `compute_lag()` function for cross-correlation lag analysis
-   - Legend shows both RMSE and lag (e.g., "GatedMulti (RMSE=0.1234, lag=+2)")
+   - Legend shows both RMSE and lag (e.g., "T-GCN-MultiGSL-Mix (RMSE=0.1234, lag=+2)")
 2. Regenerated `paper/figures/fig9_predicted_vs_actual.pdf` and `.png`
 3. Added `paper/sections/results.tex` paragraph + Figure~9 reference
 4. Updated `doc/RESPONSE_TO_REVIEWERS.md`: Reviewer 1 Q2 marked as addressed

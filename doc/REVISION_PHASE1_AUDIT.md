@@ -73,24 +73,24 @@
 ### Stage 25: Multi-PH validation
 - Monotonic pattern: fewer edges → better RMSE
 - DAGMA ≈ correlation graphs (neither has clear advantage)
-- On SZ-Taxi: NoGraph best; on Los-loop: sparse graphs can beat NoGraph
+- On SZ-Taxi: T-GCN-NoSpatial best; on Los-loop: sparse graphs can beat T-GCN-NoSpatial
 
 ### Stage 25D: Multi-lag DAGMA pilot (N=20 sensors)
 - Different lag blocks have genuinely different edge structures
 - Cross-lag Jaccard < 0.08 (almost zero overlap)
 
-### Stage 26: Full-sensor multi-lag + GatedMultiGraphTGCN
+### Stage 26: Full-sensor multi-lag + T-GCN-MultiGSL-Mix
 - **Los-loop PH=1 (5 seeds):**
-  - NoGraph: 5.234 ± 0.09
+  - T-GCN-NoSpatial: 5.234 ± 0.09
   - MultiGraph: 4.794 ± 0.10
-  - GatedMulti: 4.452 ± 0.14 (14.9% improvement)
+  - T-GCN-MultiGSL-Mix: 4.452 ± 0.14 (14.9% improvement)
 - **Parameter control:** 99% of improvement from gating, not params
 - **Lag ablation:** all 3 lags contribute, combination best (13.3%)
 - **SZ-Taxi:** marginal improvement only (0.2-0.9%)
 
 ### Stage 26 Validation (latest)
-- Experiment A: GatedMulti beats NoGraph in 5/5 seeds
-- Experiment B: NoGraph h=74 (16872 params) → 5.137 vs GatedMulti 4.458
+- Experiment A: T-GCN-MultiGSL-Mix beats T-GCN-NoSpatial in 5/5 seeds
+- Experiment B: T-GCN-NoSpatial h=74 (16872 params) → 5.137 vs T-GCN-MultiGSL-Mix 4.458
 - Experiment C: all 3 lags best, individual ~10% each
 
 ---
@@ -186,7 +186,7 @@ These require creating new tables/figures from existing results:
 ### Main text (revised)
 - Introduction (shortened, corrected claims)
 - Background (condensed GCN/T-GCN)
-- Proposed Method (multi-lag DAGMA + GatedMultiGraphTGCN)
+- Proposed Method (multi-lag DAGMA + T-GCN-MultiGSL-Mix)
 - Experiments: setup, key results (multi-seed, parameter control, lag ablation)
 - Discussion (oversmoothing, dataset dependence, limitations)
 - Conclusion
@@ -210,7 +210,7 @@ These require creating new tables/figures from existing results:
 | "causal structure" / "causal dependencies" | No causal identification performed | Remove or qualify |
 | "adapt to changing traffic patterns" | Graph is static (computed once) | Clarify wording |
 | "explicit insights into hidden causal structure" | No visualization of learned graph | Add figure or qualify |
-| TGCN-GSL always best | GatedMulti is the new best method | Restructure narrative |
+| TGCN-GSL always best | T-GCN-MultiGSL-Mix is the new best method | Restructure narrative |
 | Single static graph is sufficient | Multi-lag formulation works better | Add multi-lag as main contribution |
 
 ---
@@ -221,9 +221,9 @@ These require creating new tables/figures from existing results:
 Physical graph → GSL/cGSL learns better graph → outperforms baselines
 
 ### New narrative (evidence-supported)
-Physical graph → oversmoothing problem → single DAGMA helps but limited → multi-lag DAGMA reveals temporal heterogeneity → GatedMultiGraphTGCN adaptively exploits lag-specific graphs → robust 14.9% improvement on Los-loop (5 seeds)
+Physical graph → oversmoothing problem → single DAGMA helps but limited → multi-lag DAGMA reveals temporal heterogeneity → T-GCN-MultiGSL-Mix adaptively exploits lag-specific graphs → robust 14.9% improvement on Los-loop (5 seeds)
 
-The old GSL/cGSL results remain valuable as motivation and baseline evidence, but the multi-lag GatedMulti becomes the primary methodological contribution.
+The old GSL/cGSL results remain valuable as motivation and baseline evidence, but the multi-lag T-GCN-MultiGSL-Mix becomes the primary methodological contribution.
 
 ---
 

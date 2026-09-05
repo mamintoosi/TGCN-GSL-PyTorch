@@ -15,7 +15,7 @@ Stage 26 implements the most scientifically rigorous test of the paper's core hy
 Previous stages (17–25) showed that:
 - Dense physical graphs strongly hurt GCN/TGCN performance (oversmoothing)
 - Very sparse graphs perform much better
-- Single-lag DAGMA produces sparse graphs that are better than physical but not consistently better than NoGraph
+- Single-lag DAGMA produces sparse graphs that are better than physical but not consistently better than T-GCN-NoSpatial
 - Physical+DAGMA fusion did not help
 - The 20-sensor multi-lag pilot showed different lag blocks have different edge structures
 
@@ -42,7 +42,7 @@ Stage 26 extends the multi-lag formulation to **all sensors** (SZ-Taxi: 156, Los
 
 **Null hypothesis:**
 
-> Multi-lag DAGMA does not outperform NoGraph or single-lag DAGMA, suggesting that (a) the graph structure is not useful for forecasting, or (b) the current graph injection mechanism is inadequate.
+> Multi-lag DAGMA does not outperform T-GCN-NoSpatial or single-lag DAGMA, suggesting that (a) the graph structure is not useful for forecasting, or (b) the current graph injection mechanism is inadequate.
 
 **Important distinction:**
 
@@ -123,7 +123,7 @@ Where `l_idx = L - l` (block 0 = most distant past, block L-1 = most recent past
 
 | Method | Description | Graph |
 |--------|-------------|-------|
-| **NoGraph (A)** | Identity adjacency (self-loops only) | I |
+| **T-GCN-NoSpatial (A)** | Identity adjacency (self-loops only) | I |
 | **Physical (B)** | Physical road network | A_phys |
 | **SingleDAGMA (C)** | Existing Stage 24 temporal DAGMA (2-lag, PH-specific) | A_DAGMA at various thresholds |
 | **Corr-K8/K16/K32** | Correlation-based top-K graphs | A_corr |
@@ -136,7 +136,7 @@ Where `l_idx = L - l` (block 0 = most distant past, block L-1 = most recent past
 | **IntersectGraph (D)** | Intersection of lag graphs | Edges present at ALL lags |
 | **MultiGraphTGCN (E)** | Different adjacency per input timestep | Explicit lag-aware processing |
 | **WeightedMultiGraphTGCN (F)** | `A = softmax(w) · [A_1, A_2, A_3]` | Learnable lag weights |
-| **GatedMultiGraphTGCN (G)** | Per-node adaptive gate over lag graphs | Dynamic lag selection |
+| **T-GCN-MultiGSL-Mix (G)** | Per-node adaptive gate over lag graphs | Dynamic lag selection |
 | **AggregatedDAG (I)** | Mean of absolute weights across lags, thresholded | Soft aggregation |
 | **Per-lag standalone** | Each lag graph used alone | Ablation |
 
@@ -174,7 +174,7 @@ L = softmax(w_1) · L_1 + softmax(w_2) · L_2 + softmax(w_3) · L_3
 
 The weights `w_k` are learnable scalars. After training, we can inspect which lag dominates.
 
-### 6.3 GatedMultiGraphTGCN
+### 6.3 T-GCN-MultiGSL-Mix
 
 At each (batch, node) position, a gate network decides the blend of lag-specific graphs:
 
@@ -251,7 +251,7 @@ Every method reports:
 ### 9.4 Model Shape Tests
 - `MultiGraphTGCN`: `(B, T, N) → (B, N, H)` verified: **PASSED**
 - `WeightedMultiGraphTGCN`: `(B, T, N) → (B, N, H)` verified: **PASSED**
-- `GatedMultiGraphTGCN`: `(B, T, N) → (B, N, H)` verified: **PASSED**
+- `T-GCN-MultiGSL-Mix`: `(B, T, N) → (B, N, H)` verified: **PASSED**
 - All backward passes: **PASSED**
 
 ### 9.5 Weight Initialization
@@ -326,7 +326,7 @@ grep "STAGE 26 SUMMARY" results/stage26_validation/stage26B_sz_ph1_eval_log.txt
 
 2. **Graph size:** UnionGraph may have many more edges than single-lag methods, potentially causing oversmoothing.
 
-3. **Model capacity:** MultiGraphTGCN, WeightedMultiGraphTGCN, and GatedMultiGraphTGCN have different parameter counts. This is acknowledged but not equalized.
+3. **Model capacity:** MultiGraphTGCN, WeightedMultiGraphTGCN, and T-GCN-MultiGSL-Mix have different parameter counts. This is acknowledged but not equalized.
 
 4. **Temporal mapping:** The mapping of lag_1 → most recent input, lag_2 → second most recent, etc. is a design choice, not derived from the DAGMA output.
 
@@ -335,17 +335,17 @@ grep "STAGE 26 SUMMARY" results/stage26_validation/stage26B_sz_ph1_eval_log.txt
 ## 12. Expected Outcomes and Decision Criteria
 
 ### Positive outcomes (support paper narrative)
-- MultiGraphTGCN or WeightedMultiGraphTGCN outperforms NoGraph → **lag-specific graphs provide predictive value**
-- GatedMultiGraphTGCN learns distinct weights for different lags → **lag-dependent graph selection is useful**
+- MultiGraphTGCN or WeightedMultiGraphTGCN outperforms T-GCN-NoSpatial → **lag-specific graphs provide predictive value**
+- T-GCN-MultiGSL-Mix learns distinct weights for different lags → **lag-dependent graph selection is useful**
 - Per-lag graphs have different edge structures → **multi-lag is more informative than single-lag**
 
 ### Negative outcomes (challenge paper narrative)
-- No multi-lag method beats NoGraph → **graph structure may not be useful for this task**
+- No multi-lag method beats T-GCN-NoSpatial → **graph structure may not be useful for this task**
 - All multi-lag methods ≈ single-lag → **multi-lag adds complexity without benefit**
 - Physical graph remains worst → **oversmoothing is the dominant effect regardless of graph construction**
 
 ### Intermediate outcomes (partial support)
-- Multi-lag > single-lag but not > NoGraph → **multi-lag helps, but graph injection is inadequate**
+- Multi-lag > single-lag but not > T-GCN-NoSpatial → **multi-lag helps, but graph injection is inadequate**
 - WeightedMulti learns non-uniform weights → **different lags have different importance**
 - Los-loop works but SZ-Taxi doesn't → **dataset-dependent, need further investigation**
 
@@ -373,7 +373,7 @@ grep "STAGE 26 SUMMARY" results/stage26_validation/stage26B_sz_ph1_eval_log.txt
 3. **Analyze results:**
    - Which method is best overall?
    - Does multi-lag beat single-lag?
-   - Does any graph method beat NoGraph?
+   - Does any graph method beat T-GCN-NoSpatial?
    - What weights does WeightedMulti learn?
 4. **If positive:** Multi-seed validation, threshold sensitivity, Los-loop confirmation
 5. **If negative:** Consider alternative graph injection mechanisms, or accept that graph structure learning may not improve forecasting for these datasets

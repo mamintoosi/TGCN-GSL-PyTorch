@@ -46,9 +46,9 @@ where $\tau$ is a threshold and $\delta_{ij}$ is the Kronecker delta.
 
 For $L=3$, this yields four blocks: lag$_3$ ($x(t{-}3) \rightarrow x(t)$), lag$_2$ ($x(t{-}2) \rightarrow x(t)$), lag$_1$ ($x(t{-}1) \rightarrow x(t)$), and current ($x(t) \rightarrow x(t)$). Empirically, these blocks exhibit substantially different edge structures with low cross-lag overlap, confirming that traffic dependencies are temporally heterogeneous.
 
-\subsection{GatedMultiGraphTGCN}\label{sec:gatedmulti}
+\subsection{T-GCN-MultiGSL-Mix}\label{sec:gatedmulti}
 
-Standard T-GCN uses a single adjacency matrix for all timesteps. We propose GatedMultiGraphTGCN, which processes each lag-specific graph separately and adaptively combines the results.
+Standard T-GCN uses a single adjacency matrix for all timesteps. We propose T-GCN-MultiGSL-Mix, which processes each lag-specific graph separately and learned mixing of the results.
 
 \subsubsection{Architecture}
 
@@ -66,7 +66,7 @@ Given $K$ lag-specific graphs $\{A_1, \ldots, A_K\}$, we precompute their graph 
     \tilde{L}_t = \sum_{k=1}^{K} \alpha_t^{(k)} \cdot L_k \in \mathbb{R}^{N \times N}
     \end{equation}
 
-    \item Graph convolution uses this adaptive adjacency:
+    \item Graph convolution uses this mixed adjacency:
     \begin{equation}
     g_t = \tilde{L}_t \cdot [x_t; h_{t-1}]
     \end{equation}
@@ -98,4 +98,4 @@ This contrasts with simpler multi-graph approaches:
 
 \subsubsection{Parameter Count}
 
-For hidden dimension $H$ and $K$ lag graphs, GatedMultiGraphTGCN has approximately $3H^2 + 6H + (H+1)H + H + (H+1)K + K$ parameters. With $H=64$ and $K=3$, this yields 17,091 parameters, compared to 12,672 for standard T-GCN. A parameter-matched control (Section~\ref{sec:param_control}) confirms that this capacity difference does not explain the performance improvement.
+For hidden dimension $H$ and $K$ lag graphs, T-GCN-MultiGSL-Mix has approximately $3H^2 + 6H + (H+1)H + H + (H+1)K + K$ parameters. With $H=64$ and $K=3$, this yields 17,091 parameters, compared to 12,672 for standard T-GCN. A parameter-matched control (Section~\ref{sec:param_control}) confirms that this capacity difference does not explain the performance improvement.

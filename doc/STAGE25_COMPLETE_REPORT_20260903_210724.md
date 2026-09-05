@@ -25,9 +25,9 @@ Stage 25 systematically investigated whether DAGMA-learned temporal functional g
 3. **Physical ∩ DAGMA = ∅** — the two graphs share NO edges, meaning DAGMA discovers entirely different dependencies than the physical road network
 4. **Ensemble intersection (3 edges) matches the best DAGMA result** — combining PH-specific graphs helps
 5. **Physical fusion always hurts** — adding physical edges to DAGMA degrades performance monotonically
-6. **Dual-graph TGCN recovers to NoGraph level** — but doesn't exceed it
+6. **Dual-graph TGCN recovers to T-GCN-NoSpatial level** — but doesn't exceed it
 7. **Warm-up refinement doesn't help** — learned representations don't improve graph selection
-8. **Los-loop TempDAGMA is worse than NoGraph** — temporal DAGMA doesn't work on this dataset yet
+8. **Los-loop TempDAGMA is worse than T-GCN-NoSpatial** — temporal DAGMA doesn't work on this dataset yet
 
 ---
 
@@ -93,7 +93,7 @@ Cross-PH weight correlation: 0.51–0.77 (moderate). More PH-dependent structure
 
 | Method | Edges | PH=1 | PH=2 | PH=3 | PH=4 |
 |--------|------:|-----:|-----:|-----:|-----:|
-| **NoGraph** | 0 | **4.116** | **4.160** | **4.189** | **4.221** |
+| **T-GCN-NoSpatial** | 0 | **4.116** | **4.160** | **4.189** | **4.221** |
 | **Ensemble intersection** | 3 | 4.206 | 4.217 | 4.265 | 4.296 |
 | **Ensemble freq≥4** | 3 | 4.206 | 4.217 | 4.265 | 4.296 |
 | Ensemble freq≥2 | 4 | 4.218 | 4.230 | 4.277 | 4.329 |
@@ -108,10 +108,10 @@ Cross-PH weight correlation: 0.51–0.77 (moderate). More PH-dependent structure
 
 ### Key Observations
 
-1. **NoGraph is best on SZ-Taxi** — spatial information hurts even when very sparse
+1. **T-GCN-NoSpatial is best on SZ-Taxi** — spatial information hurts even when very sparse
 2. **Ensemble intersection (3 edges) is the best graph method** — slightly better than individual DAGMA or correlation graphs
 3. **Monotonic: fewer edges → better RMSE** — this pattern is unbroken across all 4 PHs
-4. **Physical graph is catastrophically worse** — 26% worse than NoGraph at PH=1
+4. **Physical graph is catastrophically worse** — 26% worse than T-GCN-NoSpatial at PH=1
 5. **DAGMA and correlation graphs perform similarly** — neither has a clear advantage
 
 ---
@@ -122,7 +122,7 @@ Cross-PH weight correlation: 0.51–0.77 (moderate). More PH-dependent structure
 
 | Method | Edges | PH=1 | PH=2 | PH=3 | PH=4 |
 |--------|------:|-----:|-----:|-----:|-----:|
-| **NoGraph** | 0 | 5.143 | 5.642 | 6.164 | **6.502** |
+| **T-GCN-NoSpatial** | 0 | 5.143 | 5.642 | 6.164 | **6.502** |
 | Corr-K8 | 16 | **5.223** | 5.714 | 6.237 | 6.564 |
 | Corr-K16 | 32 | 5.308 | 5.795 | 6.336 | 6.635 |
 | TempDAGMA 0.1 | 60 | 6.057 | 6.669 | 6.911 | 7.320 |
@@ -136,9 +136,9 @@ Cross-PH weight correlation: 0.51–0.77 (moderate). More PH-dependent structure
 
 ### Key Observations
 
-1. **On Los-loop, sparse spatial graphs beat NoGraph** — Corr-K8 is best at PH=1
-2. **DAGMA 0.1 (60 edges) is worse than NoGraph** — too many edges cause oversmoothing
-3. **Ensemble intersection/freq≥4 is closer to NoGraph** — sparser ensembles help
+1. **On Los-loop, sparse spatial graphs beat T-GCN-NoSpatial** — Corr-K8 is best at PH=1
+2. **DAGMA 0.1 (60 edges) is worse than T-GCN-NoSpatial** — too many edges cause oversmoothing
+3. **Ensemble intersection/freq≥4 is closer to T-GCN-NoSpatial** — sparser ensembles help
 4. **Physical graph is again worst** — oversmoothing dominates
 5. **The optimal edge count is between 0 and 16** — not 60 (DAGMA) or 2833 (physical)
 
@@ -150,7 +150,7 @@ Cross-PH weight correlation: 0.51–0.77 (moderate). More PH-dependent structure
 
 | Method | Edges | Mean RMSE | Std |
 |--------|------:|----------:|----:|
-| **NoGraph** | 0 | **4.119** | 0.007 |
+| **T-GCN-NoSpatial** | 0 | **4.119** | 0.007 |
 | TempDAGMA 0.2 + self-loop | 2 | 4.145 | 0.016 |
 | TempDAGMA 0.2 | 1 | 4.156 | 0.007 |
 | Corr-K8 | 16 | 4.207 | 0.015 |
@@ -161,7 +161,7 @@ Cross-PH weight correlation: 0.51–0.77 (moderate). More PH-dependent structure
 | TempDAGMA 0.001 | 22–24 | 4.238 | 0.011 |
 | **Physical** | 532 | **5.358** | 0.164 |
 
-**Key finding:** The ranking is completely stable across all 5 seeds. NoGraph is always best, Physical is always worst. The std is very small (0.007–0.016) for all methods except Physical (0.164).
+**Key finding:** The ranking is completely stable across all 5 seeds. T-GCN-NoSpatial is always best, Physical is always worst. The std is very small (0.007–0.016) for all methods except Physical (0.164).
 
 ---
 
@@ -171,8 +171,8 @@ Cross-PH weight correlation: 0.51–0.77 (moderate). More PH-dependent structure
 
 | Method | Edges | RMSE |
 |--------|------:|-----:|
-| NoGraph | 0 | 4.116 |
-| Physical ∩ DAGMA | **0** | 4.116 (= NoGraph) |
+| T-GCN-NoSpatial | 0 | 4.116 |
+| Physical ∩ DAGMA | **0** | 4.116 (= T-GCN-NoSpatial) |
 | Fusion α=0.1 | 536 | 4.255 |
 | Fusion α=0.3 | 536 | 4.426 |
 | Fusion α=0.5 | 536 | 4.838 |
@@ -188,7 +188,7 @@ Cross-PH weight correlation: 0.51–0.77 (moderate). More PH-dependent structure
 
 | Method | Edges | RMSE |
 |--------|------:|-----:|
-| NoGraph | 0 | 5.143 |
+| T-GCN-NoSpatial | 0 | 5.143 |
 | Physical ∩ DAGMA | 28 | 5.526 |
 | Fusion α=0.1 | 2658 | 7.217 |
 | Physical only | 2833 | 7.658 |
@@ -203,14 +203,14 @@ On Los-loop, Physical ∩ DAGMA = 28 edges (small overlap). Fusion still degrade
 
 | Method | Edges | RMSE |
 |--------|------:|-----:|
-| NoGraph TGCN | 0 | 4.116 |
+| T-GCN-NoSpatial TGCN | 0 | 4.116 |
 | DualTGCN (phys+dagma) | 536 | **4.119** |
 | Warmup-refine K=16 | 16 | 4.176 |
 | Warmup-refine K=32 | 32 | 4.237 |
 | Warmup-refine K=64 | 64 | 4.513 |
 | Physical TGCN | 532 | 5.267 |
 
-**Finding:** DualTGCN (4.119) is essentially equivalent to NoGraph (4.116). The model learns to ignore the physical graph when it's not helpful. Warm-up refinement doesn't improve over simply selecting edges by weight.
+**Finding:** DualTGCN (4.119) is essentially equivalent to T-GCN-NoSpatial (4.116). The model learns to ignore the physical graph when it's not helpful. Warm-up refinement doesn't improve over simply selecting edges by weight.
 
 ### Los-loop (PH=1)
 
@@ -218,10 +218,10 @@ On Los-loop, Physical ∩ DAGMA = 28 edges (small overlap). Fusion still degrade
 |--------|------:|-----:|
 | DualTGCN (phys+dagma) | 2893 | **5.220** |
 | Corr-K8 | 16 | 5.223 |
-| NoGraph TGCN | 0 | 5.143 |
+| T-GCN-NoSpatial TGCN | 0 | 5.143 |
 | Physical TGCN | 2833 | 7.658 |
 
-**Finding:** DualTGCN on Los-loop is competitive with Corr-K8 but still worse than NoGraph. The model can partially mitigate oversmoothing through learned gating, but not enough to beat a simple sparse graph.
+**Finding:** DualTGCN on Los-loop is competitive with Corr-K8 but still worse than T-GCN-NoSpatial. The model can partially mitigate oversmoothing through learned gating, but not enough to beat a simple sparse graph.
 
 ---
 
@@ -238,7 +238,7 @@ On Los-loop, Physical ∩ DAGMA = 28 edges (small overlap). Fusion still degrade
 | 0.2 | 14 | 5.322 | 6.047 | — | — |
 | 0.3 | 6 | 5.213 | — | — | — |
 | Corr-K8 | 16 | **5.223** | 5.714 | 6.237 | 6.564 |
-| NoGraph | 0 | **5.143** | 5.642 | 6.164 | 6.502 |
+| T-GCN-NoSpatial | 0 | **5.143** | 5.642 | 6.164 | 6.502 |
 | Physical | 2833 | 7.658 | 8.002 | 8.512 | 8.540 |
 
 **Pattern holds on Los-loop too:** fewer edges → better RMSE. The monotonic relationship is consistent.
@@ -265,14 +265,14 @@ On Los-loop, Physical ∩ DAGMA = 28 edges (small overlap). Fusion still degrade
    - 100% seed stability at practical thresholds
    - 50% of edges persist across all prediction horizons
    
-5. **No single graph type consistently beats NoGraph on SZ-Taxi**
-   - On Los-loop, sparse spatial graphs (Corr-K8) do beat NoGraph
+5. **No single graph type consistently beats T-GCN-NoSpatial on SZ-Taxi**
+   - On Los-loop, sparse spatial graphs (Corr-K8) do beat T-GCN-NoSpatial
    - This suggests spatial information helps when the network is large enough
 
 ### What We Cannot Claim
 
 1. ❌ "DAGMA learns meaningful temporal causal structure" — unproven
-2. ❌ "Learned graph outperforms physical graph" — true but misleading (NoGraph is better)
+2. ❌ "Learned graph outperforms physical graph" — true but misleading (T-GCN-NoSpatial is better)
 3. ❌ "Physical + functional fusion helps" — it hurts
 4. ❌ "Multi-PH ensemble improves over single PH" — marginal at best
 
@@ -304,7 +304,7 @@ On Los-loop, Physical ∩ DAGMA = 28 edges (small overlap). Fusion still degrade
 
 ### Future Stages (if needed)
 
-- **Stage 26:** Investigate why NoGraph beats all graph methods on SZ-Taxi
+- **Stage 26:** Investigate why T-GCN-NoSpatial beats all graph methods on SZ-Taxi
   - Is it because the physical graph is wrong?
   - Is it because GCN architecture doesn't use graph information well?
   - Would a different GNN architecture (GAT, GraphSAGE) benefit from the graph?

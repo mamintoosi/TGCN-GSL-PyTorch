@@ -8,11 +8,11 @@
 
 ## General Response
 
-We sincerely thank both reviewers for their thorough and constructive feedback. The major revision has led to substantial restructuring of the manuscript, including a new central methodological contribution (multi-lag DAGMA + GatedMultiGraphTGCN), new experimental validation, and removal of all unsupported causal claims.
+We sincerely thank both reviewers for their thorough and constructive feedback. The major revision has led to substantial restructuring of the manuscript, including a new central methodological contribution (multi-lag DAGMA + T-GCN-MultiGSL-Mix), new experimental validation, and removal of all unsupported causal claims.
 
 **Key changes in this revision:**
 
-1. New central contribution: Multi-lag DAGMA + GatedMultiGraphTGCN
+1. New central contribution: Multi-lag DAGMA + T-GCN-MultiGSL-Mix
 2. All causal claims removed (replaced with "temporal functional dependency")
 3. 5-seed validation with mean ± std (addresses reviewer 1 comment #6)
 4. Parameter-matched control experiment (new)
@@ -60,7 +60,7 @@ and extract lag-specific blocks from the DAGMA weight matrix. This provides dire
 ### Weakness 5: No density/degree analysis; sparsity/oversmoothing discussion
 
 **Response:** We now include:
-- Table 1: Oversmoothing evidence showing physical graph (2833 edges, RMSE 7.658) vs NoGraph (207, RMSE 5.143) vs GatedMulti (30, RMSE 4.458)
+- Table 1: Oversmoothing evidence showing physical graph (2833 edges, RMSE 7.658) vs T-GCN-NoSpatial (207, RMSE 5.143) vs T-GCN-MultiGSL-Mix (30, RMSE 4.458)
 - Figure 1: Physical vs DAGMA graph visualization with degree distribution
 - Figure 6: Threshold sensitivity showing RMSE vs edge count
 
@@ -71,11 +71,11 @@ and extract lag-specific blocks from the DAGMA weight matrix. This provides dire
 **Response:** We now report 5-seed validation (seeds 42–46) with mean ± standard deviation.
 
 Table 3 shows:
-- NoGraph: 5.234 ± 0.090
-- MultiGraph_fixed: 4.794 ± 0.102
-- GatedMulti: 4.452 ± 0.143
+- T-GCN-NoSpatial: 5.234 ± 0.090
+- T-GCN-MultiGSL: 4.794 ± 0.102
+- T-GCN-MultiGSL-Mix: 4.452 ± 0.143
 
-GatedMulti beats NoGraph in 5/5 seeds.
+T-GCN-MultiGSL-Mix beats T-GCN-NoSpatial in 5/5 seeds.
 
 **Location:** Section 5.3, Table 3, Figure 3.
 
@@ -156,13 +156,13 @@ GatedMulti beats NoGraph in 5/5 seeds.
 **Response:** We now clearly distinguish:
 - Static learned graph (DAGMA output, fixed after training)
 - Multiple lag-specific static graphs (multi-lag DAGMA)
-- Adaptive graph gating (GatedMultiGraphTGCN, changes per timestep)
+- Adaptive graph gating (T-GCN-MultiGSL-Mix, changes per timestep)
 
 **Location:** Section 3 (clearly defined), Section 7 (Limitations).
 
 ### Comment 4: cGSL definition should be introduced before it is used
 
-**Response:** cGSL results are now moved entirely to Appendix A. The main text focuses on the new multi-lag DAGMA + GatedMulti approach.
+**Response:** cGSL results are now moved entirely to Appendix A. The main text focuses on the new multi-lag DAGMA + T-GCN-MultiGSL-Mix approach.
 
 **Location:** Appendix A.
 
@@ -187,7 +187,7 @@ GatedMulti beats NoGraph in 5/5 seeds.
 | Background compressed | ✅ |
 | Notation explained | ✅ |
 | Multi-lag DAGMA formulation added | ✅ |
-| GatedMultiGraphTGCN described | ✅ |
+| T-GCN-MultiGSL-Mix described | ✅ |
 | 5-seed validation table | ✅ |
 | Parameter-matched control | ✅ |
 | Lag ablation | ✅ |

@@ -24,8 +24,8 @@ Stage 25 systematically investigated whether DAGMA-learned temporal functional g
 2. **SZ-Taxi DAGMA graphs are 100% seed-stable** — all 4 edges at threshold 0.1 are identical across seeds 42–46
 3. **Physical ∩ DAGMA = ∅** — the two graphs share NO edges on SZ-Taxi
 4. **Physical fusion always hurts** — adding physical edges to DAGMA degrades performance monotonically
-5. **NoGraph beats all graph methods on SZ-Taxi** — spatial information hurts even when very sparse
-6. **On Los-loop, sparse spatial graphs (Corr-K8) beat NoGraph** — spatial info helps on larger networks
+5. **T-GCN-NoSpatial beats all graph methods on SZ-Taxi** — spatial information hurts even when very sparse
+6. **On Los-loop, sparse spatial graphs (Corr-K8) beat T-GCN-NoSpatial** — spatial info helps on larger networks
 7. **Oversmoothing is the dominant phenomenon** across both datasets, all PHs, all seeds
 
 ---
@@ -169,7 +169,7 @@ Cross-PH weight correlation: 0.51–0.77. Only 20% persistent across PHs.
 
 | Method | Edges | PH=1 | PH=2 | PH=3 | PH=4 |
 |--------|------:|-----:|-----:|-----:|-----:|
-| **NoGraph** | 0 | **4.116** | **4.160** | **4.189** | **4.221** |
+| **T-GCN-NoSpatial** | 0 | **4.116** | **4.160** | **4.189** | **4.221** |
 | Ensemble intersection | 3 | 4.206 | 4.217 | 4.265 | 4.296 |
 | Ensemble freq≥4 | 3 | 4.206 | 4.217 | 4.265 | 4.296 |
 | Ensemble weighted 0.1 | 5 | 4.201 | 4.213 | 4.257 | 4.293 |
@@ -184,7 +184,7 @@ Cross-PH weight correlation: 0.51–0.77. Only 20% persistent across PHs.
 
 | Method | Edges | PH=1 | PH=2 | PH=3 | PH=4 |
 |--------|------:|-----:|-----:|-----:|-----:|
-| **NoGraph** | 0 | **5.143** | **5.642** | **6.164** | **6.502** |
+| **T-GCN-NoSpatial** | 0 | **5.143** | **5.642** | **6.164** | **6.502** |
 | Corr-K8 | 16 | 5.223 | 5.714 | 6.237 | 6.564 |
 | Ensemble freq≥4 | 19 | 5.668 | 6.251 | 6.756 | 7.098 |
 | TempDAGMA 0.1 | 60 | 6.057 | 6.669 | 6.911 | 7.320 |
@@ -198,7 +198,7 @@ Cross-PH weight correlation: 0.51–0.77. Only 20% persistent across PHs.
 
 | Method | Edges | Mean RMSE | Std |
 |--------|------:|----------:|----:|
-| **NoGraph** | 0 | **4.119** | 0.007 |
+| **T-GCN-NoSpatial** | 0 | **4.119** | 0.007 |
 | TempDAGMA 0.2 + self-loop | 2 | 4.145 | 0.016 |
 | TempDAGMA 0.2 | 1 | 4.156 | 0.007 |
 | Corr-K8 | 16 | 4.207 | 0.015 |
@@ -214,8 +214,8 @@ Cross-PH weight correlation: 0.51–0.77. Only 20% persistent across PHs.
 
 | Method | Edges | RMSE |
 |--------|------:|-----:|
-| NoGraph | 0 | 4.116 |
-| Physical ∩ DAGMA | **0** | 4.116 (= NoGraph) |
+| T-GCN-NoSpatial | 0 | 4.116 |
+| Physical ∩ DAGMA | **0** | 4.116 (= T-GCN-NoSpatial) |
 | Fusion α=0.1 | 536 | 4.255 |
 | Physical only | 532 | 5.267 |
 
@@ -229,12 +229,12 @@ Cross-PH weight correlation: 0.51–0.77. Only 20% persistent across PHs.
 
 | Method | Edges | RMSE |
 |--------|------:|-----:|
-| NoGraph TGCN | 0 | 4.116 |
+| T-GCN-NoSpatial TGCN | 0 | 4.116 |
 | DualTGCN (phys+dagma) | 536 | **4.119** |
 | Warmup-refine K=16 | 16 | 4.176 |
 | Physical TGCN | 532 | 5.267 |
 
-DualTGCN learns to ignore the physical graph → equivalent to NoGraph.
+DualTGCN learns to ignore the physical graph → equivalent to T-GCN-NoSpatial.
 
 ---
 
@@ -260,7 +260,7 @@ The multi-lag pilot (Stage 25D) provides the first evidence that **DAGMA can dis
 ### What We Cannot Claim
 
 1. ❌ "DAGMA learns meaningful temporal causal structure" — unproven
-2. ❌ "Learned graph outperforms physical graph" — true but misleading (NoGraph is better)
+2. ❌ "Learned graph outperforms physical graph" — true but misleading (T-GCN-NoSpatial is better)
 3. ❌ "Physical + functional fusion helps" — it hurts
 4. ❌ "Multi-PH ensemble improves over single PH" — marginal at best
 

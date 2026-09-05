@@ -13,27 +13,27 @@ Table~\ref{tab:density_stats} compares graph densities across methods.
 \textbf{Graph} & \textbf{Edges} & \textbf{Density} \\
 \midrule
 Physical & 2833 & 0.0660 \\
-NoGraph (identity) & 207 & 0.0048 \\
-MultiGraph\_fixed ($\tau$=0.1) & 30 & 0.0007 \\
-GatedMulti ($\tau$=0.1) & 30 & 0.0007 \\
+T-GCN-NoSpatial (identity) & 207 & 0.0048 \\
+T-GCN-MultiGSL ($\tau$=0.1) & 30 & 0.0007 \\
+T-GCN-MultiGSL-Mix ($\tau$=0.1) & 30 & 0.0007 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{SZ-Taxi Multi-Horizon Results}
 
-Table~\ref{tab:sz_multiph} reports SZ-Taxi results, showing marginal GatedMulti improvement.
+Table~\ref{tab:sz_multiph} reports SZ-Taxi results, showing marginal T-GCN-MultiGSL-Mix improvement.
 
 \begin{table}[ht]
 \centering
-\caption{SZ-Taxi multi-horizon results (seed=42). GatedMulti improvement is marginal.}
+\caption{SZ-Taxi multi-horizon results (seed=42). T-GCN-MultiGSL-Mix improvement is marginal.}
 \label{tab:sz_multiph}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Method} & \textbf{PH=1} & \textbf{PH=2} & \textbf{PH=3} & \textbf{PH=4} \\
 \midrule
-NoGraph & 4.116 & 4.160 & 4.189 & 4.221 \\
-\textbf{GatedMulti} & 4.108 & 4.149 & 4.184 & 4.221 \\
+T-GCN-NoSpatial & 4.116 & 4.160 & 4.189 & 4.221 \\
+\textbf{T-GCN-MultiGSL-Mix} & 4.108 & 4.149 & 4.184 & 4.221 \\
 \bottomrule
 \end{tabular}
 \end{table}

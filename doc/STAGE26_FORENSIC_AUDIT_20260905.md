@@ -11,14 +11,14 @@
 
 **Verdict: PROMISING — the result is technically sound but requires additional validation.**
 
-The Stage 26 GatedMultiGraphTGCN result (Los-loop RMSE = 4.458 vs NoGraph = 5.143) is based on correct code, correct data handling, and a legitimate architecture. However, three concerns prevent a STRONG classification:
+The Stage 26 T-GCN-MultiGSL-Mix result (Los-loop RMSE = 4.458 vs T-GCN-NoSpatial = 5.143) is based on correct code, correct data handling, and a legitimate architecture. However, three concerns prevent a STRONG classification:
 
-1. **34.9% parameter advantage** — GatedMulti has 17,091 params vs 12,672 for standard TGCN
+1. **34.9% parameter advantage** — T-GCN-MultiGSL-Mix has 17,091 params vs 12,672 for standard TGCN
 2. **Single-seed result** — only seed=42 has been tested
-3. **MultiGraphTGCN has a graph-timestep alignment bug** (doesn't affect GatedMulti)
+3. **MultiGraphTGCN has a graph-timestep alignment bug** (doesn't affect T-GCN-MultiGSL-Mix)
 
 **No data leakage was found.**  
-**No critical implementation bugs were found in the GatedMulti path.**  
+**No critical implementation bugs were found in the T-GCN-MultiGSL-Mix path.**  
 **The DAGMA block extraction is correct.**
 
 ---
@@ -34,7 +34,7 @@ The Stage 26 GatedMultiGraphTGCN result (Los-loop RMSE = 4.458 vs NoGraph = 5.14
 | Prediction horizon | 1 |
 | DAGMA threshold | 0.1 |
 | Lag graphs | lag_1 (12 edges), lag_2 (3 edges), lag_3 (15 edges) |
-| Model | GatedMultiGraphTGCN (hidden_dim=64) |
+| Model | T-GCN-MultiGSL-Mix (hidden_dim=64) |
 | Optimizer | Adam (lr=0.001, weight_decay=0.0001) |
 | Loss | MSE with L1 regularizer |
 | Epochs | 50 |
@@ -102,7 +102,7 @@ W[l*N:(l+1)*N, 3*N:4*N] = sensor_i(t-l) → sensor_j(t)  ✓ CORRECT
 
 ## 5. Multi-Graph Architecture Audit
 
-### GatedMultiGraphTGCN — CORRECT
+### T-GCN-MultiGSL-Mix — CORRECT
 
 Forward pass (per timestep t):
 
@@ -125,7 +125,7 @@ Forward pass (per timestep t):
 - Uses softmax normalization (weights sum to 1)
 - Is fully differentiable and learned end-to-end
 
-### MultiGraphTGCN — BUG FOUND (does not affect GatedMulti)
+### MultiGraphTGCN — BUG FOUND (does not affect T-GCN-MultiGSL-Mix)
 
 The graph-to-timestep assignment is:
 
@@ -140,22 +140,22 @@ Input step 4 (t-4): graph_idx=1 → lag_2  ❌
 
 The cyclic `t % 3` assignment is only correct for the first 3 steps. After that, the mapping is arbitrary. However:
 - MultiGraphTGCN still beats UnionGraph (same edges, different processing)
-- GatedMulti does not have this problem (it learns the assignment)
+- T-GCN-MultiGSL-Mix does not have this problem (it learns the assignment)
 
 ### WeightedMultiGraphTGCN — CORRECT
 
-Uses global learned weights (softmax over K=3 scalars). Simple, correct, but less flexible than GatedMulti.
+Uses global learned weights (softmax over K=3 scalars). Simple, correct, but less flexible than T-GCN-MultiGSL-Mix.
 
 ---
 
 ## 6. Parameter Count Audit — CONCERN
 
-| Model | Parameters | vs NoGraph |
+| Model | Parameters | vs T-GCN-NoSpatial |
 |-------|-----------|-----------|
-| Standard TGCN (NoGraph/Physical/SingleDAG) | 12,672 | — |
+| Standard TGCN (T-GCN-NoSpatial/Physical/SingleDAG) | 12,672 | — |
 | MultiGraphTGCN | 12,672 | +0.0% |
 | WeightedMultiGraphTGCN | 12,675 | +0.02% |
-| **GatedMultiGraphTGCN** | **17,091** | **+34.9%** |
+| **T-GCN-MultiGSL-Mix** | **17,091** | **+34.9%** |
 
 ### Where the extra parameters are
 
@@ -192,13 +192,13 @@ The 34.9% parameter increase is **not negligible**. It could contribute to impro
 - Evaluation code
 
 ### Different
-- **GatedMultiGraphTGCN has 34.9% more parameters** than standard TGCN
-- **MultiGraphTGCN has a graph-timestep alignment issue** (bug, but not affecting GatedMulti)
+- **T-GCN-MultiGSL-Mix has 34.9% more parameters** than standard TGCN
+- **MultiGraphTGCN has a graph-timestep alignment issue** (bug, but not affecting T-GCN-MultiGSL-Mix)
 - **Physical adjacency has self-loops** (diagonal=1) while binary DAGMA graphs have self-loops removed
 
 ---
 
-## 8. Why GatedMulti Beats NoGraph on Los-loop
+## 8. Why T-GCN-MultiGSL-Mix Beats T-GCN-NoSpatial on Los-loop
 
 The evidence suggests the improvement comes from **both**:
 
@@ -208,12 +208,12 @@ The evidence suggests the improvement comes from **both**:
 - **Difference: 1.213 RMSE** — purely from HOW graphs are processed
 
 ### B. Adaptive gating
-- GatedMulti (adaptive per-node gate): RMSE = 4.458
+- T-GCN-MultiGSL-Mix (adaptive per-node gate): RMSE = 4.458
 - MultiGraph (fixed cyclic assignment): RMSE = 4.715
 - **Difference: 0.257 RMSE** — from adaptive graph selection
 
 ### C. Some parameter advantage
-- GatedMulti has 34.9% more parameters
+- T-GCN-MultiGSL-Mix has 34.9% more parameters
 - This likely contributes modestly to the improvement
 
 ### Interpretation
@@ -225,11 +225,11 @@ The majority of the improvement (1.213 out of 1.685 total) comes from multi-lag 
 
 | Method | PH=1 | PH=2 | PH=3 | PH=4 |
 |--------|-----:|-----:|-----:|-----:|
-| NoGraph | 4.116 | 4.160 | 4.189 | 4.221 |
-| GatedMulti | **4.108** | **4.149** | **4.184** | **4.221** |
+| T-GCN-NoSpatial | 4.116 | 4.160 | 4.189 | 4.221 |
+| T-GCN-MultiGSL-Mix | **4.108** | **4.149** | **4.184** | **4.221** |
 | Difference | -0.2% | -0.3% | -0.1% | 0.0% |
 
-On SZ-Taxi, GatedMulti barely improves over NoGraph. At PH=4, they are identical. The method is clearly **dataset-dependent** — it helps significantly on Los-loop but only marginally on SZ-Taxi.
+On SZ-Taxi, T-GCN-MultiGSL-Mix barely improves over T-GCN-NoSpatial. At PH=4, they are identical. The method is clearly **dataset-dependent** — it helps significantly on Los-loop but only marginally on SZ-Taxi.
 
 This is not necessarily a problem (many methods are dataset-dependent), but the paper should not claim universal improvement.
 
@@ -240,7 +240,7 @@ This is not necessarily a problem (many methods are dataset-dependent), but the 
 ### Supported
 - "Dense physical graphs cause oversmoothing in GCN/TGCN" — **STRONGLY supported**
 - "Multi-lag processing improves over single-graph merging" — **supported** (1.2 RMSE difference)
-- "GatedMultiGraphTGCN outperforms NoGraph on Los-loop" — **supported** (13.3% improvement)
+- "T-GCN-MultiGSL-Mix outperforms T-GCN-NoSpatial on Los-loop" — **supported** (13.3% improvement)
 - "Different lag blocks contain different dependency structures" — **supported** (verified from block statistics)
 
 ### Plausible but requires additional experiment
@@ -250,7 +250,7 @@ This is not necessarily a problem (many methods are dataset-dependent), but the 
 ### Not supported
 - "DAGMA discovers causal structure" — **NOT supported** — use "temporal functional dependency" instead
 - "The method works universally across datasets" — **NOT supported** — SZ-Taxi improvement is negligible
-- "GatedMulti always beats NoGraph" — **NOT supported** — needs multi-seed validation
+- "T-GCN-MultiGSL-Mix always beats T-GCN-NoSpatial" — **NOT supported** — needs multi-seed validation
 
 ---
 
@@ -258,7 +258,7 @@ This is not necessarily a problem (many methods are dataset-dependent), but the 
 
 ### Bug 1: MultiGraphTGCN graph-timestep alignment (MEDIUM)
 - **Impact:** MultiGraphTGCN's graph assignment is incorrect for input steps 3-11
-- **Does not affect:** GatedMultiGraphTGCN, WeightedMultiGraphTGCN, or any other method
+- **Does not affect:** T-GCN-MultiGSL-Mix, WeightedMultiGraphTGCN, or any other method
 - **Fix:** Not needed for current results, but should be fixed before publication
 
 ### Bug 2: `current` block excluded from multi-lag methods (MINOR)
@@ -266,22 +266,22 @@ This is not necessarily a problem (many methods are dataset-dependent), but the 
 - Only lag_1, lag_2, lag_3 are used
 - This is arguably correct (lag graphs represent temporal dependencies), but means contemporaneous structure is unused
 
-### No critical bugs found in the GatedMulti path.
+### No critical bugs found in the T-GCN-MultiGSL-Mix path.
 
 ---
 
 ## 12. Minimum Required Follow-up Experiments
 
 ### Priority 1 (Essential)
-1. **Multi-seed GatedMulti on Los-loop (seeds 43-46)** — to establish statistical significance
-2. **Parameter-matched comparison** — test TGCN with hidden_dim=74 (≈17K params, no graph) vs GatedMulti to isolate gating effect from parameter effect
+1. **Multi-seed T-GCN-MultiGSL-Mix on Los-loop (seeds 43-46)** — to establish statistical significance
+2. **Parameter-matched comparison** — test TGCN with hidden_dim=74 (≈17K params, no graph) vs T-GCN-MultiGSL-Mix to isolate gating effect from parameter effect
 
 ### Priority 2 (Important)
-3. **Ablation: remove individual lags** — test GatedMulti with only lag_1+lag_2, lag_1+lag_3, lag_2+lag_3 to identify which lag combinations matter
-4. **Multi-seed GatedMulti on SZ-Taxi** — to confirm the modest SZ-Taxi improvement is real
+3. **Ablation: remove individual lags** — test T-GCN-MultiGSL-Mix with only lag_1+lag_2, lag_1+lag_3, lag_2+lag_3 to identify which lag combinations matter
+4. **Multi-seed T-GCN-MultiGSL-Mix on SZ-Taxi** — to confirm the modest SZ-Taxi improvement is real
 
 ### Priority 3 (Useful but not essential)
-5. **Threshold sensitivity** — test thresholds 0.01, 0.05, 0.2 for GatedMulti
+5. **Threshold sensitivity** — test thresholds 0.01, 0.05, 0.2 for T-GCN-MultiGSL-Mix
 6. **Fix MultiGraphTGCN alignment** and re-evaluate
 
 ---
@@ -290,7 +290,7 @@ This is not necessarily a problem (many methods are dataset-dependent), but the 
 
 ### For the paper revision
 
-The GatedMultiGraphTGCN result on Los-loop is **the strongest finding** in the project. It should be the central contribution, with these caveats:
+The T-GCN-MultiGSL-Mix result on Los-loop is **the strongest finding** in the project. It should be the central contribution, with these caveats:
 
 1. Report multi-seed results (mean ± std) — not just seed=42
 2. Include parameter-matched comparison
@@ -302,7 +302,7 @@ The GatedMultiGraphTGCN result on Los-loop is **the strongest finding** in the p
 
 1. **Oversmoothing analysis** (Stages 17-24) — supporting evidence
 2. **Multi-lag DAGMA extraction** (Stage 25-26) — method
-3. **GatedMultiGraphTGCN** (Stage 26) — main contribution
+3. **T-GCN-MultiGSL-Mix** (Stage 26) — main contribution
 4. **Ablation and validation** (follow-up experiments)
 
 ---

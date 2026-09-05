@@ -67,7 +67,7 @@ COLORS = {
     'UnionGraph': '#795548',
     'MultiGraph': '#4CAF50',
     'WeightedMulti': '#00BCD4',
-    'GatedMulti': '#E91E63',
+    'T-GCN-MultiGSL-Mix': '#E91E63',
     'ParamMatch': '#607D8B',
 }
 
@@ -121,7 +121,7 @@ def fig1_graph_comparison():
     
     axes[2].hist(phys_deg, bins=30, alpha=0.6, color=COLORS['Physical'], 
                  label=f'Physical (mean={phys_deg.mean():.1f})', density=True)
-    axes[2].hist(dag_deg, bins=15, alpha=0.6, color=COLORS['GatedMulti'],
+    axes[2].hist(dag_deg, bins=15, alpha=0.6, color=COLORS['T-GCN-MultiGSL-Mix'],
                  label=f'DAGMA (mean={dag_deg.mean():.1f})', density=True)
     axes[2].set_xlabel('Node Degree')
     axes[2].set_ylabel('Density')
@@ -152,11 +152,11 @@ def fig2_rmse_comparison():
         ('Corr-K16', 'Corr-K16'),
         ('SingleDAG_thr0.1', 'SingleDAG\n(thr=0.1)'),
         ('SingleDAG_thr0.3', 'SingleDAG\n(thr=0.3)'),
-        ('NoGraph', 'NoGraph'),
+        ('T-GCN-NoSpatial', 'T-GCN\\nNoSpatial'),
         ('UnionGraph_thr0.1', 'Union\nGraph'),
-        ('MultiGraphTGCN_thr0.1', 'Multi\nGraph'),
+        ('MultiGraphTGCN_thr0.1', 'T-GCN-\\nMultiGSL'),
         ('WeightedMulti_thr0.1', 'Weighted\nMulti'),
-        ('GatedMulti_thr0.1', 'Gated\nMulti'),
+        ('GatedMulti_thr0.1', 'T-GCN-MultiGSL-\\nMix'),
     ]
     
     results_map = {r['method']: r for r in data['results']}
@@ -173,7 +173,7 @@ def fig2_rmse_comparison():
         'UnionGraph_thr0.1': COLORS['UnionGraph'],
         'MultiGraphTGCN_thr0.1': COLORS['MultiGraph'],
         'WeightedMulti_thr0.1': COLORS['WeightedMulti'],
-        'GatedMulti_thr0.1': COLORS['GatedMulti'],
+        'GatedMulti_thr0.1': COLORS['T-GCN-MultiGSL-Mix'],
     }
     
     for method_key, label in key_methods:
@@ -195,7 +195,7 @@ def fig2_rmse_comparison():
     # Add NoGraph baseline line
     nograph_rmse = results_map['NoGraph']['rmse']
     ax.axhline(y=nograph_rmse, color=COLORS['NoGraph'], linestyle='--', alpha=0.5, linewidth=1)
-    ax.text(len(labels)-0.5, nograph_rmse + 0.05, 'NoGraph baseline', 
+    ax.text(len(labels)-0.5, nograph_rmse + 0.05, 'T-GCN-NoSpatial baseline', 
             fontsize=8, color=COLORS['NoGraph'], ha='right')
     
     ax.set_xticks(range(len(labels)))
@@ -205,7 +205,7 @@ def fig2_rmse_comparison():
     ax.set_ylim(0, max(rmse_vals) * 1.15)
     
     # Highlight GatedMulti
-    bars[-1].set_edgecolor(COLORS['GatedMulti'])
+    bars[-1].set_edgecolor(COLORS['T-GCN-MultiGSL-Mix'])
     bars[-1].set_linewidth(2)
     
     plt.tight_layout()
@@ -219,7 +219,7 @@ def fig2_rmse_comparison():
 # Figure 3: Multi-Seed Box Plot (Experiment A)
 # ============================================================
 def fig3_multiseed_boxplot():
-    """Box plot of NoGraph vs MultiGraph vs GatedMulti across 5 seeds."""
+    """Box plot of T-GCN-NoSpatial vs T-GCN-MultiGSL vs T-GCN-MultiGSL-Mix across 5 seeds."""
     print("Generating Figure 3: Multi-Seed Box Plot...")
     
     # Read CSV
@@ -231,7 +231,7 @@ def fig3_multiseed_boxplot():
             rows.append(row)
     
     methods = ['NoGraph', 'MultiGraphTGCN_fixed', 'GatedMultiGraphTGCN']
-    display_names = ['NoGraph', 'MultiGraph\n(fixed)', 'GatedMulti']
+    display_names = ['T-GCN-\nNoSpatial', 'T-GCN-\nMultiGSL', 'T-GCN-MultiGSL-\nMix']
     
     data_by_method = {m: [] for m in methods}
     for row in rows:
@@ -244,7 +244,7 @@ def fig3_multiseed_boxplot():
     bp = ax1.boxplot(box_data, tick_labels=display_names, patch_artist=True,
                      widths=0.5, showmeans=True, meanprops=dict(marker='D', markerfacecolor='white'))
     
-    box_colors = [COLORS['NoGraph'], COLORS['MultiGraph'], COLORS['GatedMulti']]
+    box_colors = [COLORS['NoGraph'], COLORS['MultiGraph'], COLORS['T-GCN-MultiGSL-Mix']]
     for patch, color in zip(bp['boxes'], box_colors):
         patch.set_facecolor(color)
         patch.set_alpha(0.7)
@@ -276,8 +276,8 @@ def fig3_multiseed_boxplot():
     gated_mean = means[2]
     improvement = (nograph_mean - gated_mean) / nograph_mean * 100
     ax2.annotate(f'−{improvement:.1f}%', xy=(2, gated_mean), xytext=(2.3, gated_mean + 0.3),
-                fontsize=10, fontweight='bold', color=COLORS['GatedMulti'],
-                arrowprops=dict(arrowstyle='->', color=COLORS['GatedMulti']))
+                fontsize=10, fontweight='bold', color=COLORS['T-GCN-MultiGSL-Mix'],
+                arrowprops=dict(arrowstyle='->', color=COLORS['T-GCN-MultiGSL-Mix']))
     
     ax2.set_xticks(range(len(methods)))
     ax2.set_xticklabels(display_names, fontsize=9)
@@ -307,10 +307,10 @@ def fig4_param_control():
         for row in reader:
             rows.append(row)
     
-    labels = ['NoGraph\n(h=64)', 'NoGraph\n(h=74)', 'GatedMulti\n(h=64)']
+    labels = ['T-GCN-NoSpatial\n(h=64)', 'T-GCN-NoSpatial\n(h=74)', 'T-GCN-MultiGSL-Mix\n(h=64)']
     params = [int(r['n_params']) for r in rows]
     rmses = [float(r['rmse']) for r in rows]
-    colors = [COLORS['NoGraph'], COLORS['ParamMatch'], COLORS['GatedMulti']]
+    colors = [COLORS['NoGraph'], COLORS['ParamMatch'], COLORS['T-GCN-MultiGSL-Mix']]
     
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4.5))
     
@@ -339,12 +339,12 @@ def fig4_param_control():
                 fontsize=8, ha='center',
                 arrowprops=dict(arrowstyle='->', color='gray'))
     
-    # Annotation: GatedMulti improvement
+    # Annotation: T-GCN-MultiGSL-Mix improvement
     gated_improve = rmses[0] - rmses[2]
     ax2.annotate(f'Gating:\n−{gated_improve:.4f} RMSE\n({gated_improve/rmses[0]*100:.1f}%)',
                 xy=(2, rmses[2]), xytext=(2.4, rmses[2] + 0.4),
-                fontsize=8, ha='center', color=COLORS['GatedMulti'], fontweight='bold',
-                arrowprops=dict(arrowstyle='->', color=COLORS['GatedMulti']))
+                fontsize=8, ha='center', color=COLORS['T-GCN-MultiGSL-Mix'], fontweight='bold',
+                arrowprops=dict(arrowstyle='->', color=COLORS['T-GCN-MultiGSL-Mix']))
     
     ax2.set_xticks(range(3))
     ax2.set_xticklabels(labels)
@@ -393,7 +393,7 @@ def fig5_lag_ablation():
         edges.append(int(r['n_edges']))
         lags_used.append(r.get('lags_used', ''))
     
-    labels.append('NoGraph')
+    labels.append('T-GCN-NoSpatial')
     rmses.append(float(nograph_row['rmse']))
     edges.append(int(nograph_row['n_edges']))
     lags_used.append('none')
@@ -435,7 +435,7 @@ def fig5_lag_ablation():
         Patch(facecolor=cmap(norm(1)), edgecolor='black', label='1 lag'),
         Patch(facecolor=cmap(norm(2)), edgecolor='black', label='2 lags'),
         Patch(facecolor=cmap(norm(3)), edgecolor='black', label='3 lags (all)'),
-        Patch(facecolor=COLORS['NoGraph'], edgecolor='black', label='NoGraph'),
+        Patch(facecolor=COLORS['NoGraph'], edgecolor='black', label='T-GCN-NoSpatial'),
     ]
     ax.legend(handles=legend_elements, loc='lower right', fontsize=9)
     
@@ -464,7 +464,7 @@ def fig6_threshold_sensitivity():
     rmses = [r['rmse'] for r in single_dag]
     n_edges = [r['n_edges'] for r in single_dag]
     
-    # Also add NoGraph and MultiGraph/GatedMulti
+    # Also add T-GCN-NoSpatial and T-GCN-MultiGSL-Mix
     nograph_rmse = next(r['rmse'] for r in data['results'] if r['method'] == 'NoGraph')
     gated_rmse = next(r['rmse'] for r in data['results'] if r['method'] == 'GatedMulti_thr0.1')
     gated_edges = next(r['n_edges'] for r in data['results'] if r['method'] == 'GatedMulti_thr0.1')
@@ -475,9 +475,9 @@ def fig6_threshold_sensitivity():
     ax1.plot(thresholds, rmses, 'o-', color=COLORS['SingleDAG'], linewidth=2, markersize=8,
              label='Single-lag DAGMA')
     ax1.axhline(y=nograph_rmse, color=COLORS['NoGraph'], linestyle='--', linewidth=1.5,
-                label=f'NoGraph ({nograph_rmse:.3f})')
-    ax1.axhline(y=gated_rmse, color=COLORS['GatedMulti'], linestyle='--', linewidth=1.5,
-                label=f'GatedMulti ({gated_rmse:.3f})')
+                label=f'T-GCN-NoSpatial ({nograph_rmse:.3f})')
+    ax1.axhline(y=gated_rmse, color=COLORS['T-GCN-MultiGSL-Mix'], linestyle='--', linewidth=1.5,
+                label=f'T-GCN-MultiGSL-Mix ({gated_rmse:.3f})')
     ax1.set_xlabel('Threshold')
     ax1.set_ylabel('RMSE')
     ax1.set_title('(a) RMSE vs Threshold')
@@ -487,10 +487,10 @@ def fig6_threshold_sensitivity():
     # Panel B: RMSE vs edge count
     ax2.plot(n_edges, rmses, 's-', color=COLORS['SingleDAG'], linewidth=2, markersize=8,
              label='Single-lag DAGMA')
-    ax2.scatter([gated_edges], [gated_rmse], color=COLORS['GatedMulti'], marker='*', 
-                s=200, zorder=5, label=f'GatedMulti ({gated_edges} edges)')
+    ax2.scatter([gated_edges], [gated_rmse], color=COLORS['T-GCN-MultiGSL-Mix'], marker='*', 
+                s=200, zorder=5, label=f'T-GCN-MultiGSL-Mix ({gated_edges} edges)')
     ax2.axhline(y=nograph_rmse, color=COLORS['NoGraph'], linestyle='--', linewidth=1.5,
-                label=f'NoGraph')
+                label=f'T-GCN-NoSpatial')
     ax2.set_xlabel('Number of Edges')
     ax2.set_ylabel('RMSE')
     ax2.set_title('(b) RMSE vs Edge Count')
@@ -552,7 +552,7 @@ def fig7_lag_edge_stats():
     
     x = np.arange(3)
     w = 0.35
-    axes[0].bar(x - w/2, los_edges, w, color=COLORS['GatedMulti'], label='Los-loop', edgecolor='black', linewidth=0.5)
+    axes[0].bar(x - w/2, los_edges, w, color=COLORS['T-GCN-MultiGSL-Mix'], label='Los-loop', edgecolor='black', linewidth=0.5)
     axes[0].bar(x + w/2, sz_edges, w, color=COLORS['NoGraph'], label='SZ-Taxi', edgecolor='black', linewidth=0.5)
     axes[0].set_xticks(x)
     axes[0].set_xticklabels(['Lag 1', 'Lag 2', 'Lag 3'])
@@ -590,7 +590,7 @@ def fig7_lag_edge_stats():
         axes[2].hist(np.abs(lag2_weights), bins=10, alpha=0.6, color=COLORS['MultiGraph'],
                      label=f'Lag 2 (n={len(lag2_weights)})', density=True)
     if len(lag3_weights) > 0:
-        axes[2].hist(np.abs(lag3_weights), bins=15, alpha=0.6, color=COLORS['GatedMulti'],
+        axes[2].hist(np.abs(lag3_weights), bins=15, alpha=0.6, color=COLORS['T-GCN-MultiGSL-Mix'],
                      label=f'Lag 3 (n={len(lag3_weights)})', density=True)
     axes[2].set_xlabel('|DAGMA Weight|')
     axes[2].set_ylabel('Density')

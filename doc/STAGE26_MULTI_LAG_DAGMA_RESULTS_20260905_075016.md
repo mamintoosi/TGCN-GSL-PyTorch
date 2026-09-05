@@ -14,12 +14,12 @@ Stage 26 is the **most important experimental stage** of the paper revision. It 
 
 ### Key Finding: **YES — on Los-loop, dramatically.**
 
-The **GatedMultiGraphTGCN** (adaptive per-node gating over lag-specific DAGMA graphs) achieves:
+The **T-GCN-MultiGSL-Mix** (adaptive per-node gating over lag-specific DAGMA graphs) achieves:
 
-- **Los-loop: 13.3% RMSE improvement over NoGraph** (PH=1: 4.458 vs 5.143)
-- **SZ-Taxi: 0.2–0.9% improvement over NoGraph** (modest but consistent)
+- **Los-loop: 13.3% RMSE improvement over T-GCN-NoSpatial** (PH=1: 4.458 vs 5.143)
+- **SZ-Taxi: 0.2–0.9% improvement over T-GCN-NoSpatial** (modest but consistent)
 
-This is the **first time** in the entire audit that a graph-learning method has **clearly and substantially beaten the NoGraph baseline** on Los-loop.
+This is the **first time** in the entire audit that a graph-learning method has **clearly and substantially beaten the T-GCN-NoSpatial baseline** on Los-loop.
 
 ---
 
@@ -73,7 +73,7 @@ The different lag blocks capture **genuinely different dependency structures**:
 
 | Method | PH=1 | PH=2 | PH=3 | PH=4 | Edges | Family |
 |--------|-----:|-----:|-----:|-----:|------:|--------|
-| **NoGraph** | 4.116 | 4.160 | 4.189 | 4.221 | 0 | baseline |
+| **T-GCN-NoSpatial** | 4.116 | 4.160 | 4.189 | 4.221 | 0 | baseline |
 | Physical | 5.267 | 5.406 | 5.629 | 5.604 | 532 | baseline |
 | Corr-K8 | 4.700 | 4.840 | 5.451 | 5.157 | 1248 | baseline |
 | Corr-K16 | 5.222 | 5.439 | 6.002 | 5.808 | 2496 | baseline |
@@ -85,10 +85,10 @@ The different lag blocks capture **genuinely different dependency structures**:
 | Intersect@0.1 | 4.116 | 4.160 | 4.189 | 4.221 | 0 | D |
 | MultiGraph@0.1 | 4.118 | 4.166 | 4.192 | 4.232 | 2 | E |
 | WeightedMulti@0.1 | 4.118 | 4.166 | 4.192 | 4.233 | 2 | F |
-| **GatedMulti@0.1** | **4.108** | **4.149** | **4.184** | **4.221** | 2 | G |
+| **T-GCN-MultiGSL-Mix@0.1** | **4.108** | **4.149** | **4.184** | **4.221** | 2 | G |
 
 **SZ-Taxi analysis:**
-- GatedMulti beats NoGraph at every PH (PH=1: 4.108 vs 4.116 = **0.2% improvement**)
+- T-GCN-MultiGSL-Mix beats T-GCN-NoSpatial at every PH (PH=1: 4.108 vs 4.116 = **0.2% improvement**)
 - Physical graphs are catastrophically bad (27-33% worse)
 - Multi-graph methods (E, F, G) are better than single-graph (C) methods
 - The improvement is real but modest — SZ-Taxi is a small dataset
@@ -106,7 +106,7 @@ The different lag blocks capture **genuinely different dependency structures**:
 
 | Method | PH=1 | PH=2 | PH=3 | PH=4 | Edges | Family |
 |--------|-----:|-----:|-----:|-----:|------:|--------|
-| **NoGraph** | 5.143 | 5.642 | 6.164 | 6.502 | 0 | baseline |
+| **T-GCN-NoSpatial** | 5.143 | 5.642 | 6.164 | 6.502 | 0 | baseline |
 | Physical | 7.658 | 8.002 | 8.512 | 8.540 | 2833 | baseline |
 | Corr-K8 | 6.915 | 7.219 | 7.503 | 7.668 | 1656 | baseline |
 | Corr-K16 | 7.567 | 7.872 | 8.106 | 8.251 | 3312 | baseline |
@@ -116,7 +116,7 @@ The different lag blocks capture **genuinely different dependency structures**:
 | Union@0.1 | 5.928 | 6.469 | 6.870 | 7.190 | 28 | D |
 | MultiGraph@0.1 | 4.715 | 5.549 | 5.934 | 6.336 | 30 | E |
 | WeightedMulti@0.1 | 4.710 | 5.542 | 5.930 | 6.331 | 30 | F |
-| **GatedMulti@0.1** | **4.458** | **5.308** | **5.687** | **6.004** | 30 | G |
+| **T-GCN-MultiGSL-Mix@0.1** | **4.458** | **5.308** | **5.687** | **6.004** | 30 | G |
 | lag_1_standalone | 5.339 | 5.897 | 6.372 | 6.754 | 12 | per_lag |
 | lag_2_standalone | 5.113 | 5.750 | 6.434 | 6.659 | 3 | per_lag |
 | lag_3_standalone | 5.623 | 6.197 | 6.707 | 7.084 | 15 | per_lag |
@@ -125,17 +125,17 @@ The different lag blocks capture **genuinely different dependency structures**:
 
 | Comparison | PH=1 | PH=2 | PH=3 | PH=4 |
 |------------|-----:|-----:|-----:|-----:|
-| **GatedMulti vs NoGraph** | **-13.3%** | **-5.9%** | **-7.7%** | **-7.6%** |
-| MultiGraph vs NoGraph | -8.3% | -1.6% | -3.7% | -2.5% |
-| SingleDAG@0.3 vs NoGraph | +1.4% | +2.4% | +3.2% | +3.9% |
-| Physical vs NoGraph | +48.9% | +41.8% | +38.1% | +31.4% |
+| **T-GCN-MultiGSL-Mix vs T-GCN-NoSpatial** | **-13.3%** | **-5.9%** | **-7.7%** | **-7.6%** |
+| MultiGraph vs T-GCN-NoSpatial | -8.3% | -1.6% | -3.7% | -2.5% |
+| SingleDAG@0.3 vs T-GCN-NoSpatial | +1.4% | +2.4% | +3.2% | +3.9% |
+| Physical vs T-GCN-NoSpatial | +48.9% | +41.8% | +38.1% | +31.4% |
 
 **Critical findings on Los-loop:**
 
-1. **GatedMultiGraphTGCN beats NoGraph by 13.3% at PH=1** — this is the strongest result in the entire project
-2. **Multi-graph methods (E, F, G) all beat NoGraph** — lag-specific processing helps
-3. **Single-graph methods (C) all lose to NoGraph** — collapsing lags into one graph loses information
-4. **Per-lag standalone lag_2 (3 edges) beats NoGraph at PH=1** — even a single very sparse lag-specific graph helps
+1. **T-GCN-MultiGSL-Mix beats T-GCN-NoSpatial by 13.3% at PH=1** — this is the strongest result in the entire project
+2. **Multi-graph methods (E, F, G) all beat T-GCN-NoSpatial** — lag-specific processing helps
+3. **Single-graph methods (C) all lose to T-GCN-NoSpatial** — collapsing lags into one graph loses information
+4. **Per-lag standalone lag_2 (3 edges) beats T-GCN-NoSpatial at PH=1** — even a single very sparse lag-specific graph helps
 5. **Physical graphs are catastrophically bad** — 31-49% worse
 
 ### Learned weights (WeightedMultiGraphTGCN):
@@ -152,9 +152,9 @@ The model learns to put **~40-47% weight on lag_2** (10 min delay), ~25-29% on l
 
 ## 4. Graph Architecture Comparison
 
-### Why GatedMultiGraphTGCN works
+### Why T-GCN-MultiGSL-Mix works
 
-The GatedMultiGraphTGCN processes each lag separately through the TGCN cell, then applies a **per-node learned gate** to select how much each lag's representation contributes to the final output:
+The T-GCN-MultiGSL-Mix processes each lag separately through the TGCN cell, then applies a **per-node learned gate** to select how much each lag's representation contributes to the final output:
 
 ```
 h_lag1 = TGCN_cell(x, A_lag1)
@@ -177,7 +177,7 @@ When all lag-specific edges are merged into a single adjacency matrix, the model
 - 10-minute delayed dependencies (lag_2)
 - 15-minute delayed dependencies (lag_3)
 
-This information loss explains why SingleDAG@0.1 (60 edges) loses to NoGraph while GatedMulti (30 edges) beats it.
+This information loss explains why SingleDAG@0.1 (60 edges) loses to T-GCN-NoSpatial while T-GCN-MultiGSL-Mix (30 edges) beats it.
 
 ---
 
@@ -192,7 +192,7 @@ The oversmoothing narrative is fully validated across both datasets:
 
 On **both** datasets, the ranking is:
 ```
-Multi-Lag Gated > NoGraph > Sparse DAGMA > Correlation >> Dense Physical
+Multi-Lag Gated > T-GCN-NoSpatial > Sparse DAGMA > Correlation >> Dense Physical
 ```
 
 This is a scientifically meaningful and reproducible pattern.
@@ -207,8 +207,8 @@ Fewer edges → better RMSE (monotonic):
 532 edges (Physical):  5.27
 1248 edges (Corr-K8):  4.70
 24-2496 edges (DAG):   4.22-4.26
-0 edges (NoGraph):     4.12
-2 edges (GatedMulti):  4.11  ← best
+0 edges (T-GCN-NoSpatial):     4.12
+2 edges (T-GCN-MultiGSL-Mix):  4.11  ← best
 ```
 
 ### Los-loop
@@ -219,8 +219,8 @@ More complex — there's an optimal range:
 60-251 edges (DAG dense): 6.06-7.84
 30 edges (MultiGraph):   4.71
 6 edges (DAG@0.3):       5.21
-0 edges (NoGraph):       5.14
-30 edges (GatedMulti):   4.46  ← best
+0 edges (T-GCN-NoSpatial):       5.14
+30 edges (T-GCN-MultiGSL-Mix):   4.46  ← best
 ```
 
 On Los-loop, the relationship is **U-shaped**: very sparse (0 edges) is good, medium-sparse (30 edges with multi-lag) is best, and dense is bad.
@@ -233,7 +233,7 @@ On Los-loop, the relationship is **U-shaped**: very sparse (0 edges) is good, me
 
 1. **Oversmoothing is real and significant** in traffic GNNs. Dense physical graphs degrade performance by 27-49% compared to sparse alternatives.
 
-2. **Multi-lag Graph Structure Learning improves forecasting.** The GatedMultiGraphTGCN architecture achieves 13.3% RMSE improvement on Los-loop (PH=1) and consistent improvements across all horizons.
+2. **Multi-lag Graph Structure Learning improves forecasting.** The T-GCN-MultiGSL-Mix architecture achieves 13.3% RMSE improvement on Los-loop (PH=1) and consistent improvements across all horizons.
 
 3. **Different temporal lags capture complementary information.** The learned weights show that lag_2 (10 min delay) is most important on Los-loop, while lag_1 (5 min) and lag_3 (15 min) also contribute meaningfully.
 
@@ -244,7 +244,7 @@ On Los-loop, the relationship is **U-shaped**: very sparse (0 edges) is good, me
 ### What the paper should NOT claim
 
 1. ~~DAGMA learns causal structure~~ → DAGMA learns predictive/functional dependencies
-2. ~~Temporal DAGMA outperforms physical graph~~ → Multi-lag GatedMulti outperforms NoGraph; single-graph DAGMA does not always beat NoGraph
+2. ~~Temporal DAGMA outperforms physical graph~~ → Multi-lag T-GCN-MultiGSL-Mix outperforms T-GCN-NoSpatial; single-graph DAGMA does not always beat T-GCN-NoSpatial
 3. ~~The learned graph is "the correct graph"~~ → The learned graph is one useful sparsification among several
 
 ### Suggested paper framing
@@ -301,9 +301,9 @@ On Los-loop, the relationship is **U-shaped**: very sparse (0 edges) is good, me
 
 3. **Threshold sensitivity on multi-lag**: Test thresholds 0.01, 0.05, 0.1, 0.2 for the multi-lag architecture to find the optimal edge count.
 
-4. **Paper rewrite**: Restructure the paper around the multi-lag GatedMultiGraphTGCN result, with oversmoothing as a supporting finding.
+4. **Paper rewrite**: Restructure the paper around the multi-lag T-GCN-MultiGSL-Mix result, with oversmoothing as a supporting finding.
 
-5. **Comparison with recent GSL papers**: Compare the GatedMulti result with published state-of-the-art on SZ-Taxi and Los-loop.
+5. **Comparison with recent GSL papers**: Compare the T-GCN-MultiGSL-Mix result with published state-of-the-art on SZ-Taxi and Los-loop.
 
 ---
 

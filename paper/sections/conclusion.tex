@@ -11,11 +11,11 @@ Our key findings are:
 
     \item Multi-lag DAGMA explicitly discovers these lag-specific dependencies by constructing temporal input blockings $Z = [x(t{-}L), \ldots, x(t)]$ and extracting separate functional graphs for each lag.
 
-    \item GatedMultiGraphTGCN adaptively exploits these lag-specific graphs through per-node, per-timestep learned gating, achieving a mean RMSE improvement of 14.9\% over a no-graph baseline on Los-loop across five random seeds.
+    \item T-GCN-MultiGSL-Mix exploits these lag-specific graphs through per-node, per-timestep learned mixing, achieving a mean RMSE improvement of 14.9\% over a no-graph baseline on Los-loop across five random seeds.
 
     \item The improvement is robust: it holds in all five seeds, survives a parameter-matched control, and persists across all four prediction horizons.
 
     \item The effect is dataset-dependent: on SZ-Taxi, improvements are marginal, indicating that the multi-lag approach is most effective when traffic networks exhibit strong lag-specific propagation patterns.
 \end{enumerate}
 
-Future work should explore adaptive lag window selection, sliding-window DAGMA for time-varying graph updates, scalability to larger networks, and integration with other graph-based forecasting architectures.
+Future work should explore learned lag window selection, sliding-window DAGMA for time-varying graph updates, scalability to larger networks, and integration with other graph-based forecasting architectures.

@@ -6,9 +6,9 @@ The most striking finding is that removing the physical graph entirely improves 
 
 \subsection{Why Multi-Lag Processing Helps}
 
-The multi-lag formulation provides two distinct advantages. First, it makes the temporal dependency structure explicit: instead of learning a single ambiguous graph, we obtain separate graphs for each temporal lag, each with a clear interpretation (Table~\ref{tab:lag_stats}). Second, the GatedMultiGraphTGCN architecture can process these graphs through separate T-GCN cells and adaptively combine the results, preserving the lag-specific information that would be lost by merging into a single adjacency.
+The multi-lag formulation provides two distinct advantages. First, it makes the temporal dependency structure explicit: instead of learning a single ambiguous graph, we obtain separate graphs for each temporal lag, each with a clear interpretation (Table~\ref{tab:lag_stats}). Second, the T-GCN-MultiGSL-Mix architecture can process these graphs through separate T-GCN cells and combine the results through learned mixing, preserving the lag-specific information that would be lost by merging into a single adjacency.
 
-The fact that MultiGraph\_fixed (same edges, fixed assignment) achieves 4.794 while GatedMulti achieves 4.452 demonstrates that \textit{how} the lag-specific graphs are processed matters as much as \textit{which} graphs are used. The 0.342 RMSE improvement from adaptive gating represents a 7.1\% further reduction beyond the fixed multi-graph approach.
+The fact that T-GCN-MultiGSL (same edges, fixed assignment) achieves 4.794 while T-GCN-MultiGSL-Mix achieves 4.452 demonstrates that \textit{how} the lag-specific graphs are processed matters as much as \textit{which} graphs are used. The 0.342 RMSE improvement from learned graph mixing represents a 7.1\% further reduction beyond the fixed multi-graph approach.
 
 \subsection{Why the Effect is Dataset-Dependent}
 
@@ -20,11 +20,11 @@ The original GSL/cGSL experiments established that learned sparse graphs outperf
 
 \subsection{Training Dynamics}\label{sec:convergence}
 
-Figure~\ref{fig:convergence} shows the training loss curves for the three main methods on Los-loop. All methods converge within 50 epochs, with GatedMultiGraphTGCN achieving the lowest final training loss. The convergence behavior is stable across datasets, indicating that the additional gating parameters do not destabilize training.
+Figure~\ref{fig:convergence} shows the training loss curves for the three main methods on Los-loop. All methods converge within 50 epochs, with T-GCN-MultiGSL-Mix achieving the lowest final training loss. The convergence behavior is stable across datasets, indicating that the additional gating parameters do not destabilize training.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.9\textwidth]{figures/fig8_convergence.pdf}
-\caption{Training convergence (PH=1, seed=42). (a) Los-loop: GatedMulti converges to the lowest training loss. (b) SZ-Taxi: all methods show similar convergence, consistent with the marginal performance difference.}
+\caption{Training convergence (PH=1, seed=42). (a) Los-loop: T-GCN-MultiGSL-Mix converges to the lowest training loss. (b) SZ-Taxi: all methods show similar convergence, consistent with the marginal performance difference.}
 \label{fig:convergence}
 \end{figure}

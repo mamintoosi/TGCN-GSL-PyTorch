@@ -9,7 +9,7 @@ This study has several limitations that delineate the boundaries of the current 
 
     \item \textbf{DAGMA scalability:} The multi-lag formulation increases the DAGMA input dimension to $(L+1) \cdot N$. For the Los-loop dataset ($N=207$), this yields an $828 \times 828$ matrix requiring approximately 4 hours of computation. Scaling to networks with thousands of sensors would require more efficient graph learning algorithms.
 
-    \item \textbf{Fixed lag window:} The current formulation uses a fixed lag window $L=3$. The optimal lag structure may vary across datasets and traffic conditions. Adaptive lag selection remains future work.
+    \item \textbf{Fixed lag window:} The current formulation uses a fixed lag window $L=3$. The optimal lag structure may vary across datasets and traffic conditions. Learned lag selection remains future work.
 
     \item \textbf{Static learned graphs:} The lag-specific graphs are learned once from training data and remain fixed during inference. While the GRU hidden state provides temporal dynamics and the gate provides per-timestep graph selection, the underlying dependency graphs themselves do not adapt to changing traffic conditions.
 

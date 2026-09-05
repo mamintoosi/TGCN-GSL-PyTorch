@@ -86,7 +86,7 @@ paths = {
 
 ### 4.1 TGCN Results (RMSE, lower = better)
 
-| PH | NoGraph | DAGMA 1-edge | Corr-K8 | Corr-K16 | Physical |
+| PH | T-GCN-NoSpatial | DAGMA 1-edge | Corr-K8 | Corr-K16 | Physical |
 |----|---------|-------------|---------|----------|----------|
 | 1 | **4.116** | 4.164 | 4.204 | 4.223 | 5.267 |
 | 2 | **4.160** | 4.200 | 4.238 | 4.258 | 5.406 |
@@ -95,7 +95,7 @@ paths = {
 
 ### 4.2 GCN Results (RMSE, lower = better)
 
-| PH | NoGraph | DAGMA 1-edge | Corr-K8 | Corr-K16 | Physical |
+| PH | T-GCN-NoSpatial | DAGMA 1-edge | Corr-K8 | Corr-K16 | Physical |
 |----|---------|-------------|---------|----------|----------|
 | 1 | **4.113** | 4.504 | 4.408 | 4.318 | 5.958 |
 | 2 | **4.153** | 4.788 | 4.445 | 4.354 | 5.976 |
@@ -134,7 +134,7 @@ paths = {
 |-------|----------|--------|
 | "DAGMA learns unique temporal structure" | DAGMA ≈ correlation | ❌ Not supported |
 | "Temporal causal graph" | No causal validation | ❌ Not supported |
-| "Learned graph outperforms no graph" | NoGraph often best | ❌ Not supported |
+| "Learned graph outperforms no graph" | T-GCN-NoSpatial often best | ❌ Not supported |
 
 ### Recommended Paper Reframing
 

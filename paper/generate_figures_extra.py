@@ -73,7 +73,7 @@ def fig8_convergence():
     print("Generating Figure 8: Convergence Curves...")
 
     methods = ['nograph', 'multi_graph_fixed', 'gated_multi']
-    display_names = ['NoGraph', 'MultiGraph (fixed)', 'GatedMulti']
+    display_names = ['T-GCN-NoSpatial', 'T-GCN-MultiGSL', 'T-GCN-MultiGSL-Mix']
     colors = [COLORS['NoGraph'], COLORS['MultiGraph'], COLORS['GatedMulti']]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
@@ -132,7 +132,7 @@ def fig9_predicted_vs_actual():
     print("Generating Figure 9: Predicted vs Actual...")
 
     methods = ['nograph', 'gated_multi']
-    display_names = ['NoGraph', 'GatedMulti']
+    display_names = ['T-GCN-NoSpatial', 'T-GCN-MultiGSL-Mix']
     colors = [COLORS['NoGraph'], COLORS['GatedMulti']]
 
     fig, axes = plt.subplots(3, 2, figsize=(14, 10))

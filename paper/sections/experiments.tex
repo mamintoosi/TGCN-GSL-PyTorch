@@ -26,10 +26,10 @@ DAGMA hyperparameters: $\lambda_1 = 0.01$, loss type = L2, warm-up iterations = 
 We compare the following T-GCN variants:
 
 \begin{itemize}
-    \item \textbf{NoGraph:} T-GCN with identity adjacency (no spatial information). This is the critical baseline---it tests whether any graph helps.
+    \item \textbf{T-GCN-NoSpatial:} T-GCN with identity adjacency (no spatial information). This is the critical baseline---it tests whether any graph helps.
     \item \textbf{Physical:} T-GCN with the predefined road network adjacency.
-    \item \textbf{MultiGraph\_fixed:} T-GCN that assigns lag-specific graphs to input timesteps in a fixed pattern (corrected alignment).
-    \item \textbf{GatedMultiGraphTGCN:} Our proposed method with adaptive per-node, per-timestep gating over lag-specific graphs.
+    \item \textbf{T-GCN-MultiGSL:} T-GCN that assigns lag-specific graphs to input timesteps in a fixed pattern (corrected alignment).
+    \item \textbf{T-GCN-MultiGSL-Mix:} Our proposed method with per-node, per-timestep learned mixing over lag-specific graphs.
 \end{itemize}
 
 All models use hidden dimension $H=64$, Adam optimizer (learning rate 0.001, weight decay 0.0001), batch size 128, historical window $n=12$, and 50 training epochs. The loss function is MSE with L1 regularization. Results are reported as mean $\pm$ standard deviation over 5 random seeds (seeds 42--46) for the main comparison.
