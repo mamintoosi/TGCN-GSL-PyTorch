@@ -1,0 +1,101 @@
+\section{Proposed Method}\label{sec:method}
+
+\subsection{Motivation for Data-Driven Graph Structure Learning}
+
+In both GCN \citep{kipf2017semi} and T-GCN \citep{zhao2019t}, the adjacency matrix $\mathbf{A}$ is predefined based on physical road proximity. This has two fundamental limitations. First, physical connectivity is an imperfect proxy for functional traffic dependency: roads that are physically distant may exhibit strong traffic correlations due to commuting patterns, while adjacent roads may have minimal mutual influence. Second, dense physical graphs (e.g., 2833 edges for 207 nodes in the Los-loop dataset) can induce oversmoothing through excessive spatial aggregation in graph convolution layers.
+
+Graph Structure Learning addresses these limitations by learning $\mathbf{A}$ directly from traffic data. We employ DAGMA \citep{Bello2024DAGMA}, which extends the NOTEARS framework \citep{zheng2018dags} for continuous DAG optimization.
+
+\subsection{DAGMA-Based Graph Structure Learning}
+
+DAGMA models the data through a structural equation model defined by a weighted adjacency matrix $W \in \mathbb{R}^{d \times d}$. Instead of operating on the discrete space of DAGs, it optimizes over continuous real matrices with a smooth acyclicity constraint $h(W) = 0$, where:
+\begin{equation}
+h(W) = \tr\big(e^{W \circ W}\big) - d = 0
+\end{equation}
+and $\circ$ denotes the Hadamard product. The optimization uses an augmented Lagrangian:
+\begin{equation}
+L^\rho(W, \alpha) = \text{score}(W) + \frac{\rho}{2}|h(W)|^2 + \alpha h(W)
+\end{equation}
+where $\text{score}(W)$ measures data fit, $\alpha$ is the Lagrange multiplier, and $\rho > 0$ is a penalty parameter. The algorithm iteratively updates $W$ until $h(W) < \epsilon$, then applies thresholding: $\hat{W} = W \circ \mathbf{1}(|W| > \omega)$.
+
+\textbf{Convention:} Throughout this paper, we follow the DAGMA convention where $W[i,j]$ represents a directed dependency from variable $i$ to variable $j$.
+
+\subsection{Multi-Lag DAGMA Formulation}\label{sec:multilag}
+
+A single learned graph captures contemporaneous or aggregated dependencies but cannot distinguish between different temporal scales of traffic propagation. To address this, we construct an explicit multi-lag input representation.
+
+Given traffic observations $x(t) \in \mathbb{R}^N$ and a lag window $L$, we define the multi-lag input:
+\begin{equation}
+Z_t = \big[x(t{-}L),\; x(t{-}L{+}1),\; \ldots,\; x(t{-}1),\; x(t)\big] \in \mathbb{R}^{(L+1) \times N}
+\end{equation}
+which is flattened to a vector of dimension $(L+1) \cdot N$. The matrix $Z$ is formed by stacking $Z_t$ over all training time steps.
+
+Applying DAGMA to $Z$ produces a weight matrix $W \in \mathbb{R}^{(L+1)N \times (L+1)N}$. The block structure of $W$ is:
+\begin{itemize}
+    \item $W[l \cdot N : (l{+}1) \cdot N,\; L \cdot N : (L{+}1) \cdot N]$ represents dependencies from lag $l$ to the current time step
+    \item $W[L \cdot N : (L{+}1) \cdot N,\; L \cdot N : (L{+}1) \cdot N]$ represents contemporaneous dependencies
+\end{itemize}
+
+Since $W[i,j]$ means variable $i \rightarrow$ variable $j$, the block $W[l \cdot N + i,\; L \cdot N + j]$ captures the functional dependency from sensor $i$ at time $t{-}(L{-}l)$ to sensor $j$ at time $t$. This provides explicit, interpretable lag-specific temporal functional dependencies.
+
+For each lag $l$, we extract the corresponding block and apply thresholding and self-loop removal to obtain a binary adjacency matrix:
+\begin{equation}
+A_l[i,j] = \mathbf{1}\big(|W[l \cdot N + i,\; L \cdot N + j]| > \tau\big) \cdot (1 - \delta_{ij})
+\end{equation}
+where $\tau$ is a threshold and $\delta_{ij}$ is the Kronecker delta.
+
+For $L=3$, this yields four blocks: lag$_3$ ($x(t{-}3) \rightarrow x(t)$), lag$_2$ ($x(t{-}2) \rightarrow x(t)$), lag$_1$ ($x(t{-}1) \rightarrow x(t)$), and current ($x(t) \rightarrow x(t)$). Empirically, these blocks exhibit substantially different edge structures with low cross-lag overlap, confirming that traffic dependencies are temporally heterogeneous.
+
+\subsection{GatedMultiGraphTGCN}\label{sec:gatedmulti}
+
+Standard T-GCN uses a single adjacency matrix for all timesteps. We propose GatedMultiGraphTGCN, which processes each lag-specific graph separately and adaptively combines the results.
+
+\subsubsection{Architecture}
+
+Given $K$ lag-specific graphs $\{A_1, \ldots, A_K\}$, we precompute their graph Laplacians $\{L_1, \ldots, L_K\}$. At each input timestep $t$:
+
+\begin{enumerate}
+    \item The gate network computes per-node, per-graph weights:
+    \begin{equation}
+    \alpha_t = \text{softmax}\big(\text{MLP}([x_t; h_{t-1}])\big) \in \mathbb{R}^{N \times K}
+    \end{equation}
+    where $[x_t; h_{t-1}]$ concatenates the current input and previous hidden state.
+
+    \item A weighted adjacency is formed:
+    \begin{equation}
+    \tilde{L}_t = \sum_{k=1}^{K} \alpha_t^{(k)} \cdot L_k \in \mathbb{R}^{N \times N}
+    \end{equation}
+
+    \item Graph convolution uses this adaptive adjacency:
+    \begin{equation}
+    g_t = \tilde{L}_t \cdot [x_t; h_{t-1}]
+    \end{equation}
+
+    \item The GRU update proceeds with $g_t$:
+    \begin{align}
+    z_t &= \sigma(W_z \cdot g_t) \\
+    r_t, u_t &= \text{chunk}(z_t) \\
+    c_t &= \tanh(W_n \cdot [x_t; r_t \odot h_{t-1}]) \\
+    h_t &= u_t \odot h_{t-1} + (1 - u_t) \odot c_t
+    \end{align}
+\end{enumerate}
+
+\subsubsection{Key Properties}
+
+The gate operates at three levels simultaneously:
+\begin{itemize}
+    \item \textbf{Per-node:} each of the $N$ nodes has independent gate weights, allowing different sensors to use different lag graphs
+    \item \textbf{Per-timestep:} the gate recomputes at each of the 12 input steps, adapting to the temporal context
+    \item \textbf{Differentiable:} the gate is learned jointly with the forecasting objective via backpropagation
+\end{itemize}
+
+This contrasts with simpler multi-graph approaches:
+\begin{itemize}
+    \item \textbf{UnionGraph:} merges all lag graphs into one adjacency, losing lag-specific information
+    \item \textbf{WeightedMulti:} learns a fixed global weight per lag graph, without per-node or per-timestep adaptation
+    \item \textbf{MultiGraph:} assigns graphs to timesteps in a fixed cyclic pattern
+\end{itemize}
+
+\subsubsection{Parameter Count}
+
+For hidden dimension $H$ and $K$ lag graphs, GatedMultiGraphTGCN has approximately $3H^2 + 6H + (H+1)H + H + (H+1)K + K$ parameters. With $H=64$ and $K=3$, this yields 17,091 parameters, compared to 12,672 for standard T-GCN. A parameter-matched control (Section~\ref{sec:param_control}) confirms that this capacity difference does not explain the performance improvement.

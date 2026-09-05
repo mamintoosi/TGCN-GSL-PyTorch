@@ -1,0 +1,21 @@
+\section{Limitations}\label{sec:limitations}
+
+This study has several limitations that delineate the boundaries of the current evidence:
+
+\begin{enumerate}
+    \item \textbf{Dataset dependence:} The strong improvement (14.9\%) is observed on the Los-loop highway dataset, while the SZ-Taxi urban dataset shows only marginal improvement. The method's effectiveness appears to depend on the underlying traffic dynamics.
+
+    \item \textbf{Two datasets only:} Evaluation is limited to two traffic datasets. Broader validation on diverse traffic networks (e.g., different cities, different sensor types, different time periods) would strengthen generalizability claims.
+
+    \item \textbf{DAGMA scalability:} The multi-lag formulation increases the DAGMA input dimension to $(L+1) \cdot N$. For the Los-loop dataset ($N=207$), this yields an $828 \times 828$ matrix requiring approximately 4 hours of computation. Scaling to networks with thousands of sensors would require more efficient graph learning algorithms.
+
+    \item \textbf{Fixed lag window:} The current formulation uses a fixed lag window $L=3$. The optimal lag structure may vary across datasets and traffic conditions. Adaptive lag selection remains future work.
+
+    \item \textbf{Static learned graphs:} The lag-specific graphs are learned once from training data and remain fixed during inference. While the GRU hidden state provides temporal dynamics and the gate provides per-timestep graph selection, the underlying dependency graphs themselves do not adapt to changing traffic conditions.
+
+    \item \textbf{Limited backbone architectures:} We evaluate only T-GCN as the backbone. Whether the multi-lag approach benefits other graph-based forecasting architectures (e.g., ST-GCN, Graph WaveNet) remains to be tested.
+
+    \item \textbf{No causal identification:} The DAGMA formulation discovers temporal functional dependencies, not causal relationships. We do not claim that the learned graphs represent causal traffic mechanisms.
+
+    \item \textbf{Prediction horizons:} Results are reported for horizons PH=1--4. The method's behavior at longer horizons (e.g., 30--60 minutes) is not evaluated.
+\end{enumerate}

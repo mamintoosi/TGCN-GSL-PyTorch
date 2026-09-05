@@ -1,0 +1,30 @@
+\section{Background}\label{sec:bg}
+
+\subsection{Problem Formulation}
+
+We model the road network as a graph $G=(V,E)$, where $V=\{v_1,\ldots,v_N\}$ represents $N$ road segments and $\mathbf{A} \in \{0,1\}^{N \times N}$ is the binary adjacency matrix encoding road connectivity. Traffic data is represented by a feature matrix $X \in \mathbb{R}^{T \times N}$, where $X_t \in \mathbb{R}^N$ represents traffic speeds across all roads at time $t$. The forecasting task learns a mapping from historical observations to future traffic conditions:
+\begin{equation}
+[X_{t+1},\ldots,X_{t+T}] = f(G;[X_{t-n},\ldots,X_t])
+\end{equation}
+where $n$ is the historical window size and $T$ is the prediction horizon.
+
+\subsection{Graph Convolutional Networks}
+
+GCNs extend convolution to graph-structured data through a layer-wise propagation rule \citep{kipf2017semi}:
+\begin{equation}
+\mathbf{H}^{(l+1)}= \sigma\!\left(\tilde{\mathbf{D}}^{-\frac{1}{2}} \tilde{\mathbf{A}}\tilde{\mathbf{D}}^{-\frac{1}{2}}\mathbf{H}^{(l)} \mathbf{W}^{(l)} \right)
+\label{eq:gcn-layer}
+\end{equation}
+where $\tilde{\mathbf{A}} = \mathbf{A} + \mathbf{I}_N$ is the adjacency matrix with self-connections, $\tilde{\mathbf{D}}$ is the degree matrix, $\mathbf{W}^{(l)}$ is a trainable weight matrix, and $\sigma(\cdot)$ is a nonlinear activation. The normalized adjacency $\hat{A}=\tilde{\mathbf{D}}^{-\frac{1}{2}} \tilde{\mathbf{A}}\tilde{\mathbf{D}}^{-\frac{1}{2}}$ aggregates information from neighboring nodes while preserving feature scale. A two-layer GCN is:
+\begin{equation}
+f(\mathbf{A},\mathbf{X})=\sigma\!\left(\hat{A}\sigma\!\left(\hat{A}\mathbf{X} \mathbf{W}^{(1)} \right) \mathbf{W}^{(2)} \right)
+\label{eq:two-layer-gcn}
+\end{equation}
+
+\subsection{Temporal Graph Convolutional Network}
+
+The T-GCN \citep{zhao2019t} combines GCN for spatial feature extraction with a Gated Recurrent Unit (GRU) for temporal modeling. At each timestep, the GCN extracts spatial features $\mathbf{Z}_t=f(\mathbf{A},\mathbf{X}_t)$, which are then processed by the GRU to capture temporal dynamics. The GRU uses update gate $\mathbf{u}_t$, reset gate $\mathbf{r}_t$, and candidate hidden state $\mathbf{c}_t$ with learnable weight matrices $\mathbf{W}_u$, $\mathbf{W}_r$, $\mathbf{W}_c$. The model is trained by minimizing:
+\begin{equation}
+\mathcal{L}=\| Y_{t}-\widehat{Y_{t}}\|_2+\lambda \|\Theta\|_1
+\end{equation}
+where $\widehat{Y_{t}}$ is the prediction, $Y_t$ is the ground truth, and $\lambda$ controls L1 regularization.

@@ -1,0 +1,81 @@
+\section{Original GSL/cGSL Results}\label{app:original_gsl}
+
+This appendix presents the original Graph Structure Learning (GSL) and cyclic GSL (cGSL) results that motivated the multi-lag investigation.
+
+\subsection{Method}
+
+The original GSL approach applies DAGMA to contemporaneous traffic observations $X \in \mathbb{R}^{T \times N}$, where each row is a single-timestep snapshot of all $N$ sensor readings. This produces a single $N \times N$ weight matrix $W$. The GSL variant uses the binary thresholded DAG adjacency: $A_{GSL} = \mathbf{1}(|W| > \omega)$. The cGSL variant symmetrizes: $A_{cGSL} = A_{GSL} + A_{GSL}^T$.
+
+\subsection{GCN Results}
+
+Table~\ref{tab:gcn_gsl_combined} shows the GCN results with physical graph, GSL, and cGSL.
+
+\begin{table}[!t]
+\centering
+\caption{GCN performance with physical graph, GSL, and cGSL on both datasets (PH=1--4).}
+\label{tab:gcn_gsl_combined}
+\small
+\begin{tabular}{cl|cc|cc}
+\toprule
+& & \multicolumn{2}{c}{SZ-taxi} & \multicolumn{2}{c}{Los-loop} \\
+PH & Method & RMSE & MAE & RMSE & MAE \\
+\midrule
+& GCN & 5.958 & 4.409 & 7.724 & 5.555 \\
+1 & GCN-GSL & 4.886 & 3.161 & 7.527 & 5.065 \\
+& \textbf{GCN-cGSL} & \textbf{4.648} & \textbf{3.078} & \textbf{5.440} & \textbf{3.452} \\
+\midrule
+& GCN & 5.983 & 4.437 & 7.940 & 5.692 \\
+2 & GCN-GSL & 4.904 & 3.173 & 7.867 & 5.268 \\
+& \textbf{GCN-cGSL} & \textbf{4.672} & \textbf{3.051} & \textbf{5.806} & \textbf{3.613} \\
+\midrule
+& GCN & 5.991 & 4.438 & 8.102 & 5.782 \\
+3 & GCN-GSL & 4.958 & 3.223 & 8.073 & 5.453 \\
+& \textbf{GCN-cGSL} & \textbf{4.712} & \textbf{3.122} & \textbf{6.171} & \textbf{3.821} \\
+\midrule
+& GCN & 6.002 & 4.450 & 8.285 & 5.876 \\
+4 & GCN-GSL & 4.933 & 3.199 & 9.067 & 6.085 \\
+& \textbf{GCN-cGSL} & \textbf{4.726} & \textbf{3.107} & \textbf{6.745} & \textbf{4.097} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+GCN-cGSL (symmetrized cyclic graph) consistently outperforms both standard GCN and GCN-GSL, achieving up to 21.6\% RMSE improvement on SZ-taxi and 24.7\% on Los-loop. This suggests that the purely spatial GCN benefits from bidirectional (cyclic) graph connections.
+
+\subsection{TGCN Results}
+
+Table~\ref{tab:tgcn_gsl_combined} shows the TGCN results.
+
+\begin{table}[!t]
+\centering
+\caption{TGCN performance with physical graph, GSL, and cGSL on both datasets (PH=1--4).}
+\label{tab:tgcn_gsl_combined}
+\small
+\begin{tabular}{cl|cc|cc}
+\toprule
+& & \multicolumn{2}{c}{SZ-taxi} & \multicolumn{2}{c}{Los-loop} \\
+PH & Method & RMSE & MAE & RMSE & MAE \\
+\midrule
+& TGCN & 4.866 & 3.606 & 6.588 & 4.573 \\
+1 & \textbf{TGCN-GSL} & \textbf{4.214} & \textbf{2.797} & \textbf{4.818} & \textbf{2.980} \\
+& TGCN-cGSL & 4.821 & 3.537 & 6.550 & 4.553 \\
+\midrule
+& TGCN & 4.506 & 3.213 & 6.960 & 4.838 \\
+2 & \textbf{TGCN-GSL} & \textbf{4.239} & \textbf{2.801} & \textbf{5.400} & \textbf{3.410} \\
+& TGCN-cGSL & 4.534 & 3.276 & 6.915 & 4.830 \\
+\midrule
+& TGCN & 4.685 & 3.416 & 7.361 & 5.053 \\
+3 & \textbf{TGCN-GSL} & \textbf{4.344} & \textbf{3.062} & \textbf{5.846} & \textbf{3.467} \\
+& TGCN-cGSL & 4.630 & 3.334 & 7.331 & 5.054 \\
+\midrule
+& TGCN & 4.934 & 3.638 & 7.568 & 5.166 \\
+4 & \textbf{TGCN-GSL} & \textbf{4.366} & \textbf{2.885} & \textbf{6.257} & \textbf{3.805} \\
+& TGCN-cGSL & 4.774 & 3.487 & 7.539 & 5.172 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+TGCN-GSL (acyclic DAG graph) outperforms both standard TGCN and TGCN-cGSL, achieving up to 21.8\% RMSE improvement on Los-loop. The acyclic structure aligns well with T-GCN's temporal modeling through the GRU component.
+
+\subsection{Key Observation}
+
+The asymmetry between GCN (cyclic preferred) and T-GCN (acyclic preferred) motivated the investigation into what the learned graph actually represents. The multi-lag formulation (main text) resolves this by making the temporal structure explicit rather than relying on post-hoc interpretation of a single ambiguous graph.

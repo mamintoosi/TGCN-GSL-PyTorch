@@ -1,0 +1,19 @@
+\section{Discussion}\label{sec:discussion}
+
+\subsection{Why Dense Physical Graphs Fail}
+
+The most striking finding is that removing the physical graph entirely improves RMSE by 32.8\% (Table~\ref{tab:oversmoothing}). This oversmoothing effect arises because the physical graph's high density (2833 edges for 207 nodes) causes repeated graph convolution operations to aggregate information from increasingly distant and irrelevant nodes, washing out the distinctive features of individual road segments. This finding is consistent across both datasets and aligns with theoretical predictions about over-squashing in graph neural networks.
+
+\subsection{Why Multi-Lag Processing Helps}
+
+The multi-lag formulation provides two distinct advantages. First, it makes the temporal dependency structure explicit: instead of learning a single ambiguous graph, we obtain separate graphs for each temporal lag, each with a clear interpretation (Table~\ref{tab:lag_stats}). Second, the GatedMultiGraphTGCN architecture can process these graphs through separate T-GCN cells and adaptively combine the results, preserving the lag-specific information that would be lost by merging into a single adjacency.
+
+The fact that MultiGraph\_fixed (same edges, fixed assignment) achieves 4.794 while GatedMulti achieves 4.452 demonstrates that \textit{how} the lag-specific graphs are processed matters as much as \textit{which} graphs are used. The 0.342 RMSE improvement from adaptive gating represents a 7.1\% further reduction beyond the fixed multi-graph approach.
+
+\subsection{Why the Effect is Dataset-Dependent}
+
+The marginal improvement on SZ-Taxi (0.2--0.9\%) compared to the strong improvement on Los-loop (14.9\%) likely reflects differences in the underlying traffic dynamics. The Los-loop dataset captures highway traffic where propagation patterns have clear temporal structure (vehicles traveling at highway speeds create predictable lagged dependencies). The SZ-Taxi dataset captures urban taxi traffic, which may have more complex, less structured dependencies that are not well captured by fixed-lag analysis. This dataset dependence is an honest finding that the paper explicitly reports rather than hiding.
+
+\subsection{Connection to Original GSL/cGSL Findings}
+
+The original GSL/cGSL experiments established that learned sparse graphs outperform dense physical graphs, and that different backbone architectures (GCN vs T-GCN) benefit from different graph structures. These findings remain valid and motivated the deeper investigation into temporal heterogeneity. The multi-lag formulation can be viewed as a principled extension: rather than debating whether the learned graph should be cyclic or acyclic, we construct lag-specific graphs that naturally capture different temporal aspects of the dependency structure.

@@ -1,0 +1,48 @@
+\section{Additional Diagnostics}\label{app:diagnostics}
+
+\subsection{Graph Density Statistics}
+
+Table~\ref{tab:density_stats} compares graph densities across methods.
+
+\begin{table}[ht]
+\centering
+\caption{Graph density comparison (Los-loop, $N=207$).}
+\label{tab:density_stats}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Graph} & \textbf{Edges} & \textbf{Density} \\
+\midrule
+Physical & 2833 & 0.0660 \\
+NoGraph (identity) & 207 & 0.0048 \\
+MultiGraph\_fixed ($\tau$=0.1) & 30 & 0.0007 \\
+GatedMulti ($\tau$=0.1) & 30 & 0.0007 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{SZ-Taxi Multi-Horizon Results}
+
+Table~\ref{tab:sz_multiph} reports SZ-Taxi results, showing marginal GatedMulti improvement.
+
+\begin{table}[ht]
+\centering
+\caption{SZ-Taxi multi-horizon results (seed=42). GatedMulti improvement is marginal.}
+\label{tab:sz_multiph}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Method} & \textbf{PH=1} & \textbf{PH=2} & \textbf{PH=3} & \textbf{PH=4} \\
+\midrule
+NoGraph & 4.116 & 4.160 & 4.189 & 4.221 \\
+\textbf{GatedMulti} & 4.108 & 4.149 & 4.184 & 4.221 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{DAGMA Computational Cost}
+
+Multi-lag DAGMA runtime on standard hardware (RTX 3090):
+\begin{itemize}
+    \item SZ-Taxi ($624 \times 624$): approximately 100 minutes per prediction horizon
+    \item Los-loop ($828 \times 828$): approximately 240 minutes per prediction horizon
+\end{itemize}
+Total computation for all 8 DAGMA runs (2 datasets $\times$ 4 PHs): approximately 28 hours.

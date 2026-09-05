@@ -1,0 +1,23 @@
+\section{Introduction}\label{sec:introduction}
+
+Traffic prediction is a fundamental challenge in intelligent transportation systems, requiring models that capture complex spatial and temporal dependencies in urban road networks \citep{akhtar2021review}. Graph Convolutional Networks (GCNs) \citep{kipf2017semi} and Temporal GCNs (T-GCNs) \citep{zhao2019t} have emerged as effective approaches by modeling traffic networks as graphs, where nodes represent road segments and edges encode spatial relationships.
+
+A critical limitation of existing graph-based methods is their reliance on predefined adjacency matrices derived from physical road proximity \citep{zhao2019t}. A systematic bibliometric analysis of 784 traffic forecasting articles (2000--2025) confirms that graph-based methods now dominate the field, yet nearly all depend on heuristic graph construction from road network topology (see Appendix~\ref{sec:Bibliometric-Methodology}). However, physical connectivity is an imperfect proxy for functional traffic dependency: roads that are physically distant may exhibit strong traffic correlations due to commuting patterns, while adjacent roads may have minimal mutual influence \citep{Chen2022}.
+
+A second, less recognized problem is that dense physical graphs can induce \textit{oversmoothing} in GCN-based models. When the adjacency matrix encodes hundreds or thousands of edges, repeated graph convolution operations aggregate information from increasingly distant nodes, causing node representations to converge and lose discriminative power. This excessive spatial aggregation can paradoxically degrade forecasting performance compared to using no graph at all.
+
+Graph Structure Learning (GSL) addresses the first problem by learning the adjacency matrix directly from traffic data rather than relying on physical proximity. Recent work has applied continuous DAG optimization methods such as NOTEARS \citep{zheng2018dags} and DAGMA \citep{Bello2024DAGMA} to this task, discovering sparse functional dependencies that differ substantially from physical road connectivity \citep{Amintoosi1403aimc55-GSL}.
+
+However, a single static learned graph has an inherent limitation: traffic dependencies are \textit{temporally heterogeneous}. The influence of sensor $i$ on sensor $j$ may vary depending on the temporal lag---a 5-minute delay captures different traffic propagation patterns than a 15-minute delay. A single adjacency matrix cannot represent these lag-specific structures.
+
+In this paper, we address this limitation through two contributions:
+
+\begin{enumerate}
+    \item \textbf{Multi-lag DAGMA:} We construct explicit temporal input blockings $Z = [x(t{-}L), \ldots, x(t)]$ and apply DAGMA to learn a weight matrix whose blocks correspond to lag-specific temporal functional dependencies. This provides direct, interpretable evidence for which temporal lags carry predictive information.
+
+    \item \textbf{GatedMultiGraphTGCN:} We propose a T-GCN variant that processes each lag-specific graph separately and uses a per-node, per-timestep learned gate to adaptively combine the resulting representations.
+\end{enumerate}
+
+Experiments on the Los-loop highway dataset demonstrate that GatedMultiGraphTGCN achieves a mean RMSE improvement of 14.9\% over a no-graph baseline, validated across five random seeds and confirmed against a parameter-matched control. A lag ablation study shows that all three temporal lags contribute complementary information. On the SZ-Taxi urban dataset, improvements are marginal, and we explicitly report this dataset dependence rather than claiming universal benefit.
+
+The remainder of this paper is organized as follows. Section~\ref{sec:bg} reviews background on GCNs and T-GCNs. Section~\ref{sec:method} presents the multi-lag DAGMA formulation and GatedMultiGraphTGCN architecture. Section~\ref{sec:experiments} describes the experimental setup. Section~\ref{sec:results} presents results. Section~\ref{sec:discussion} discusses findings. Section~\ref{sec:limitations} states limitations. Section~\ref{sec:conclusion} concludes.

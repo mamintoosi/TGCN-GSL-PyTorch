@@ -1,0 +1,44 @@
+\section{Experimental Setup}\label{sec:experiments}
+
+\subsection{Datasets}
+
+We evaluate on two widely-used traffic datasets:
+
+\begin{itemize}
+    \item \textbf{SZ-Taxi:} Taxi trajectory data from Shenzhen, China (January 2015), with speed measurements from 156 sensors aggregated at 15-minute intervals. The physical graph has 532 edges.
+    \item \textbf{Los-loop:} Real-time traffic speed data from 207 loop detectors on Los Angeles County highways (March 1--7, 2012), aggregated every 5 minutes. The physical graph has 2833 edges.
+\end{itemize}
+
+Both datasets are split into training (80\%) and testing (20\%) sets, preserving temporal order. Performance is evaluated across prediction horizons PH $\in \{1, 2, 3, 4\}$.
+
+\subsection{Multi-Lag DAGMA Configuration}
+
+For the multi-lag formulation, we use lag window $L=3$, yielding input dimension $(L+1) \cdot N$:
+\begin{itemize}
+    \item SZ-Taxi: $4 \times 156 = 624$ variables
+    \item Los-loop: $4 \times 207 = 828$ variables
+\end{itemize}
+
+DAGMA hyperparameters: $\lambda_1 = 0.01$, loss type = L2, warm-up iterations = 30,000, max iterations = 60,000. The DAGMA output is thresholded at $\tau = 0.1$ and self-loops are removed. DAGMA is applied only to training data; test data never enters the graph construction.
+
+\subsection{Forecasting Models}
+
+We compare the following T-GCN variants:
+
+\begin{itemize}
+    \item \textbf{NoGraph:} T-GCN with identity adjacency (no spatial information). This is the critical baseline---it tests whether any graph helps.
+    \item \textbf{Physical:} T-GCN with the predefined road network adjacency.
+    \item \textbf{MultiGraph\_fixed:} T-GCN that assigns lag-specific graphs to input timesteps in a fixed pattern (corrected alignment).
+    \item \textbf{GatedMultiGraphTGCN:} Our proposed method with adaptive per-node, per-timestep gating over lag-specific graphs.
+\end{itemize}
+
+All models use hidden dimension $H=64$, Adam optimizer (learning rate 0.001, weight decay 0.0001), batch size 128, historical window $n=12$, and 50 training epochs. The loss function is MSE with L1 regularization. Results are reported as mean $\pm$ standard deviation over 5 random seeds (seeds 42--46) for the main comparison.
+
+\subsection{Evaluation Metrics}
+
+We report Root Mean Squared Error (RMSE) and Mean Absolute Error (MAE):
+\begin{equation}
+\text{RMSE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(Y_i - \hat{Y}_i)^2}, \quad
+\text{MAE} = \frac{1}{n}\sum_{i=1}^{n}|Y_i - \hat{Y}_i|
+\end{equation}
+where $Y_i$ and $\hat{Y}_i$ are actual and predicted traffic speeds. RMSE is the primary metric.

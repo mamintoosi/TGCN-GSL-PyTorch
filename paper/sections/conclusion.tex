@@ -1,0 +1,21 @@
+\section{Conclusion}\label{sec:conclusion}
+
+This paper addresses two fundamental challenges in graph-based traffic forecasting: the oversmoothing caused by dense physical graphs, and the temporal heterogeneity of traffic dependencies that a single static graph cannot capture.
+
+Our key findings are:
+
+\begin{enumerate}
+    \item Dense physical road-network graphs can severely degrade GCN/T-GCN forecasting performance through excessive spatial aggregation. On the Los-loop dataset, removing the physical graph entirely improves RMSE by 32.8\%.
+
+    \item Traffic dependencies are temporally heterogeneous: different temporal lags exhibit distinct functional dependency structures with low cross-lag overlap.
+
+    \item Multi-lag DAGMA explicitly discovers these lag-specific dependencies by constructing temporal input blockings $Z = [x(t{-}L), \ldots, x(t)]$ and extracting separate functional graphs for each lag.
+
+    \item GatedMultiGraphTGCN adaptively exploits these lag-specific graphs through per-node, per-timestep learned gating, achieving a mean RMSE improvement of 14.9\% over a no-graph baseline on Los-loop across five random seeds.
+
+    \item The improvement is robust: it holds in all five seeds, survives a parameter-matched control, and persists across all four prediction horizons.
+
+    \item The effect is dataset-dependent: on SZ-Taxi, improvements are marginal, indicating that the multi-lag approach is most effective when traffic networks exhibit strong lag-specific propagation patterns.
+\end{enumerate}
+
+Future work should explore adaptive lag window selection, sliding-window DAGMA for time-varying graph updates, scalability to larger networks, and integration with other graph-based forecasting architectures.
