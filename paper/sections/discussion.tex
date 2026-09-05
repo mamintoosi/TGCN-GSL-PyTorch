@@ -17,3 +17,14 @@ The marginal improvement on SZ-Taxi (0.2--0.9\%) compared to the strong improvem
 \subsection{Connection to Original GSL/cGSL Findings}
 
 The original GSL/cGSL experiments established that learned sparse graphs outperform dense physical graphs, and that different backbone architectures (GCN vs T-GCN) benefit from different graph structures. These findings remain valid and motivated the deeper investigation into temporal heterogeneity. The multi-lag formulation can be viewed as a principled extension: rather than debating whether the learned graph should be cyclic or acyclic, we construct lag-specific graphs that naturally capture different temporal aspects of the dependency structure.
+
+\subsection{Training Dynamics}\label{sec:convergence}
+
+Figure~\ref{fig:convergence} shows the training loss curves for the three main methods on Los-loop. All methods converge within 50 epochs, with GatedMultiGraphTGCN achieving the lowest final training loss. The convergence behavior is stable across datasets, indicating that the additional gating parameters do not destabilize training.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/fig8_convergence.pdf}
+\caption{Training convergence (PH=1, seed=42). (a) Los-loop: GatedMulti converges to the lowest training loss. (b) SZ-Taxi: all methods show similar convergence, consistent with the marginal performance difference.}
+\label{fig:convergence}
+\end{figure}

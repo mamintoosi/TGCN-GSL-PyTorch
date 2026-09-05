@@ -199,5 +199,5 @@ GatedMulti beats NoGraph in 5/5 seeds.
 | Old GSL/cGSL → appendix | ✅ |
 | Citation style standardized | ✅ |
 | "avergae" typo fixed | ✅ |
-| Predicted vs actual plots | ⏳ Requires retraining (noted in Limitations) |
+| Predicted vs actual plots | ✅ Figure~9 added to main text (generated from saved checkpoints) |
 

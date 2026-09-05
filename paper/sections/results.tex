@@ -191,3 +191,12 @@ GatedMulti consistently outperforms NoGraph across all horizons, with the larges
 
 The original GSL/cGSL experiments (see Appendix~\ref{app:original_gsl}) established that replacing physical adjacency with DAGMA-learned graphs improves GCN and T-GCN performance, with different optimal graph structures for each backbone (cyclic for GCN, acyclic for T-GCN). These findings motivated the deeper investigation into temporal dependency structure that led to the multi-lag formulation. The multi-lag approach represents a methodological advance over the single-graph GSL: instead of learning one graph and debating its interpretation, we explicitly construct lag-specific graphs and let the model decide how to use them.
 
+
+\textbf{Predicted vs. actual visualization.} Figure~\ref{fig:pred_vs_actual} shows one-step-ahead predictions for the three most variable Los-loop nodes. Both NoGraph and GatedMulti follow the ground truth closely (correlation $>$0.99), with a characteristic 1--2 step lag inherent to MSE-trained predictors that produce smoothed outputs. GatedMulti's predictions track rapid changes more faithfully, consistent with its lower RMSE.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig9_predicted_vs_actual.pdf}
+\caption{Predicted vs.\ actual traffic speed for three high-variance nodes on Los-loop (PH=1, seed=42). Both NoGraph and GatedMulti predictions closely track the ground truth, with a 1--2 step lag characteristic of MSE-trained models. The reported lag is the cross-correlation shift that maximizes Pearson correlation.}
+\label{fig:pred_vs_actual}
+\end{figure}

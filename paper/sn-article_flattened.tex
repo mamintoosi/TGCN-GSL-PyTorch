@@ -1,31 +1,78 @@
-\documentclass[sn-mathphys,cntvars]{sn-jnl}
+%Version 3.1 December 2024
+% Revised manuscript — modular structure for development
+% Flatten before final submission to Springer
+
+\documentclass[pdflatex,sn-mathphys-num]{sn-jnl}
+
+%%%% Standard Packages
+\usepackage{graphicx}%
+\usepackage{multirow}%
+\usepackage{amsmath,amssymb,amsfonts}%
+\usepackage{amsthm}%
+\usepackage{mathrsfs}%
+\usepackage[title]{appendix}%
+\usepackage{xcolor}%
+\usepackage{textcomp}%
+\usepackage{manyfoot}%
+\usepackage{booktabs}%
+
+\raggedbottom
+
 \input{commands}
 
 \begin{document}
 
-\title{Graph Structure Learning for Traffic Prediction}
+\title[Graph Structure Learning for Traffic Prediction]{Graph Structure Learning for Traffic Prediction}
 
-\author*[1,2]{Mahmoud Mamintoosi}\corresp[mahmood.mamintoosi@gmail.com]{Corresponding author}
-\author[1]{Mehdi Ghassemi}
-\author[3]{Mahdi Farnaghi}
+\author*[1]{\fnm{Mahmood} \sur{Amintoosi}}\email{m.amintoosi@um.ac.ir}
 
-\affil*[1]{Department of Computer Engineering, Mashhad Branch, Islamic Azad University, Mashhad, Iran}
-\affil[2]{Borujen Branch, Islamic Azad University, Borujen, Iran}
-\affil[3]{Department of GIS and Remote Sensing, University of Tehran, Tehran, Iran}
+\affil*[1]{\orgdiv{Division of Computer Science, Department of Applied Mathematics, Faculty of Mathematical Sciences}, \orgname{Ferdowsi University of Mashhad}, \orgaddress{\street{Bahonar Av.}, \city{Mashhad}, \postcode{91775}, \state{Khorasan-e Razavi}, \country{IRAN}}, ORCID:0000-0001-9640-6475}
 
-% ============================================================
-% SECTION: ABSTRACT
-% ============================================================
+\input{sections/abstract}
 
+\keywords{
+Traffic Forecasting,
+Graph Structure Learning,
+Multi-Lag Dependency Learning,
+Graph Convolutional Networks,
+Adaptive Graph Gating
+}
+
+\maketitle
+
+\input{sections/introduction}
+\input{sections/background}
+\input{sections/method}
+\input{sections/experiments}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/limitations}
+\input{sections/conclusion}
+
+\backmatter
+
+\bmhead{Acknowledgements}
+
+The author would like to thank Amin Amiri and Morteza Mostafazadeh for their valuable collaboration in converting the T-GCN codebase from PyTorch Lightning to pure PyTorch implementation.
+
+\begin{appendices}
+
+\input{appendix/original_gsl_results}
+\input{appendix/convergence}
+\input{appendix/bibliometric}
+\input{appendix/additional_diagnostics}
+
+\end{appendices}
+
+\bibliography{MyReferences}
+
+\end{document}
+% SECTION: abstract
 \abstract{
 Graph-based traffic forecasting methods typically rely on predefined adjacency matrices derived from physical road proximity. However, dense physical connectivity can induce excessive spatial aggregation---a form of oversmoothing---that degrades prediction accuracy. We propose a multi-lag graph structure learning framework that discovers temporally heterogeneous functional dependencies between traffic sensors. Using DAGMA continuous optimization, we construct lag-specific dependency graphs from explicit temporal input blockings of the form $Z = [x(t{-}L), \ldots, x(t)]$, yielding separate functional graphs for each temporal lag. A GatedMultiGraphTGCN architecture then adaptively selects among these lag-specific graphs through a per-node, per-timestep learned gate. Experiments on the Los-loop highway dataset demonstrate a mean RMSE improvement of 14.9\% over a no-graph baseline across five random seeds, with the improvement robust to a parameter-matched control. A lag ablation study confirms that all three temporal lags contribute complementary information. On the SZ-Taxi urban dataset, improvements are marginal, indicating dataset dependence. These findings establish that temporally heterogeneous graph structures can substantially benefit traffic forecasting when the underlying dependency patterns vary across temporal scales.
 }
 
-
-% ============================================================
-% SECTION: INTRODUCTION
-% ============================================================
-
+% SECTION: introduction
 \section{Introduction}\label{sec:introduction}
 
 Traffic prediction is a fundamental challenge in intelligent transportation systems, requiring models that capture complex spatial and temporal dependencies in urban road networks \citep{akhtar2021review}. Graph Convolutional Networks (GCNs) \citep{kipf2017semi} and Temporal GCNs (T-GCNs) \citep{zhao2019t} have emerged as effective approaches by modeling traffic networks as graphs, where nodes represent road segments and edges encode spatial relationships.
@@ -50,11 +97,7 @@ Experiments on the Los-loop highway dataset demonstrate that GatedMultiGraphTGCN
 
 The remainder of this paper is organized as follows. Section~\ref{sec:bg} reviews background on GCNs and T-GCNs. Section~\ref{sec:method} presents the multi-lag DAGMA formulation and GatedMultiGraphTGCN architecture. Section~\ref{sec:experiments} describes the experimental setup. Section~\ref{sec:results} presents results. Section~\ref{sec:discussion} discusses findings. Section~\ref{sec:limitations} states limitations. Section~\ref{sec:conclusion} concludes.
 
-
-% ============================================================
-% SECTION: BACKGROUND
-% ============================================================
-
+% SECTION: background
 \section{Background}\label{sec:bg}
 
 \subsection{Problem Formulation}
@@ -86,11 +129,7 @@ The T-GCN \citep{zhao2019t} combines GCN for spatial feature extraction with a G
 \end{equation}
 where $\widehat{Y_{t}}$ is the prediction, $Y_t$ is the ground truth, and $\lambda$ controls L1 regularization.
 
-
-% ============================================================
-% SECTION: METHOD
-% ============================================================
-
+% SECTION: method
 \section{Proposed Method}\label{sec:method}
 
 \subsection{Motivation for Data-Driven Graph Structure Learning}
@@ -193,11 +232,7 @@ This contrasts with simpler multi-graph approaches:
 
 For hidden dimension $H$ and $K$ lag graphs, GatedMultiGraphTGCN has approximately $3H^2 + 6H + (H+1)H + H + (H+1)K + K$ parameters. With $H=64$ and $K=3$, this yields 17,091 parameters, compared to 12,672 for standard T-GCN. A parameter-matched control (Section~\ref{sec:param_control}) confirms that this capacity difference does not explain the performance improvement.
 
-
-% ============================================================
-% SECTION: EXPERIMENTS
-% ============================================================
-
+% SECTION: experiments
 \section{Experimental Setup}\label{sec:experiments}
 
 \subsection{Datasets}
@@ -243,11 +278,7 @@ We report Root Mean Squared Error (RMSE) and Mean Absolute Error (MAE):
 \end{equation}
 where $Y_i$ and $\hat{Y}_i$ are actual and predicted traffic speeds. RMSE is the primary metric.
 
-
-% ============================================================
-% SECTION: RESULTS
-% ============================================================
-
+% SECTION: results
 \section{Results}\label{sec:results}
 
 \subsection{Dense Physical Graphs and Oversmoothing}\label{sec:oversmoothing}
@@ -442,11 +473,16 @@ GatedMulti consistently outperforms NoGraph across all horizons, with the larges
 The original GSL/cGSL experiments (see Appendix~\ref{app:original_gsl}) established that replacing physical adjacency with DAGMA-learned graphs improves GCN and T-GCN performance, with different optimal graph structures for each backbone (cyclic for GCN, acyclic for T-GCN). These findings motivated the deeper investigation into temporal dependency structure that led to the multi-lag formulation. The multi-lag approach represents a methodological advance over the single-graph GSL: instead of learning one graph and debating its interpretation, we explicitly construct lag-specific graphs and let the model decide how to use them.
 
 
+\textbf{Predicted vs. actual visualization.} Figure~\ref{fig:pred_vs_actual} shows one-step-ahead predictions for the three most variable Los-loop nodes. Both NoGraph and GatedMulti follow the ground truth closely (correlation $>$0.99), with a characteristic 1--2 step lag inherent to MSE-trained predictors that produce smoothed outputs. GatedMulti's predictions track rapid changes more faithfully, consistent with its lower RMSE.
 
-% ============================================================
-% SECTION: DISCUSSION
-% ============================================================
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig9_predicted_vs_actual.pdf}
+\caption{Predicted vs.\ actual traffic speed for three high-variance nodes on Los-loop (PH=1, seed=42). Both NoGraph and GatedMulti predictions closely track the ground truth, with a 1--2 step lag characteristic of MSE-trained models. The reported lag is the cross-correlation shift that maximizes Pearson correlation.}
+\label{fig:pred_vs_actual}
+\end{figure}
 
+% SECTION: discussion
 \section{Discussion}\label{sec:discussion}
 
 \subsection{Why Dense Physical Graphs Fail}
@@ -467,11 +503,18 @@ The marginal improvement on SZ-Taxi (0.2--0.9\%) compared to the strong improvem
 
 The original GSL/cGSL experiments established that learned sparse graphs outperform dense physical graphs, and that different backbone architectures (GCN vs T-GCN) benefit from different graph structures. These findings remain valid and motivated the deeper investigation into temporal heterogeneity. The multi-lag formulation can be viewed as a principled extension: rather than debating whether the learned graph should be cyclic or acyclic, we construct lag-specific graphs that naturally capture different temporal aspects of the dependency structure.
 
+\subsection{Training Dynamics}\label{sec:convergence}
 
-% ============================================================
-% SECTION: LIMITATIONS
-% ============================================================
+Figure~\ref{fig:convergence} shows the training loss curves for the three main methods on Los-loop. All methods converge within 50 epochs, with GatedMultiGraphTGCN achieving the lowest final training loss. The convergence behavior is stable across datasets, indicating that the additional gating parameters do not destabilize training.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/fig8_convergence.pdf}
+\caption{Training convergence (PH=1, seed=42). (a) Los-loop: GatedMulti converges to the lowest training loss. (b) SZ-Taxi: all methods show similar convergence, consistent with the marginal performance difference.}
+\label{fig:convergence}
+\end{figure}
+
+% SECTION: limitations
 \section{Limitations}\label{sec:limitations}
 
 This study has several limitations that delineate the boundaries of the current evidence:
@@ -494,11 +537,7 @@ This study has several limitations that delineate the boundaries of the current 
     \item \textbf{Prediction horizons:} Results are reported for horizons PH=1--4. The method's behavior at longer horizons (e.g., 30--60 minutes) is not evaluated.
 \end{enumerate}
 
-
-% ============================================================
-% SECTION: CONCLUSION
-% ============================================================
-
+% SECTION: conclusion
 \section{Conclusion}\label{sec:conclusion}
 
 This paper addresses two fundamental challenges in graph-based traffic forecasting: the oversmoothing caused by dense physical graphs, and the temporal heterogeneity of traffic dependencies that a single static graph cannot capture.
@@ -521,11 +560,8 @@ Our key findings are:
 
 Future work should explore adaptive lag window selection, sliding-window DAGMA for time-varying graph updates, scalability to larger networks, and integration with other graph-based forecasting architectures.
 
-
-% ============================================================
-% APPENDIX: ORIGINAL_GSL_RESULTS
-% ============================================================
-
+\appendix
+% APPENDIX: original_gsl_results
 \section{Original GSL/cGSL Results}\label{app:original_gsl}
 
 This appendix presents the original Graph Structure Learning (GSL) and cyclic GSL (cGSL) results that motivated the multi-lag investigation.
@@ -608,11 +644,7 @@ TGCN-GSL (acyclic DAG graph) outperforms both standard TGCN and TGCN-cGSL, achie
 
 The asymmetry between GCN (cyclic preferred) and T-GCN (acyclic preferred) motivated the investigation into what the learned graph actually represents. The multi-lag formulation (main text) resolves this by making the temporal structure explicit rather than relying on post-hoc interpretation of a single ambiguous graph.
 
-
-% ============================================================
-% APPENDIX: CONVERGENCE
-% ============================================================
-
+% APPENDIX: convergence
 \section{Training Convergence}\label{app:convergence}
 
 Figures~\ref{fig:gcn_shenzhen_performance}--\ref{fig:tgcn_losloop_performance} show the training convergence curves for the original GSL/cGSL experiments over 50 epochs.
@@ -645,11 +677,7 @@ Figures~\ref{fig:gcn_shenzhen_performance}--\ref{fig:tgcn_losloop_performance} s
   \label{fig:tgcn_losloop_performance}
 \end{figure}
 
-
-% ============================================================
-% APPENDIX: BIBLIOMETRIC
-% ============================================================
-
+% APPENDIX: bibliometric
 \section{Bibliometric Analysis Methodology}\label{sec:Bibliometric-Methodology}
 
 To justify the focus on graph-based approaches in traffic forecasting, we conducted a systematic bibliometric analysis.
@@ -693,11 +721,7 @@ Figure~\ref{fig:clustered_keywords} reveals that graph-based methods have become
 \label{fig:word-clouds}
 \end{figure}
 
-
-% ============================================================
-% APPENDIX: ADDITIONAL_DIAGNOSTICS
-% ============================================================
-
+% APPENDIX: additional_diagnostics
 \section{Additional Diagnostics}\label{app:diagnostics}
 
 \subsection{Graph Density Statistics}
@@ -747,8 +771,5 @@ Multi-lag DAGMA runtime on standard hardware (RTX 3090):
 \end{itemize}
 Total computation for all 8 DAGMA runs (2 datasets $\times$ 4 PHs): approximately 28 hours.
 
-
-
-\bibliography{sn-bibliography}
-
+\bibliography{MyReferences}
 \end{document}
