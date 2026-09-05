@@ -24,6 +24,20 @@ GatedMultiGraphTGCN & 30 & 4.458 & 2.696 \\
 
 The physical graph (2833 edges) produces RMSE of 7.658, while NoGraph (identity adjacency) achieves 5.143---a 32.8\% improvement from removing the graph entirely. This confirms that dense spatial aggregation hurts forecasting. The sparse MultiGraph and GatedMulti approaches further improve over NoGraph, demonstrating that carefully structured sparse graphs can provide genuine benefit.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig1_graph_comparison.pdf}
+\caption{Physical versus learned graph structure (Los-loop). (a) Physical adjacency matrix with 2833 edges. (b) Multi-lag DAGMA union graph with 30 edges ($\tau=0.1$). (c) Node degree distribution: physical graph has mean degree 12.7, while DAGMA graph has mean degree 0.14.}
+\label{fig:graph_comparison}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig2_rmse_comparison.pdf}
+\caption{RMSE comparison of all methods on Los-loop (PH=1, seed=42). Edge counts annotated above bars. GatedMultiGraphTGCN achieves the lowest RMSE.}
+\label{fig:rmse_comparison}
+\end{figure}
+
 \subsection{Multi-Lag Graph Structure}\label{sec:multilag_structure}
 
 The multi-lag DAGMA formulation ($L=3$) produces lag-specific graphs with substantially different structures. Table~\ref{tab:lag_stats} reports the statistics for Los-loop at threshold $\tau = 0.1$.
@@ -46,6 +60,13 @@ lag\_3 & $x(t{-}3) \rightarrow x(t)$ & 16 & 0.296 & 0.000373 \\
 
 The current block has 70 cross-sensor edges, lag\_1 has 90 edges (dominated by self-loops), lag\_2 has only 5 edges, and lag\_3 has 16 edges. These blocks are structurally distinct, confirming that traffic dependencies are temporally heterogeneous.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig7_lag_edge_stats.pdf}
+\caption{Lag-specific graph analysis. (a) Edge count per lag for Los-loop and SZ-Taxi ($\tau=0.1$). (b) Jaccard overlap between lag-specific edge sets (Los-loop): low overlap confirms structural distinctness. (c) DAGMA weight distributions per lag.}
+\label{fig:lag_stats}
+\end{figure}
+
 \subsection{Multi-Seed Validation}\label{sec:multiseed}
 
 Table~\ref{tab:multiseed} presents the primary result: Los-loop, PH=1, five random seeds.
@@ -67,6 +88,13 @@ MultiGraph\_fixed & 4.717 & 4.737 & 4.752 & 4.994 & 4.771 & 4.794$\pm$0.102 \\
 
 GatedMultiGraphTGCN beats NoGraph in all 5 seeds with a mean RMSE of 4.452 versus 5.234, corresponding to a 14.9\% improvement. The fixed multi-graph approach also consistently outperforms NoGraph (8.4\% improvement), but GatedMulti provides an additional 7.1\% improvement through adaptive gating.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/fig3_multiseed_boxplot.pdf}
+\caption{Multi-seed validation on Los-loop (PH=1, seeds 42--46). (a) Box plot: GatedMulti consistently outperforms NoGraph across all seeds. (b) Mean RMSE $\pm$ std: GatedMulti achieves 4.452$\pm$0.143 versus NoGraph 5.234$\pm$0.090 (14.9\% improvement).}
+\label{fig:multiseed}
+\end{figure}
+
 \subsection{Parameter-Matched Control}\label{sec:param_control}
 
 To rule out the explanation that GatedMulti's improvement comes from having more parameters, we compare against a NoGraph T-GCN with matched capacity (Table~\ref{tab:param_control}).
@@ -87,6 +115,13 @@ NoGraph (larger) & 74 & 16,872 & 5.137 \\
 \end{table}
 
 The parameter-matched NoGraph (16,872 parameters) achieves RMSE 5.137, virtually identical to the standard NoGraph (5.143). GatedMulti (17,091 parameters) achieves 4.458. Thus 99\% of the improvement comes from the gating architecture, not from additional capacity.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/fig4_param_control.pdf}
+\caption{Parameter-matched control (Los-loop, PH=1, seed=42). (a) Parameter counts are comparable. (b) Adding 35\% more parameters to NoGraph improves RMSE by only 0.1\%, while the gating architecture provides 13.3\% improvement.}
+\label{fig:param_control}
+\end{figure}
 
 \subsection{Lag Ablation}\label{sec:lag_ablation}
 
@@ -114,6 +149,13 @@ lag\_1+lag\_2 & 15 & 4.559 & 11.4\% \\
 
 Each individual lag provides approximately 10\% improvement over NoGraph. The best two-lag combination is lag\_1+lag\_2 (11.4\%), and the full three-lag configuration achieves 13.3\%. This confirms that all three temporal scales carry complementary predictive information.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/fig5_lag_ablation.pdf}
+\caption{Lag ablation study (Los-loop, PH=1, seed=42). Each lag provides $\sim$10\% improvement individually; all three lags together achieve 13.3\%. Color intensity reflects number of lags used.}
+\label{fig:lag_ablation}
+\end{figure}
+
 \subsection{Prediction Horizons and Dataset Dependence}\label{sec:multiph}
 
 Table~\ref{tab:multiph} reports results across all four prediction horizons.
@@ -136,8 +178,16 @@ MultiGraph\_fixed & 4.715 & 5.549 & 5.934 & 6.336 \\
 
 GatedMulti consistently outperforms NoGraph across all horizons, with the largest relative improvement at PH=1 (13.3\%). The advantage persists but narrows at longer horizons.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig6_threshold_sensitivity.pdf}
+\caption{DAGMA threshold sensitivity (Los-loop, PH=1, seed=42). (a) RMSE decreases monotonically with higher thresholds. (b) RMSE vs. edge count: GatedMulti (star) achieves the best performance with 30 edges.}
+\label{fig:threshold}
+\end{figure}
+
 \textbf{Dataset dependence.} On SZ-Taxi, GatedMulti shows only marginal improvement over NoGraph (PH=1: 4.108 vs.\ 4.116; PH=4: 4.221 vs.\ 4.221). This dataset dependence is an important finding: the multi-lag approach is most effective when the underlying traffic network exhibits strong lag-specific dependencies, as appears to be the case for the Los-loop highway network.
 
 \subsection{Relation to Original GSL/cGSL Results}
 
 The original GSL/cGSL experiments (see Appendix~\ref{app:original_gsl}) established that replacing physical adjacency with DAGMA-learned graphs improves GCN and T-GCN performance, with different optimal graph structures for each backbone (cyclic for GCN, acyclic for T-GCN). These findings motivated the deeper investigation into temporal dependency structure that led to the multi-lag formulation. The multi-lag approach represents a methodological advance over the single-graph GSL: instead of learning one graph and debating its interpretation, we explicitly construct lag-specific graphs and let the model decide how to use them.
+
