@@ -8,23 +8,14 @@ The most striking finding is that removing the physical graph entirely improves 
 
 The multi-lag formulation provides two distinct advantages. First, it makes the temporal dependency structure explicit: instead of learning a single ambiguous graph, we obtain separate graphs for each temporal lag, each with a clear interpretation (Table~\ref{tab:lag_stats}). Second, the T-GCN-MultiGSL-Mix architecture can process these graphs through separate T-GCN cells and combine the results through learned mixing, preserving the lag-specific information that would be lost by merging into a single adjacency.
 
-The fact that T-GCN-MultiGSL (same edges, fixed assignment) achieves 4.794 while T-GCN-MultiGSL-Mix achieves 4.452 demonstrates that \textit{how} the lag-specific graphs are processed matters as much as \textit{which} graphs are used. The 0.342 RMSE improvement from learned graph mixing represents a 7.1\% further reduction beyond the fixed multi-graph approach.
+The fact that T-GCN-MultiGSL (same edges, fixed assignment) achieves 4.794 while T-GCN-MultiGSL-Mix achieves 4.452 demonstrates that \textit{how} the lag-specific graphs are processed matters as much as \textit{which} graphs are used. The 0.342 RMSE improvement from learned graph mixing represents a 7.1\% further reduction beyond the fixed multi-graph approach. Training converges stably within 50 epochs for all methods, with T-GCN-MultiGSL-Mix reaching the lowest final training loss (Appendix~\ref{app:diagnostics}).
 
 \subsection{Why the Effect is Dataset-Dependent}
 
-The marginal improvement on SZ-Taxi (0.2--0.9\%) compared to the strong improvement on Los-loop (14.9\%) likely reflects differences in the underlying traffic dynamics. The Los-loop dataset captures highway traffic where propagation patterns have clear temporal structure (vehicles traveling at highway speeds create predictable lagged dependencies). The SZ-Taxi dataset captures urban taxi traffic, which may have more complex, less structured dependencies that are not well captured by fixed-lag analysis. This dataset dependence is an honest finding that the paper explicitly reports rather than hiding.
+The improvement on SZ-Taxi is marginal ($\leq0.3\%$ at PH=1--3 and $-0.02\%$ at PH=4, single seed) compared to the strong improvement on Los-loop (14.9\% five-seed mean). Two hypotheses can be ruled out. First, temporal resolution is not the explanation: SZ-Taxi and the 15-minute Los-loop variant share the same sampling interval, yet Los-loop improves strongly at both 5-minute and 15-minute sampling (Sections~\ref{sec:multiseed} and~\ref{sec:los15min}), so the divergence tracks the dataset rather than the sampling interval. Second, capacity is not the explanation (Section~\ref{sec:param_control}). A candidate mechanism consistent with the evidence is graph learnability: at the operating threshold, DAGMA retains only 2 cross-sensor edges for SZ-Taxi versus 30--32 for Los-loop, suggesting that the urban network's dependency structure offers the learner far less exploitable signal than highway propagation patterns, which have clear temporal structure (vehicles traveling at highway speeds create predictable lagged dependencies). Other dataset differences (156 vs.\ 207 sensors, urban vs.\ highway dynamics) may also contribute. This dataset dependence is an honest finding that the paper explicitly reports rather than hiding.
 
 \subsection{Connection to Original GSL/cGSL Findings}
 
 The original GSL/cGSL experiments established that learned sparse graphs outperform dense physical graphs, and that different backbone architectures (GCN vs T-GCN) benefit from different graph structures. These findings remain valid and motivated the deeper investigation into temporal heterogeneity. The multi-lag formulation can be viewed as a principled extension: rather than debating whether the learned graph should be cyclic or acyclic, we construct lag-specific graphs that naturally capture different temporal aspects of the dependency structure.
 
-\subsection{Training Dynamics}\label{sec:convergence}
 
-Figure~\ref{fig:convergence} shows the training loss curves for the three main methods on Los-loop. All methods converge within 50 epochs, with T-GCN-MultiGSL-Mix achieving the lowest final training loss. The convergence behavior is stable across datasets, indicating that the additional gating parameters do not destabilize training.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.9\textwidth]{figures/fig8_convergence.pdf}
-\caption{Training convergence (PH=1, seed=42). (a) Los-loop: T-GCN-MultiGSL-Mix converges to the lowest training loss. (b) SZ-Taxi: all methods show similar convergence, consistent with the marginal performance difference.}
-\label{fig:convergence}
-\end{figure}

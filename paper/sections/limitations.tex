@@ -3,7 +3,7 @@
 This study has several limitations that delineate the boundaries of the current evidence:
 
 \begin{enumerate}
-    \item \textbf{Dataset dependence:} The strong improvement (14.9\%) is observed on the Los-loop highway dataset, while the SZ-Taxi urban dataset shows only marginal improvement. The method's effectiveness appears to depend on the underlying traffic dynamics.
+    \item \textbf{Dataset dependence:} The strong improvement (14.9\% at 5-minute and 27.4\% at 15-minute sampling) is observed on the Los-loop highway dataset, while the SZ-Taxi urban dataset shows only marginal improvement. Temporal resolution is ruled out as the explanation, since Los-loop improves strongly at both sampling intervals; the method's effectiveness appears to depend on the underlying traffic dynamics, plausibly on how much exploitable dependency structure the learner can discover.
 
     \item \textbf{Two datasets only:} Evaluation is limited to two traffic datasets. Broader validation on diverse traffic networks (e.g., different cities, different sensor types, different time periods) would strengthen generalizability claims.
 
@@ -17,5 +17,5 @@ This study has several limitations that delineate the boundaries of the current 
 
     \item \textbf{No causal identification:} The DAGMA formulation discovers temporal functional dependencies, not causal relationships. We do not claim that the learned graphs represent causal traffic mechanisms.
 
-    \item \textbf{Prediction horizons:} Results are reported for horizons PH=1--4. The method's behavior at longer horizons (e.g., 30--60 minutes) is not evaluated.
+    \item \textbf{Prediction horizons:} Results are reported for horizons PH=1--4; the 15-minute-sampling variant covers the same four horizon counts (15--60 minutes ahead). Horizon counts beyond 4 were not evaluated.
 \end{enumerate}

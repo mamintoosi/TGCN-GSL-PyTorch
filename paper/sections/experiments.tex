@@ -21,6 +21,10 @@ For the multi-lag formulation, we use lag window $L=3$, yielding input dimension
 
 DAGMA hyperparameters: $\lambda_1 = 0.01$, loss type = L2, warm-up iterations = 30,000, max iterations = 60,000. The DAGMA output is thresholded at $\tau = 0.1$ and self-loops are removed. DAGMA is applied only to training data; test data never enters the graph construction.
 
+\subsection{Temporal-Resolution Protocol (Los-loop at 15 Minutes)}
+
+To test whether the reported effects depend on the sampling interval, we additionally resample Los-loop to 15-minute resolution by averaging each consecutive block of three 5-minute steps, yielding $T=672$ observations (537 train / 135 test). Normalization uses the training-data maximum only (feat\_max = 70.0), as in all other experiments. DAGMA is computed once on the 15-minute training split (828 variables, identical $\lambda_1$) and the resulting lag graphs are reused across all horizons and seeds. In this variant, PH=$k$ denotes $k \times 15$ minutes ahead; RMSE magnitudes are therefore not directly comparable to the 5-minute tables, and we compare relative improvements.
+
 \subsection{Forecasting Models}
 
 We compare the following T-GCN variants:
