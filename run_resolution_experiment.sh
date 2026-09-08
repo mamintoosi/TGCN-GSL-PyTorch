@@ -38,8 +38,8 @@ run_with_limits() {
     echo "========================================="
     
     taskset -c $CPU_CORES $cmd 2>&1 | tee "$log_file"
+    local exit_code=${PIPESTATUS[0]}
     
-    local exit_code=$?
     if [ $exit_code -ne 0 ]; then
         echo "ERROR: Command failed with exit code $exit_code"
         exit $exit_code
