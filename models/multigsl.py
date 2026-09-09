@@ -199,20 +199,41 @@ class WeightedMultiGraphTGCN(nn.Module):
 #   "single"    - one (N, N) adjacency matrix
 #   "lag_list"  - list of K lag-specific (N, N) adjacency matrices
 METHOD_REGISTRY = {
+    # ------------------------------------------------------------------
+    # T-GCN family (recurrent backbone: TGCN)
+    # ------------------------------------------------------------------
     "no_spatial": {
         "name": "T-GCN-NoSpatial",
         "adjacency": "identity",
+        "backbone": "tgcn",
         "legacy": ["NoGraph", "nograph", "standard", "NoGraph_h64", "NoGraph_h74",
                    "NoSpatial", "T-GCN-NoSpatial"],
     },
     "physical": {
-        "name": "Physical",
+        "name": "T-GCN",
         "adjacency": "single",
-        "legacy": ["Physical", "phys", "TGCN", "GCN"],
+        "backbone": "tgcn",
+        "legacy": ["Physical", "phys", "TGCN"],
+    },
+    "gsl": {
+        "name": "T-GCN-GSL",
+        "adjacency": "single",
+        "backbone": "tgcn",
+        "dagma_type": "contemporaneous",
+        "legacy": ["gsl", "GSL", "T-GCN-GSL"],
+    },
+    "cgsl": {
+        "name": "T-GCN-cGSL",
+        "adjacency": "single",
+        "backbone": "tgcn",
+        "dagma_type": "contemporaneous",
+        "construction": "A + A.T, threshold > 0",
+        "legacy": ["cgsl", "cGSL", "T-GCN-cGSL"],
     },
     "multi_gsl": {
         "name": "T-GCN-MultiGSL",
         "adjacency": "lag_list",
+        "backbone": "tgcn",
         "cls": MultiGraphTGCNFixed,
         "legacy": ["MultiGraphTGCN_fixed", "multi_graph_fixed", "MultiGraphTGCN",
                    "MultiGraphTGCN_thr0.1", "MultiGraph", "T-GCN-MultiGSL"],
@@ -220,6 +241,7 @@ METHOD_REGISTRY = {
     "multi_gsl_mix": {
         "name": "T-GCN-MultiGSL-Mix",
         "adjacency": "lag_list",
+        "backbone": "tgcn",
         "cls": GatedMultiGraphTGCN,
         "legacy": ["GatedMultiGraphTGCN", "gated_multi", "GatedMulti_thr0.1",
                    "GatedMulti", "T-GCN-MultiGSL-Mix"],
@@ -227,9 +249,56 @@ METHOD_REGISTRY = {
     "multi_gsl_weighted": {
         "name": "T-GCN-MultiGSL-Weighted",
         "adjacency": "lag_list",
+        "backbone": "tgcn",
         "cls": WeightedMultiGraphTGCN,
         "legacy": ["WeightedMultiGraphTGCN", "weighted_multi", "WeightedMulti_thr0.1",
                    "WeightedMulti"],
+    },
+    # ------------------------------------------------------------------
+    # GCN family (non-recurrent backbone: GCN)
+    # NOTE: GCN-MultiGSL / GCN-MultiGSL-Weighted / GCN-MultiGSL-Mix are
+    # NOT included because the GCN architecture processes the entire input
+    # window in a single graph-convolution step (no per-timestep recurrence).
+    # Lag-specific graph assignment and per-timestep gating are therefore
+    # architecturally meaningless for the GCN backbone.  See doc/STAGE40.
+    # ------------------------------------------------------------------
+    "gcn_physical": {
+        "name": "GCN",
+        "adjacency": "single",
+        "backbone": "gcn",
+        "legacy": ["gcn_physical", "GCN"],
+    },
+    "gcn_no_spatial": {
+        "name": "GCN-NoSpatial",
+        "adjacency": "identity",
+        "backbone": "gcn",
+        "legacy": ["gcn_no_spatial", "GCN-NoSpatial"],
+    },
+    "gcn_gsl": {
+        "name": "GCN-GSL",
+        "adjacency": "single",
+        "backbone": "gcn",
+        "dagma_type": "contemporaneous",
+        "legacy": ["gcn_gsl", "GCN-GSL"],
+    },
+    "gcn_cgsl": {
+        "name": "GCN-cGSL",
+        "adjacency": "single",
+        "backbone": "gcn",
+        "dagma_type": "contemporaneous",
+        "construction": "A + A.T, threshold > 0",
+        "legacy": ["gcn_cgsl", "GCN-cGSL"],
+    },
+    # ------------------------------------------------------------------
+    # GCN-MultiGSL: union of lag-specific graphs, single static graph to GCN
+    # ------------------------------------------------------------------
+    "gcn_multigsl": {
+        "name": "GCN-MultiGSL",
+        "adjacency": "single",
+        "backbone": "gcn",
+        "dagma_type": "multilag_union",
+        "construction": "A_union = 1(max_l A_l > 0), threshold > 0.1 per lag then union",
+        "legacy": ["gcn_multigsl", "GCN-MultiGSL"],
     },
 }
 
@@ -257,36 +326,46 @@ def canonical_name(method_id):
     return METHOD_REGISTRY[method_id]["name"]
 
 
-def build_model(method_id, adj=None, adj_list=None, hidden_dim=64):
+def build_model(method_id, adj=None, adj_list=None, hidden_dim=64, seq_len=12):
     """Instantiate a canonical method.
 
     Parameters
     ----------
     method_id : canonical id (see METHOD_REGISTRY); legacy names are accepted
         via normalize_method().
-    adj : (N, N) array  -- required for 'physical' (and 'single' methods).
+    adj : (N, N) array  -- required for 'single' methods.
     adj_list : list of (N, N) arrays -- required for 'lag_list' methods.
-        For 'no_spatial' both may be omitted (identity adjacency is used).
+        For 'identity' both may be omitted (identity adjacency is used).
+    seq_len : input sequence length (required by GCN backbone).
     """
     method_id = normalize_method(method_id)
     if method_id is None:
         raise ValueError(f"Unknown method id: {method_id!r}")
-    kind = METHOD_REGISTRY[method_id]["adjacency"]
+    meta = METHOD_REGISTRY[method_id]
+    kind = meta["adjacency"]
+    backbone = meta.get("backbone", "tgcn")
 
     if kind == "identity":
         n = (adj_list[0].shape[0] if adj_list is not None
              else (adj.shape[0] if adj is not None else None))
         if n is None:
-            raise ValueError("no_spatial requires adj or adj_list to infer N")
+            raise ValueError("identity method requires adj or adj_list to infer N")
+        if backbone == "gcn":
+            from models.gcn import GCN as GCNClass
+            return GCNClass(adj=np.eye(n, dtype=np.float32),
+                            seq_len=seq_len, hidden_dim=hidden_dim)
         return TGCN(adj=np.eye(n, dtype=np.float32), hidden_dim=hidden_dim)
     if kind == "single":
         if adj is None:
             raise ValueError(f"{method_id} requires a single adjacency matrix")
+        if backbone == "gcn":
+            from models.gcn import GCN as GCNClass
+            return GCNClass(adj=adj, seq_len=seq_len, hidden_dim=hidden_dim)
         return TGCN(adj=adj, hidden_dim=hidden_dim)
-    # lag_list
+    # lag_list (T-GCN family only)
     if not adj_list:
         raise ValueError(f"{method_id} requires a list of lag-specific adjacencies")
-    cls = METHOD_REGISTRY[method_id]["cls"]
+    cls = meta["cls"]
     return cls(adj_list=adj_list, hidden_dim=hidden_dim)
 
 

@@ -38,7 +38,8 @@ LEGACY_TO_CANONICAL = {
     'NoGraph': 'T-GCN-NoSpatial',
     'NoGraph_h64': 'T-GCN-NoSpatial (h=64)',
     'NoGraph_h74': 'T-GCN-NoSpatial (h=74)',
-    'Physical': 'Physical',
+    'Physical': 'T-GCN',
+    'T-GCN': 'T-GCN',
     'MultiGraphTGCN_fixed': 'T-GCN-MultiGSL',
     'MultiGraphTGCN_thr0.1': 'T-GCN-MultiGSL',
     'GatedMultiGraphTGCN': 'T-GCN-MultiGSL-Mix',
@@ -46,6 +47,12 @@ LEGACY_TO_CANONICAL = {
     'GatedMulti': 'T-GCN-MultiGSL-Mix',
     'WeightedMulti_thr0.1': 'T-GCN-MultiGSL-Weighted',
     'WeightedMultiGraphTGCN': 'T-GCN-MultiGSL-Weighted',
+    'T-GCN-GSL': 'T-GCN-GSL',
+    'T-GCN-cGSL': 'T-GCN-cGSL',
+    'GCN': 'GCN',
+    'GCN-NoSpatial': 'GCN-NoSpatial',
+    'GCN-GSL': 'GCN-GSL',
+    'GCN-cGSL': 'GCN-cGSL',
 }
 
 # ============================================================
@@ -75,17 +82,25 @@ plt.rcParams.update({
     'grid.alpha': 0.3,
 })
 
-# Color palette (consistent across figures)
+# Color palette (consistent across figures, canonical names)
 COLORS = {
     'NoGraph': '#2196F3',
+    'T-GCN-NoSpatial': '#2196F3',
+    'T-GCN': '#F44336',
     'Physical': '#F44336',
     'Corr': '#FF9800',
     'SingleDAG': '#9C27B0',
     'UnionGraph': '#795548',
     'MultiGraph': '#4CAF50',
+    'T-GCN-MultiGSL': '#4CAF50',
     'WeightedMulti': '#00BCD4',
+    'T-GCN-MultiGSL-Weighted': '#00BCD4',
     'T-GCN-MultiGSL-Mix': '#E91E63',
     'ParamMatch': '#607D8B',
+    'GCN': '#FF5722',
+    'GCN-NoSpatial': '#3F51B5',
+    'GCN-GSL': '#8BC34A',
+    'GCN-cGSL': '#CDDC39',
 }
 
 
@@ -175,15 +190,15 @@ def fig2_rmse_comparison():
     
     # Select key methods for clean visualization
     key_methods = [
-        ('Physical', 'Physical'),
+        ('Physical', 'T-GCN'),
         ('Corr-K8', 'Corr-K8'),
         ('Corr-K16', 'Corr-K16'),
-        ('SingleDAG_thr0.1', 'SingleDAG\n(thr=0.1)'),
-        ('SingleDAG_thr0.3', 'SingleDAG\n(thr=0.3)'),
-        ('T-GCN-NoSpatial', 'T-GCN\\nNoSpatial'),
+        ('SingleDAG_thr0.1', 'T-GCN-\\nGSL\n(thr=0.1)'),
+        ('SingleDAG_thr0.3', 'T-GCN-\\nGSL\n(thr=0.3)'),
+        ('NoGraph', 'T-GCN-\\nNoSpatial'),
         ('UnionGraph_thr0.1', 'Union\nGraph'),
         ('MultiGraphTGCN_thr0.1', 'T-GCN-\\nMultiGSL'),
-        ('WeightedMulti_thr0.1', 'Weighted\nMulti'),
+        ('WeightedMulti_thr0.1', 'T-GCN-MultiGSL-\\nWeighted'),
         ('GatedMulti_thr0.1', 'T-GCN-MultiGSL-\\nMix'),
     ]
     
@@ -194,13 +209,13 @@ def fig2_rmse_comparison():
     n_edges = []
     colors = []
     color_map = {
-        'Physical': COLORS['Physical'],
+        'Physical': COLORS['T-GCN'],
         'Corr-K8': COLORS['Corr'], 'Corr-K16': COLORS['Corr'],
         'SingleDAG_thr0.1': COLORS['SingleDAG'], 'SingleDAG_thr0.3': COLORS['SingleDAG'],
-        'NoGraph': COLORS['NoGraph'],
+        'NoGraph': COLORS['T-GCN-NoSpatial'],
         'UnionGraph_thr0.1': COLORS['UnionGraph'],
-        'MultiGraphTGCN_thr0.1': COLORS['MultiGraph'],
-        'WeightedMulti_thr0.1': COLORS['WeightedMulti'],
+        'MultiGraphTGCN_thr0.1': COLORS['T-GCN-MultiGSL'],
+        'WeightedMulti_thr0.1': COLORS['T-GCN-MultiGSL-Weighted'],
         'GatedMulti_thr0.1': COLORS['T-GCN-MultiGSL-Mix'],
     }
     

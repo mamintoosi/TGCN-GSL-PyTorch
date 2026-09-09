@@ -1,0 +1,198 @@
+{
+  "version": "stage40",
+  "generated_by": "Stage 40 repository restructuring",
+  "description": "Complete experiment matrix: model variant x dataset x PH x seed",
+  "datasets": {
+    "losloop": {
+      "feat_path": "data/los_speed.csv",
+      "adj_path": "data/los_adj.csv",
+      "N": 207,
+      "prefix": "los",
+      "lambda1_multilag": 0.01,
+      "lambda1_contemporaneous": 0.02,
+      "feat_max": 70.0
+    },
+    "shenzhen": {
+      "feat_path": "data/sz_speed.csv",
+      "adj_path": "data/sz_adj.csv",
+      "N": 156,
+      "prefix": "sz",
+      "lambda1_multilag": 0.01,
+      "lambda1_contemporaneous": 0.01,
+      "feat_max": 86.4292
+    }
+  },
+  "protocol": {
+    "batch_size": 128,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "hidden_dim": 64,
+    "seq_len": 12,
+    "max_epochs": 50,
+    "optimizer": "Adam",
+    "feat_max_source": "train split only",
+    "seeds": [42, 43, 44, 45, 46],
+    "prediction_horizons": [1, 2, 3, 4],
+    "loss": {
+      "tgcn": "mse_with_regularizer",
+      "gcn": "mse"
+    }
+  },
+  "model_variants": {
+    "T-GCN": {
+      "variant_id": "physical",
+      "backbone": "tgcn",
+      "adjacency": "single",
+      "dagma_type": null,
+      "description": "Standard T-GCN with physical road-network adjacency"
+    },
+    "T-GCN-NoSpatial": {
+      "variant_id": "no_spatial",
+      "backbone": "tgcn",
+      "adjacency": "identity",
+      "dagma_type": null,
+      "description": "T-GCN with identity adjacency (no-graph baseline)"
+    },
+    "T-GCN-GSL": {
+      "variant_id": "gsl",
+      "backbone": "tgcn",
+      "adjacency": "single",
+      "dagma_type": "contemporaneous",
+      "dagma_threshold": 0.3,
+      "description": "T-GCN with contemporaneous single-graph DAGMA"
+    },
+    "T-GCN-cGSL": {
+      "variant_id": "cgsl",
+      "backbone": "tgcn",
+      "adjacency": "single",
+      "dagma_type": "contemporaneous",
+      "construction": "A_cgsl = (A_gsl + A_gsl.T) > 0",
+      "description": "T-GCN with cyclic/symmetrized DAGMA graph"
+    },
+    "T-GCN-MultiGSL": {
+      "variant_id": "multi_gsl",
+      "backbone": "tgcn",
+      "adjacency": "lag_list",
+      "dagma_type": "multilag",
+      "dagma_threshold": 0.1,
+      "n_lags": 3,
+      "description": "T-GCN with fixed lag-specific graph assignment"
+    },
+    "T-GCN-MultiGSL-Weighted": {
+      "variant_id": "multi_gsl_weighted",
+      "backbone": "tgcn",
+      "adjacency": "lag_list",
+      "dagma_type": "multilag",
+      "dagma_threshold": 0.1,
+      "n_lags": 3,
+      "description": "T-GCN with learned global weights over lag graphs"
+    },
+    "T-GCN-MultiGSL-Mix": {
+      "variant_id": "multi_gsl_mix",
+      "backbone": "tgcn",
+      "adjacency": "lag_list",
+      "dagma_type": "multilag",
+      "dagma_threshold": 0.1,
+      "n_lags": 3,
+      "description": "Proposed: per-node per-timestep gating over lag graphs"
+    },
+    "GCN": {
+      "variant_id": "gcn_physical",
+      "backbone": "gcn",
+      "adjacency": "single",
+      "dagma_type": null,
+      "description": "GCN with physical road-network adjacency"
+    },
+    "GCN-NoSpatial": {
+      "variant_id": "gcn_no_spatial",
+      "backbone": "gcn",
+      "adjacency": "identity",
+      "dagma_type": null,
+      "description": "GCN with identity adjacency (no-graph baseline)"
+    },
+    "GCN-GSL": {
+      "variant_id": "gcn_gsl",
+      "backbone": "gcn",
+      "adjacency": "single",
+      "dagma_type": "contemporaneous",
+      "dagma_threshold": 0.3,
+      "description": "GCN with contemporaneous single-graph DAGMA"
+    },
+    "GCN-cGSL": {
+      "variant_id": "gcn_cgsl",
+      "backbone": "gcn",
+      "adjacency": "single",
+      "dagma_type": "contemporaneous",
+      "construction": "A_cgsl = (A_gsl + A_gsl.T) > 0",
+      "description": "GCN with cyclic/symmetrized DAGMA graph"
+    },
+    "GCN-MultiGSL": {
+      "variant_id": "gcn_multigsl",
+      "backbone": "gcn",
+      "adjacency": "single",
+      "dagma_type": "multilag_union",
+      "dagma_threshold": 0.1,
+      "n_lags": 3,
+      "description": "GCN with union of lag-specific DAGMA graphs (tests whether separate lag graphs are necessary)"
+    }
+  },
+  "gcn_multigsl_note": "GCN-MultiGSL: union of lag-specific DAGMA graphs into a single static N x N graph, then standard GCN. This tests whether preserving separate lag-specific graphs (as T-GCN-MultiGSL does) is necessary. No additional trainable parameters. Per-timestep gating (MultiGSL-Mix) is architecturally meaningless for GCN (single graph-convolution step).",
+  "dagma_requirements": {
+    "multilag": {
+      "description": "Multi-lag DAGMA: Z = [x(t-L), ..., x(t-1), x(t)], lag-specific block extraction",
+      "source_script": "gsl_stage26/stage26_run_dagma.py",
+      "needed_for": ["T-GCN-MultiGSL", "T-GCN-MultiGSL-Weighted", "T-GCN-MultiGSL-Mix"],
+      "existing_outputs": {
+        "losloop": "results/stage26_validation/los_ph*_seed42_L3_*.npy (PH 1-4, READY_TO_REUSE)",
+        "shenzhen": "results/stage26_validation/sz_ph*_seed42_L3_*.npy (PH 1-4, READY_TO_REUSE)"
+      }
+    },
+    "contemporaneous": {
+      "description": "Contemporaneous single-graph DAGMA: X = train[0::PH], one graph per PH",
+      "source_script": "gsl_stage26/stage33_gsl_canonical.py",
+      "needed_for": ["T-GCN-GSL", "T-GCN-cGSL", "GCN-GSL", "GCN-cGSL"],
+      "existing_outputs": {
+        "losloop": "results/stage33_gsl_canonical/los_gsl_ph*_seed42_*.npy (PH 1-4, READY_TO_REUSE)",
+        "shenzhen": "NOT_YET_FITTED (requires ~1.5-2.5h DAGMA computation)"
+      }
+    }
+  },
+  "existing_results_summary": {
+    "stage33_gsl_canonical_losloop": {
+      "methods": ["T-GCN", "T-GCN-GSL"],
+      "seeds": [42, 43, 44, 45, 46],
+      "phs": [1, 2, 3, 4],
+      "status": "COMPLETE"
+    },
+    "stage33_sz_multiseed": {
+      "methods": ["T-GCN-NoSpatial", "T-GCN-MultiGSL", "T-GCN-MultiGSL-Mix"],
+      "seeds": [42, 43, 44, 45, 46],
+      "phs": [1, 2, 3, 4],
+      "status": "COMPLETE"
+    },
+    "stage26_validation_losloop": {
+      "methods": ["T-GCN-NoSpatial", "T-GCN-MultiGSL", "T-GCN-MultiGSL-Mix"],
+      "seeds": [42, 43, 44, 45, 46],
+      "phs": [1],
+      "status": "COMPLETE"
+    },
+    "stage26_validation_sz": {
+      "methods": ["T-GCN-NoSpatial", "T-GCN-MultiGSL", "T-GCN-MultiGSL-Mix"],
+      "seeds": [42],
+      "phs": [1, 2, 3, 4],
+      "status": "COMPLETE (single seed, extended by stage33_sz_multiseed)"
+    },
+    "stage32_sparse_control_losloop": {
+      "methods": ["CorrTop30", "RandTop30"],
+      "seeds": [42, 43, 44, 45, 46],
+      "phs": [1],
+      "status": "COMPLETE"
+    },
+    "stage29_los15min": {
+      "methods": ["T-GCN-NoSpatial", "T-GCN-MultiGSL", "T-GCN-MultiGSL-Mix"],
+      "seeds": [42],
+      "phs": [1, 2, 3, 4],
+      "status": "COMPLETE"
+    }
+  }
+}

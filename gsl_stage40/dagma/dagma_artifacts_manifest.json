@@ -1,0 +1,167 @@
+{
+  "version": "stage40",
+  "generated_by": "Stage 40 repository restructuring",
+  "description": "Complete inventory of existing DAGMA artifacts with provenance and reuse decisions",
+  "construction_types": {
+    "multilag": {
+      "description": "Multi-lag DAGMA: Z = [x(t-L), ..., x(t-1), x(t)], block extraction of lag-specific graphs",
+      "source_script": "gsl_stage26/stage26_run_dagma.py",
+      "lambda1": {"losloop": 0.01, "shenzhen": 0.01},
+      "w_threshold": 0.0,
+      "threshold_for_consumer": 0.1,
+      "support_rule": "A = 1(|W| > 0) after w_threshold=0.0 fit, then consumer applies |W| > 0.1",
+      "n_lags": 3,
+      "seq_len": 12,
+      "normalization": "feat_max = max of train split only",
+      "split": "80% train, 20% test"
+    },
+    "contemporaneous": {
+      "description": "Contemporaneous single-graph DAGMA: X = train[0::PH], one graph per PH",
+      "source_script": "gsl_stage26/stage33_gsl_canonical.py",
+      "lambda1": {"losloop": 0.02, "shenzhen": 0.01},
+      "w_threshold": 0.3,
+      "support_rule": "A = 1(|W| > 0) with self-loops removed",
+      "dagma_input": "train_norm[0::PH] (original per-PH subsampling)",
+      "seq_len": 12,
+      "normalization": "feat_max = max of train split only",
+      "split": "80% train, 20% test"
+    }
+  },
+  "artifacts": {
+    "multilag": {
+      "losloop": {
+        "source_dir": "results/stage26_validation",
+        "files": {
+          "ph1": {
+            "W_full": "los_ph1_seed42_L3_W_full.npy",
+            "lag_1": "los_ph1_seed42_L3_lag_1.npy",
+            "lag_2": "los_ph1_seed42_L3_lag_2.npy",
+            "lag_3": "los_ph1_seed42_L3_lag_3.npy",
+            "current": "los_ph1_seed42_L3_current.npy",
+            "metadata": "los_ph1_seed42_L3_metadata.json"
+          },
+          "ph2": {
+            "W_full": "los_ph2_seed42_L3_W_full.npy",
+            "lag_1": "los_ph2_seed42_L3_lag_1.npy",
+            "lag_2": "los_ph2_seed42_L3_lag_2.npy",
+            "lag_3": "los_ph2_seed42_L3_lag_3.npy",
+            "current": "los_ph2_seed42_L3_current.npy",
+            "metadata": "los_ph2_seed42_L3_metadata.json"
+          },
+          "ph3": {
+            "W_full": "los_ph3_seed42_L3_W_full.npy",
+            "lag_1": "los_ph3_seed42_L3_lag_1.npy",
+            "lag_2": "los_ph3_seed42_L3_lag_2.npy",
+            "lag_3": "los_ph3_seed42_L3_lag_3.npy",
+            "current": "los_ph3_seed42_L3_current.npy",
+            "metadata": "los_ph3_seed42_L3_metadata.json"
+          },
+          "ph4": {
+            "W_full": "los_ph4_seed42_L3_W_full.npy",
+            "lag_1": "los_ph4_seed42_L3_lag_1.npy",
+            "lag_2": "los_ph4_seed42_L3_lag_2.npy",
+            "lag_3": "los_ph4_seed42_L3_lag_3.npy",
+            "current": "los_ph4_seed42_L3_current.npy",
+            "metadata": "los_ph4_seed42_L3_metadata.json"
+          }
+        },
+        "reuse_status": "READY_TO_REUSE",
+        "provenance": "Fitted by stage26_run_dagma.py, seed 42, lambda1=0.01, w_threshold=0.0. Raw blocks thresholded at |W|>0.1 by consumers.",
+        "N": 207,
+        "n_lags": 3,
+        "edge_counts_at_threshold_0.1": {
+          "ph1": {"lag_1": 12, "lag_2": 3, "lag_3": 15, "total": 30},
+          "ph2": null,
+          "ph3": null,
+          "ph4": null
+        }
+      },
+      "shenzhen": {
+        "source_dir": "results/stage26_validation",
+        "files": {
+          "ph1": {
+            "W_full": "sz_ph1_seed42_L3_W_full.npy",
+            "lag_1": "sz_ph1_seed42_L3_lag_1.npy",
+            "lag_2": "sz_ph1_seed42_L3_lag_2.npy",
+            "lag_3": "sz_ph1_seed42_L3_lag_3.npy",
+            "current": "sz_ph1_seed42_L3_current.npy",
+            "metadata": "sz_ph1_seed42_L3_metadata.json"
+          },
+          "ph2": {
+            "W_full": "sz_ph2_seed42_L3_W_full.npy",
+            "lag_1": "sz_ph2_seed42_L3_lag_1.npy",
+            "lag_2": "sz_ph2_seed42_L3_lag_2.npy",
+            "lag_3": "sz_ph2_seed42_L3_lag_3.npy",
+            "current": "sz_ph2_seed42_L3_current.npy",
+            "metadata": "sz_ph2_seed42_L3_metadata.json"
+          },
+          "ph3": {
+            "W_full": "sz_ph3_seed42_L3_W_full.npy",
+            "lag_1": "sz_ph3_seed42_L3_lag_1.npy",
+            "lag_2": "sz_ph3_seed42_L3_lag_2.npy",
+            "lag_3": "sz_ph3_seed42_L3_lag_3.npy",
+            "current": "sz_ph3_seed42_L3_current.npy",
+            "metadata": "sz_ph3_seed42_L3_metadata.json"
+          },
+          "ph4": {
+            "W_full": "sz_ph4_seed42_L3_W_full.npy",
+            "lag_1": "sz_ph4_seed42_L3_lag_1.npy",
+            "lag_2": "sz_ph4_seed42_L3_lag_2.npy",
+            "lag_3": "sz_ph4_seed42_L3_lag_3.npy",
+            "current": "sz_ph4_seed42_L3_current.npy",
+            "metadata": "sz_ph4_seed42_L3_metadata.json"
+          }
+        },
+        "reuse_status": "READY_TO_REUSE",
+        "provenance": "Fitted by stage26_run_dagma.py, seed 42, lambda1=0.01, w_threshold=0.0. Raw blocks thresholded at |W|>0.1 by consumers.",
+        "N": 156,
+        "n_lags": 3
+      }
+    },
+    "contemporaneous": {
+      "losloop": {
+        "source_dir": "results/stage33_gsl_canonical",
+        "files": {
+          "ph1": {"W_est": "los_gsl_ph1_seed42_W_est.npy", "A_binary": "los_gsl_ph1_seed42_A_binary.npy"},
+          "ph2": {"W_est": "los_gsl_ph2_seed42_W_est.npy", "A_binary": "los_gsl_ph2_seed42_A_binary.npy"},
+          "ph3": {"W_est": "los_gsl_ph3_seed42_W_est.npy", "A_binary": "los_gsl_ph3_seed42_A_binary.npy"},
+          "ph4": {"W_est": "los_gsl_ph4_seed42_W_est.npy", "A_binary": "los_gsl_ph4_seed42_A_binary.npy"}
+        },
+        "reuse_status": "READY_TO_REUSE",
+        "provenance": "Fitted by stage33_gsl_canonical.py, seed 42, lambda1=0.02, w_threshold=0.3. All PHs have 28 edges, 0 negative coefficients.",
+        "N": 207,
+        "dagma_params": {"lambda1": 0.02, "w_threshold": 0.3, "warm_iter": 30000, "max_iter": 60000}
+      },
+      "shenzhen": {
+        "source_dir": "results/stage33_gsl_canonical",
+        "files": {
+          "ph1": {"W_est": "sz_gsl_ph1_seed42_W_est.npy", "A_binary": "sz_gsl_ph1_seed42_A_binary.npy"},
+          "ph2": {"W_est": "sz_gsl_ph2_seed42_W_est.npy", "A_binary": "sz_gsl_ph2_seed42_A_binary.npy"},
+          "ph3": {"W_est": "sz_gsl_ph3_seed42_W_est.npy", "A_binary": "sz_gsl_ph3_seed42_A_binary.npy"},
+          "ph4": {"W_est": "sz_gsl_ph4_seed42_W_est.npy", "A_binary": "sz_gsl_ph4_seed42_A_binary.npy"}
+        },
+        "reuse_status": "NOT_YET_FITTED — run: bash run_stage40_3_sz_dagma.sh",
+        "provenance": "To be fitted by stage40_3_fit_sz_contemporaneous.py. Uses train_norm[0::PH], lambda1=0.01, w_threshold=0.3, seed=42.",
+        "N": 156,
+        "dagma_params": {"lambda1": 0.01, "w_threshold": 0.3, "warm_iter": 30000, "max_iter": 60000}
+      }
+    },
+    "historical": {
+      "archive/historical_submission": {
+        "files": [
+          "W_est_losloop_pre_len1.npy",
+          "W_est_losloop_pre_len2.npy",
+          "W_est_losloop_pre_len3.npy",
+          "W_est_losloop_pre_len4.npy",
+          "W_est_shenzhen_pre_len1.npy",
+          "W_est_shenzhen_pre_len2.npy",
+          "W_est_shenzhen_pre_len3.npy",
+          "W_est_shenzhen_pre_len4.npy"
+        ],
+        "reuse_status": "ARCHIVAL_ONLY",
+        "provenance": "Original submission W_est artifacts. Used by main.py legacy pipeline (use_gsl=1/2). Not suitable for canonical Stage 40 pipeline.",
+        "notes": "These are 3D arrays (N, N, pre_len) where each slice is the contemporaneous DAGMA fit for a given PH. The generation code is not reproducible from the committed artifacts."
+      }
+    }
+  }
+}
