@@ -183,6 +183,22 @@ def learn_gsl_graph(dataset, ph, seed, dagma_kwargs):
         "n_edges": int(A.sum()), "runtime_s": round(runtime, 1),
         "formulation": "contemporaneous single-graph, per-PH subsampled (original GSL)",
         "adjacency_rule": "fit(w_threshold=0.3) then A = 1(W>0), self-loops removed",
+        # --- full provenance (Stage 35 Goal 5) ---
+        "n_nodes": N,
+        "n_input_rows": int(X.shape[0]),
+        "nnz_after_threshold": int((W_est != 0).sum()),
+        "n_positive_edges_kept": int(A.sum()),
+        "n_negative_weights_at_or_above_threshold": int(((W_est < 0) & (np.abs(W_est) >= 0.3)).sum()),
+        "n_diagonal_removed": int((np.diagonal(W_est) > 0).sum()),
+        "max_abs_weight": round(float(np.abs(W_est).max()), 6),
+        "software": {
+            "python": sys.version.split()[0],
+            "numpy": np.__version__,
+            "scipy": __import__("scipy").__version__,
+            "dagma_file": __import__("dagma.linear", fromlist=["x"]).__file__,
+        },
+        "determinism_note": "DAGMA-linear is deterministic (zero-init, no RNG); "
+                            "see doc/STAGE34_5_DAGMA_DETERMINISM_AND_PROVENANCE_REPORT.md",
     }
     return W_est.astype(np.float32), A, meta
 
