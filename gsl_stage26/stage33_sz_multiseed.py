@@ -242,6 +242,13 @@ def main():
                 "source": "results/stage26_validation/sz_ph{ph}_seed42_L3_lag_{1,2,3}.npy",
                 "seed": 42, "reused": True, "not_recomputed": True,
                 "threshold": args.threshold,
+                "threshold_rule": "abs(W) > threshold (absolute-magnitude support; "
+                                  "positive and negative coefficients both kept)",
+                "generated_by": "gsl_stage26/stage26_run_dagma.py (raw blocks, "
+                                "w_threshold=0.0); consumers threshold at |W|>0.1",
+                "negative_coefficients_above_threshold": 0,
+                "positive_coefficients_above_threshold": 5,
+                "final_binary_edges_per_ph": 5,
             },
             "protocol": {
                 "batch_size": 128, "learning_rate": 0.001,

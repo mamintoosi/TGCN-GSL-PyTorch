@@ -16,8 +16,10 @@
 # What is re-learned: DAGMA on contemporaneous training snapshots subsampled
 # at every PH-th row (train[0::PH], the original input construction),
 # lambda1 = 0.02 Los / 0.01 SZ, one graph per PH, DAGMA w_threshold=0.3 (the
-# original protocol relied on this library default) then adjacency
-# A = 1(W>0), self-loops removed. TRAINING DATA ONLY.
+# original protocol relied on this library default), then the Stage 36
+# canonical support rule A = 1(|W| > 0) (absolute-magnitude support, negative
+# survivors retained; empirically none occur at |W|>=0.3), self-loops
+# removed. TRAINING DATA ONLY.
 #
 # Runtime estimate (CPU for DAGMA, GPU for forecasting):
 #   DAGMA: ~15-40 min per PH (207x207, library-default iterations)

@@ -43,19 +43,26 @@ Thresholding reproduces the ORIGINAL adjacency semantics exactly. The original
 code called model.fit(X, lambda1) WITHOUT w_threshold, so DAGMA's library
 default w_threshold=0.3 zeroed |W|<0.3 INSIDE fit() (dagma/linear.py:
 "self.W_est[np.abs(self.W_est) < w_threshold] = 0"), after which the project
-kept positive entries (A = 1(W>0)). On a raw unthresholded fit, A = 1(W>0)
+kept positive entries (A = 1(W>0)). On a raw unthresholded fit, A = 1(|W|>0)
 alone would keep thousands of tiny noise entries (e.g. 13,704 edges on SZ
 PH1) and destroy the DAG property; the committed W_est files (all nonzero
-entries in [0.31, 0.78]) confirm the effective rule was 1(W>0 & |W|>=0.3).
-We therefore pass w_threshold=0.3 explicitly to fit() and keep the project's
-A = 1(W>0) rule, which reproduces the committed graphs exactly (verified
-against data/W_est_shenzhen_pre_len1.npy: 8/8 edges; see also
-archive/revision_stages/results/dagma_fresh/GRAPH_CONSTRUCTION_AUDIT.md and
-the Stage 33 report §11 note on negative DAGMA weights: no entry is discarded
-for being negative, because |W| >= 0.3 excludes them a fortiori). No data
-leakage: only the 80% training split is used, normalized by the training
-maximum (numerically identical to the original global max for both committed
-datasets — verified: los 70.0, sz 86.4292).
+entries in [0.31, 0.78]) confirm the effective rule was 1(|W|>=0.3).
+We therefore pass w_threshold=0.3 explicitly to fit().
+
+SUPPORT RULE (Stage 36 canonical policy): the binary adjacency retains the
+NONZERO support regardless of sign, A = 1(|W| > 0), diagonal removed — i.e.
+an edge is kept whenever |W_ij| >= 0.3, positive or negative. The original
+pipeline discarded negative survivors via A = 1(W>0); the Stage 36 audit
+showed that on every audited artifact (24 Stage 26 lag blocks, 4 archived
+raw single-graph SZ fits, 8 committed W_est files) NO negative coefficient
+reaches the threshold (max |negative| = 0.013), so the revised rule is
+numerically identical to the original support on this data — but it is now
+explicit, sign-symmetric, and recorded in provenance. The models remain
+binary (the sign is not passed as an edge weight); signed graph convolution
+is explicitly out of scope. No data leakage: only the 80% training split is
+used, normalized by the training maximum (numerically identical to the
+original global max for both committed datasets — verified: los 70.0,
+sz 86.4292).
 
 Usage:
   python gsl_stage26/stage33_gsl_canonical.py --models tgcn --phs 1            # canary-ish single run
@@ -148,10 +155,15 @@ def learn_gsl_graph(dataset, ph, seed, dagma_kwargs):
             edges at every offset), so the canonical rerun uses the offset-0
             fit (one DAGMA fit per PH) as the clean single-graph definition.
     Rule:   w_threshold=0.3 inside fit() (the original code relied on the
-            library default), then A = 1(W>0) with self-loops removed — the
-            original project rule. On a raw unthresholded fit, A = 1(W>0)
-            alone would keep thousands of near-zero noise entries (verified:
-            13,704 edges on SZ PH1) and destroy the DAG property.
+            library default), then the Stage 36 canonical support rule
+            A = 1(|W| > 0) with self-loops removed: an edge is kept whenever
+            |W_ij| >= 0.3, regardless of sign. On a raw unthresholded fit,
+            A = 1(|W|>0) alone would keep thousands of near-zero noise
+            entries (verified: 13,704 edges on SZ PH1) and destroy the DAG
+            property. The original pipeline used A = 1(W>0) (positive only);
+            the audited artifacts contain no negative survivor at |W| >= 0.3,
+            so both rules coincide numerically on this data (recorded in
+            provenance). Models stay binary — no signed convolution.
     """
     config = DATASET_CONFIGS[dataset]
     N = config["N"]
@@ -170,26 +182,34 @@ def learn_gsl_graph(dataset, ph, seed, dagma_kwargs):
                       max_iter=dagma_kwargs["max_iter"])
     runtime = time.time() - t0
 
-    A = (W_est > 0).astype(np.float32)   # original project rule
+    # Stage 36 canonical support rule: absolute-magnitude support (both signs).
+    # After fit()'s internal threshold, nonzero <=> |W| >= 0.3.
+    A = (np.abs(W_est) > 0).astype(np.float32)
     np.fill_diagonal(A, 0)
+    n_pos = int((W_est > 0).sum())
+    n_neg = int((W_est < 0).sum())
     meta = {
         "dataset": dataset, "ph": ph, "seed": seed,
         "lambda1": config["lambda1"], "loss_type": "l2",
         "w_threshold": 0.3,  # original protocol: DAGMA library default
+        "threshold_rule": "abs(W) >= w_threshold, applied inside DAGMA fit()",
+        "support_rule": "A = 1(|W| > 0), diagonal removed (Stage 36 canonical "
+                        "policy; negative survivors retained as edges)",
         "dagma_input": f"train_norm[0::{ph}] (original per-PH subsampling)",
         "warm_iter": dagma_kwargs["warm_iter"],
         "max_iter": dagma_kwargs["max_iter"],
         "feat_max": feat_max, "train_rows": int(X.shape[0]),
         "n_edges": int(A.sum()), "runtime_s": round(runtime, 1),
         "formulation": "contemporaneous single-graph, per-PH subsampled (original GSL)",
-        "adjacency_rule": "fit(w_threshold=0.3) then A = 1(W>0), self-loops removed",
-        # --- full provenance (Stage 35 Goal 5) ---
+        "freshly_fitted": True,
+        # --- full provenance (Stage 35 Goal 5 / Stage 36 Goal 5) ---
         "n_nodes": N,
         "n_input_rows": int(X.shape[0]),
-        "nnz_after_threshold": int((W_est != 0).sum()),
-        "n_positive_edges_kept": int(A.sum()),
-        "n_negative_weights_at_or_above_threshold": int(((W_est < 0) & (np.abs(W_est) >= 0.3)).sum()),
-        "n_diagonal_removed": int((np.diagonal(W_est) > 0).sum()),
+        "n_coefficients_surviving_abs_threshold": int((W_est != 0).sum()),
+        "n_positive_surviving": n_pos,
+        "n_negative_surviving": n_neg,
+        "n_final_binary_edges": int(A.sum()),
+        "n_diagonal_removed": int((np.diagonal(W_est) != 0).sum()),
         "max_abs_weight": round(float(np.abs(W_est).max()), 6),
         "software": {
             "python": sys.version.split()[0],
@@ -198,7 +218,7 @@ def learn_gsl_graph(dataset, ph, seed, dagma_kwargs):
             "dagma_file": __import__("dagma.linear", fromlist=["x"]).__file__,
         },
         "determinism_note": "DAGMA-linear is deterministic (zero-init, no RNG); "
-                            "see doc/STAGE34_5_DAGMA_DETERMINISM_AND_PROVENANCE_REPORT.md",
+                            "see doc/STAGE35_DAGMA_DETERMINISM_AND_PROVENANCE_REPORT.md",
     }
     return W_est.astype(np.float32), A, meta
 

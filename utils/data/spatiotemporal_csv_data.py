@@ -81,8 +81,12 @@ class SpatioTemporalCSVData:
                 print(f'Loaded sparse random graph: {sparse_file} (edges={int(np.sum(self._adj > 0))})')  
             else:  
                 raise FileNotFoundError(f"Sparse random graph not found: {sparse_file}. Run generate_sparse_random_graphs.py first.")  
-        elif self.use_gsl > 0:  
-            W_est_file_name = f"data/W_est_{self.dataset_name}_pre_len{self.pre_len}.npy"  
+        elif self.use_gsl > 0: 
+            # Historical original-submission W_est artifacts were moved to
+            # archive/historical_submission/ (Stage 36 Goal 3) to keep the
+            # active data/ path clean; the original protocol still finds them.
+            W_est_file_name = (f"archive/historical_submission/"
+                               f"W_est_{self.dataset_name}_pre_len{self.pre_len}.npy")   
 
             # Check if the file exists  
             if os.path.exists(W_est_file_name):  

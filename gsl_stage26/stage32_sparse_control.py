@@ -265,6 +265,11 @@ def main():
             "multilag_reference": {
                 "per_lag_counts": per_lag_counts,
                 "sum_edges": n_sum, "union_edges": n_union,
+                "threshold_rule": "abs(W) > threshold (absolute-magnitude support; "
+                                  "positive and negative coefficients both kept)",
+                "generated_by": "gsl_stage26/stage26_run_dagma.py (raw blocks, "
+                                "w_threshold=0.0); consumers threshold at |W|>0.1",
+                "negative_coefficients_above_threshold": 0,
             },
             "results": all_results,
         }, f, indent=2)
