@@ -25,7 +25,7 @@ T-GCN-MultiGSL-Mix & 30 & 4.458 & 2.696 \\
 \end{tabular}
 \end{table}
 
-The physical graph (2833 edges) produces RMSE of 7.658, while T-GCN-NoSpatial (identity adjacency) achieves 5.143---a 32.8\% improvement from removing the graph entirely (single seed). This confirms that dense spatial aggregation hurts forecasting. The effect is driven by density rather than by the physical origin of the graph: a dense \emph{learned} correlation graph with 1656 edges (Corr-$K{=}8$, each node connected to its eight most correlated sensors) also degrades to 6.915, close to the physical graph's 7.658. Only when the graph is sparse do we see gains: the sparse MultiGraph and T-GCN-MultiGSL-Mix approaches further improve over T-GCN-NoSpatial, demonstrating that carefully structured sparse graphs provide genuine benefit.
+The physical graph (2833 edges) produces RMSE of 7.658, while T-GCN-NoSpatial (identity adjacency) achieves 5.143---a 32.8\% improvement from removing the graph entirely (single seed). This confirms that dense spatial aggregation hurts forecasting. The effect is driven by density rather than by the physical origin of the graph: a dense \emph{learned} correlation graph with 1656 edges (Corr-$K{=}8$, each node connected to its eight most correlated sensors) also degrades to 6.915, close to the physical graph's 7.658. Only when the graph is sparse do we see gains: the sparse T-GCN-MultiGSL and T-GCN-MultiGSL-Mix approaches further improve over T-GCN-NoSpatial, demonstrating that carefully structured sparse graphs provide genuine benefit.
 
 \begin{figure}[t]
 \centering

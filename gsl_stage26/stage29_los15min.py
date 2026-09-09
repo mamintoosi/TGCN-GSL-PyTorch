@@ -10,6 +10,12 @@ Scientific question:
   When Los-Loop is treated as a 15-minute-resolution dataset,
   does T-GCN-MultiGSL-Mix provide a meaningful improvement over T-GCN-NoSpatial?
 
+Methods follow the canonical manuscript terminology (models.multigsl):
+  T-GCN-NoSpatial, T-GCN-MultiGSL, T-GCN-MultiGSL-Mix.
+Result rows keep the historical method keys ("NoGraph", "MultiGraphTGCN_fixed",
+"GatedMultiGraphTGCN") for compatibility with the verified Stage 29 JSON;
+see doc/METHOD_NAMING_MAP.md.
+
 Usage:
   python gsl_stage26/stage29_los15min.py --phase dagma
   python gsl_stage26/stage29_los15min.py --phase forecast
@@ -25,8 +31,6 @@ import argparse
 import numpy as np
 import pandas as pd
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import random
 from datetime import datetime
 
@@ -34,8 +38,12 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
 from dagma.linear import DagmaLinear
-from utils.graph_conv import calculate_laplacian_with_self_loop
 from tasks.supervised import SupervisedForecastTask
+from models.multigsl import (
+    GatedMultiGraphTGCN,
+    MultiGraphTGCNFixed,
+    binary_graph,
+)
 from models.tgcn import TGCN
 
 RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", "stage29_los15min")
@@ -138,93 +146,22 @@ def extract_lag_blocks(W_est, N, n_lags):
 
 
 # ============================================================
-# MODELS (identical to Stage 26)
+# MODELS (imported from the canonical models.multigsl module)
 # ============================================================
 
-class GatedMultiGraphTGCN(nn.Module):
-    """Per-node, per-timestep adaptive graph selection (Stage 26)."""
-    def __init__(self, adj_list, hidden_dim=64, **kwargs):
-        super().__init__()
-        self._input_dim = adj_list[0].shape[0]
-        self._hidden_dim = hidden_dim
-        self._n_graphs = len(adj_list)
-        laps = [calculate_laplacian_with_self_loop(torch.FloatTensor(adj)) for adj in adj_list]
-        self.register_buffer("lap_stack", torch.stack(laps))
-        self.gate_net = nn.Sequential(
-            nn.Linear(1 + hidden_dim, hidden_dim), nn.ReLU(),
-            nn.Linear(hidden_dim, self._n_graphs),
-        )
-        self.W_z = nn.Linear(1 + hidden_dim, hidden_dim * 2)
-        self.W_n = nn.Linear(1 + hidden_dim, hidden_dim)
-
-    def forward(self, inputs):
-        B, T, N = inputs.shape
-        h = torch.zeros(B, N * self._hidden_dim, device=inputs.device, dtype=inputs.dtype)
-        for t in range(T):
-            x = inputs[:, t, :].reshape(B, N, 1)
-            hh = h.reshape(B, N, self._hidden_dim)
-            gate_input = torch.cat([x, hh], dim=2)
-            gate_w = F.softmax(self.gate_net(gate_input), dim=-1)
-            adj_w = torch.einsum("bnk,kij->bnj", gate_w, self.lap_stack)
-            gh = torch.cat([x, hh], dim=2)
-            ag = torch.bmm(adj_w, gh)
-            z = torch.sigmoid(self.W_z(ag))
-            r, u = torch.chunk(z, chunks=2, dim=2)
-            c = torch.tanh(self.W_n(torch.cat([x, r * hh], dim=2)))
-            h = u * hh + (1 - u) * c
-        return h.reshape(B, N, self._hidden_dim)
-
-    @property
-    def hyperparameters(self):
-        return {"hidden_dim": self._hidden_dim}
-
-
-class MultiGraphTGCNFixed(nn.Module):
-    """Fixed lag-specific multi-graph (Stage 26 corrected alignment)."""
-    def __init__(self, adj_list, hidden_dim=64, seq_len=12, **kwargs):
-        super().__init__()
-        self._input_dim = adj_list[0].shape[0]
-        self._hidden_dim = hidden_dim
-        self._n_graphs = len(adj_list)
-        laps = [calculate_laplacian_with_self_loop(torch.FloatTensor(adj)) for adj in adj_list]
-        for i, lap in enumerate(laps):
-            self.register_buffer(f"lap_{i}", lap)
-        self.W_z = nn.Linear(1 + hidden_dim, hidden_dim * 2)
-        self.W_n = nn.Linear(1 + hidden_dim, hidden_dim)
-
-    def _graph_conv(self, lap, x):
-        B, N, D = x.shape
-        x_flat = x.permute(1, 2, 0).reshape(N, D * B)
-        out = lap @ x_flat
-        return out.reshape(N, D, B).permute(2, 0, 1)
-
-    def forward(self, inputs):
-        B, T, N = inputs.shape
-        h = torch.zeros(B, N * self._hidden_dim, device=inputs.device, dtype=inputs.dtype)
-        for t in range(T):
-            gap = (T - 1) - t
-            idx = gap % self._n_graphs
-            lap = getattr(self, f"lap_{idx}")
-            x = inputs[:, t, :].reshape(B, N, 1)
-            hh = h.reshape(B, N, self._hidden_dim)
-            gh = self._graph_conv(lap, torch.cat([x, hh], dim=2))
-            z = torch.sigmoid(self.W_z(gh))
-            r, u = torch.chunk(z, chunks=2, dim=2)
-            c = torch.tanh(self.W_n(torch.cat([x, r * hh], dim=2)))
-            h = u * hh + (1 - u) * c
-        return h.reshape(B, N, self._hidden_dim)
-
-    @property
-    def hyperparameters(self):
-        return {"hidden_dim": self._hidden_dim}
+# GatedMultiGraphTGCN (T-GCN-MultiGSL-Mix) and MultiGraphTGCNFixed
+# (T-GCN-MultiGSL) are imported from models.multigsl at the top of this file.
+# They were previously duplicated here; the import keeps the class definitions
+# bit-identical to the Stage 26/29 training path.
 
 
 # ============================================================
-# TRAINING AND EVALUATION (identical to Stage 26)
+# TRAINING AND EVALUATION (canonical Stage 26/29 pipeline)
 # ============================================================
 
 def train_and_eval(adj_or_model_factory, model_type, train_X, train_Y, test_X, test_Y,
                    feat_max, pre_len, seed=42, max_epochs=50, hidden_dim=64):
+    """Canonical train/eval: static TGCN, T-GCN-MultiGSL, or T-GCN-MultiGSL-Mix."""
     set_seed(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -444,18 +381,19 @@ def run_forecast_phase(args):
                                test_X, test_Y, feat_max, ph, seed, args.epochs)
             all_results.append({
                 "dataset": "losloop_15min", "ph": ph, "seed": seed,
-                "method": "NoGraph", "model": "TGCN",
+                "method": "NoGraph", "canonical_name": "T-GCN-NoSpatial", "model": "TGCN",
                 "n_edges": N, "rmse": round(m["RMSE"], 4),
                 "mae": round(m["MAE"], 4), "n_params": m["n_params"],
             })
-            print(f"  NoGraph:      RMSE={m['RMSE']:.4f}")
+            print(f"  NoSpatial:    RMSE={m['RMSE']:.4f}")
 
             # T-GCN-MultiGSL (fixed alignment)
             m = train_and_eval(adj_list, "multi_graph_fixed", train_X, train_Y,
                                test_X, test_Y, feat_max, ph, seed, args.epochs)
             all_results.append({
                 "dataset": "losloop_15min", "ph": ph, "seed": seed,
-                "method": "MultiGraphTGCN_fixed", "model": "MultiGraphTGCNFixed",
+                "method": "MultiGraphTGCN_fixed", "canonical_name": "T-GCN-MultiGSL",
+                "model": "MultiGraphTGCNFixed",
                 "n_edges": total_edges, "rmse": round(m["RMSE"], 4),
                 "mae": round(m["MAE"], 4), "n_params": m["n_params"],
             })
@@ -466,7 +404,8 @@ def run_forecast_phase(args):
                                test_X, test_Y, feat_max, ph, seed, args.epochs)
             all_results.append({
                 "dataset": "losloop_15min", "ph": ph, "seed": seed,
-                "method": "GatedMultiGraphTGCN", "model": "GatedMultiGraphTGCN",
+                "method": "GatedMultiGraphTGCN", "canonical_name": "T-GCN-MultiGSL-Mix",
+                "model": "GatedMultiGraphTGCN",
                 "n_edges": total_edges, "rmse": round(m["RMSE"], 4),
                 "mae": round(m["MAE"], 4), "n_params": m["n_params"],
             })

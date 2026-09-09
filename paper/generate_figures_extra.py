@@ -26,6 +26,10 @@ ROOT = Path(__file__).resolve().parent.parent
 FIG_DIR = ROOT / "paper" / "figures"
 CKPT_DIR = ROOT / "results" / "stage26_checkpoint"
 
+# Checkpoint directories keep their historical method suffixes
+# (nograph / multi_graph_fixed / gated_multi); display names below use the
+# canonical manuscript terminology. See doc/METHOD_NAMING_MAP.md.
+
 plt.rcParams.update({
     'font.family': 'serif',
     'font.size': 11,

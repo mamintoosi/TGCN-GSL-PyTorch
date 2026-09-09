@@ -31,6 +31,23 @@ import matplotlib.gridspec as gridspec
 from matplotlib.patches import FancyArrowPatch
 from pathlib import Path
 
+# Legacy JSON/CSV method keys -> canonical manuscript names (models.multigsl).
+# Historical result artifacts keep their original keys; this mapping translates
+# them for display. See doc/METHOD_NAMING_MAP.md.
+LEGACY_TO_CANONICAL = {
+    'NoGraph': 'T-GCN-NoSpatial',
+    'NoGraph_h64': 'T-GCN-NoSpatial (h=64)',
+    'NoGraph_h74': 'T-GCN-NoSpatial (h=74)',
+    'Physical': 'Physical',
+    'MultiGraphTGCN_fixed': 'T-GCN-MultiGSL',
+    'MultiGraphTGCN_thr0.1': 'T-GCN-MultiGSL',
+    'GatedMultiGraphTGCN': 'T-GCN-MultiGSL-Mix',
+    'GatedMulti_thr0.1': 'T-GCN-MultiGSL-Mix',
+    'GatedMulti': 'T-GCN-MultiGSL-Mix',
+    'WeightedMulti_thr0.1': 'T-GCN-MultiGSL-Weighted',
+    'WeightedMultiGraphTGCN': 'T-GCN-MultiGSL-Weighted',
+}
+
 # ============================================================
 # Configuration
 # ============================================================

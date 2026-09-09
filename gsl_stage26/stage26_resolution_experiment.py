@@ -19,6 +19,14 @@ Usage:
   python gsl_stage26/stage26_resolution_experiment.py --phase evaluate
   python gsl_stage26/stage26_resolution_experiment.py --phase analyze
   python gsl_stage26/stage26_resolution_experiment.py --phase all
+
+NAMING NOTE (Stage 33): historical Stage 27 experiment script, preserved as-is
+for provenance. Its forecasting results were found INVALID by the Stage 30
+forensic audit (wrong model class for T-GCN-MultiGSL-Mix: plain TGCN on a
+static union graph, plain MSE loss, different training loop) — its DAGMA
+matrices and structure analysis remain usable, but do NOT use its forecasting
+numbers. Only its "T-GCN-NoSpatial" key maps cleanly onto the canonical
+naming; see doc/METHOD_NAMING_MAP.md.
 """
 
 import os

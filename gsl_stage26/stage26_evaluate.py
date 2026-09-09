@@ -27,6 +27,15 @@ For each method, reports:
 Usage:
   python gsl_stage26/stage26_evaluate.py --dataset shenzhen --ph 1
   python gsl_stage26/stage26_evaluate.py --dataset losloop --ph 1
+
+NAMING NOTE (Stage 33): this is a historical experiment script preserved as-is;
+it is NOT part of the active canonical pipeline. Its method keys (NoGraph,
+GatedMulti_thr0.1, MultiGraphTGCN_thr0.1, ...) follow the pre-revision naming
+and map to the canonical manuscript names via models.multigsl.normalize_method:
+  NoGraph -> T-GCN-NoSpatial, MultiGraphTGCN* -> T-GCN-MultiGSL,
+  GatedMulti* -> T-GCN-MultiGSL-Mix, WeightedMulti* -> T-GCN-MultiGSL-Weighted.
+Historical result JSONs/CSVs that this script produced keep these legacy keys;
+see doc/METHOD_NAMING_MAP.md.
 """
 import os
 import sys

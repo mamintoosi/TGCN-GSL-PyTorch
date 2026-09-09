@@ -89,11 +89,11 @@ The gate operates at three levels simultaneously:
     \item \textbf{Differentiable:} the gate is learned jointly with the forecasting objective via backpropagation
 \end{itemize}
 
-This contrasts with simpler multi-graph approaches:
+This contrasts with simpler multi-graph approaches evaluated in the same experiment artifacts (Section~\ref{sec:oversmoothing} reports the fixed-assignment variant; the learned-weight variant, T-GCN-MultiGSL-Weighted, achieves 4.710 on the same benchmark):
 \begin{itemize}
-    \item \textbf{UnionGraph:} merges all lag graphs into one adjacency, losing lag-specific information
-    \item \textbf{WeightedMulti:} learns a fixed global weight per lag graph, without per-node or per-timestep adaptation
-    \item \textbf{MultiGraph:} assigns graphs to timesteps in a fixed cyclic pattern
+    \item \textbf{Union of lag graphs:} merges all lag graphs into one static adjacency, losing lag-specific information
+    \item \textbf{T-GCN-MultiGSL-Weighted:} learns a fixed global weight per lag graph, without per-node or per-timestep adaptation
+    \item \textbf{T-GCN-MultiGSL:} assigns graphs to timesteps in a fixed cyclic pattern
 \end{itemize}
 
 \subsubsection{Parameter Count}

@@ -9,8 +9,15 @@ Extends stage26_validation.py to save:
 
 All DAGMA matrices are loaded from existing saved files — no DAGMA recomputation.
 
+Methods (canonical manuscript names, models.multigsl):
+  multi_gsl_mix -> T-GCN-MultiGSL-Mix   (historical CLI: gated_multi)
+  multi_gsl     -> T-GCN-MultiGSL       (historical CLI: multi_graph_fixed)
+  no_spatial    -> T-GCN-NoSpatial      (historical CLI: nograph)
+Legacy CLI values remain accepted; saved checkpoint directories keep their
+historical names (see doc/METHOD_NAMING_MAP.md).
+
 Usage:
-  python gsl_stage26/stage26_train_with_logging.py --method gated_multi --dataset losloop --ph 1 --seed 42
+  python gsl_stage26/stage26_train_with_logging.py --method multi_gsl_mix --dataset losloop --ph 1 --seed 42
 """
 import os
 import sys
@@ -29,6 +36,12 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
 from utils.graph_conv import calculate_laplacian_with_self_loop
+from models.multigsl import (
+    GatedMultiGraphTGCN,
+    MultiGraphTGCNFixed,
+    binary_graph,
+    normalize_method,
+)
 from models.tgcn import TGCN
 
 RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", "stage26_checkpoint")
@@ -82,10 +95,7 @@ def set_seed(seed):
 # ============================================================
 # GRAPH UTILITIES
 # ============================================================
-def binary_graph(W, threshold):
-    adj = (np.abs(W) > threshold).astype(np.float32)
-    np.fill_diagonal(adj, 0)
-    return adj
+# binary_graph is imported from models.multigsl.
 
 
 def load_multilag_blocks(dataset, ph, seed=42, n_lags=3):
@@ -101,77 +111,12 @@ def load_multilag_blocks(dataset, ph, seed=42, n_lags=3):
 
 
 # ============================================================
-# MODELS (same as stage26_validation.py)
+# MODELS (imported from the canonical models.multigsl module)
 # ============================================================
-class GatedMultiGraphTGCN(nn.Module):
-    def __init__(self, adj_list, hidden_dim=64, **kwargs):
-        super().__init__()
-        self._input_dim = adj_list[0].shape[0]
-        self._hidden_dim = hidden_dim
-        self._n_graphs = len(adj_list)
-        laps = [calculate_laplacian_with_self_loop(torch.FloatTensor(adj)) for adj in adj_list]
-        self.register_buffer("lap_stack", torch.stack(laps))
-        self.gate_net = nn.Sequential(
-            nn.Linear(1 + hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, self._n_graphs),
-        )
-        self.W_z = nn.Linear(1 + hidden_dim, hidden_dim * 2)
-        self.W_n = nn.Linear(1 + hidden_dim, hidden_dim)
-
-    def forward(self, inputs):
-        B, T, N = inputs.shape
-        h = torch.zeros(B, N * self._hidden_dim, device=inputs.device, dtype=inputs.dtype)
-        for t in range(T):
-            x = inputs[:, t, :].reshape(B, N, 1)
-            hh = h.reshape(B, N, self._hidden_dim)
-            gate_input = torch.cat([x, hh], dim=2)
-            gate_logits = self.gate_net(gate_input)
-            gate_w = F.softmax(gate_logits, dim=-1)
-            adj_weighted = torch.einsum('bnk,kij->bnj', gate_w, self.lap_stack)
-            gh = torch.cat([x, hh], dim=2)
-            ag = torch.bmm(adj_weighted, gh)
-            z = torch.sigmoid(self.W_z(ag))
-            r, u = torch.chunk(z, chunks=2, dim=2)
-            c = torch.tanh(self.W_n(torch.cat([x, r * hh], dim=2)))
-            h = u * hh + (1 - u) * c
-        return h.reshape(B, N, self._hidden_dim)
-
-
-class MultiGraphTGCNFixed(nn.Module):
-    def __init__(self, adj_list, hidden_dim=64, seq_len=12, **kwargs):
-        super().__init__()
-        self._input_dim = adj_list[0].shape[0]
-        self._hidden_dim = hidden_dim
-        self._n_graphs = len(adj_list)
-        self._seq_len = seq_len
-        laps = [calculate_laplacian_with_self_loop(torch.FloatTensor(adj)) for adj in adj_list]
-        for i, lap in enumerate(laps):
-            self.register_buffer(f"lap_{i}", lap)
-        self.W_z = nn.Linear(1 + hidden_dim, hidden_dim * 2)
-        self.W_n = nn.Linear(1 + hidden_dim, hidden_dim)
-
-    def _graph_conv(self, lap, x):
-        B, N, D = x.shape
-        x_flat = x.permute(1, 2, 0).reshape(N, D * B)
-        out = lap @ x_flat
-        return out.reshape(N, D, B).permute(2, 0, 1)
-
-    def forward(self, inputs):
-        B, T, N = inputs.shape
-        h = torch.zeros(B, N * self._hidden_dim, device=inputs.device, dtype=inputs.dtype)
-        for t in range(T):
-            temporal_gap = (T - 1) - t
-            graph_idx = temporal_gap % self._n_graphs
-            lap = getattr(self, f"lap_{graph_idx}")
-            x = inputs[:, t, :].reshape(B, N, 1)
-            hh = h.reshape(B, N, self._hidden_dim)
-            gh = self._graph_conv(lap, torch.cat([x, hh], dim=2))
-            z = torch.sigmoid(self.W_z(gh))
-            r, u = torch.chunk(z, chunks=2, dim=2)
-            c = torch.tanh(self.W_n(torch.cat([x, r * hh], dim=2)))
-            h = u * hh + (1 - u) * c
-        return h.reshape(B, N, self._hidden_dim)
+# GatedMultiGraphTGCN (T-GCN-MultiGSL-Mix), MultiGraphTGCNFixed
+# (T-GCN-MultiGSL) and binary_graph are imported from models.multigsl at the
+# top of this file. They were previously duplicated here; the import keeps the
+# definitions bit-identical to the Stage 26/29 training path.
 
 
 # ============================================================
@@ -319,8 +264,11 @@ def main():
     parser = argparse.ArgumentParser(
         description="Stage 26 Training with Checkpoint Saving")
     parser.add_argument("--method", type=str, required=True,
-                        choices=["nograph", "gated_multi", "multi_graph_fixed"],
-                        help="Model type to train")
+                        choices=["no_spatial", "multi_gsl", "multi_gsl_mix",
+                                 "nograph", "gated_multi", "multi_graph_fixed"],
+                        help="Method to train: canonical ids (no_spatial, multi_gsl, "
+                             "multi_gsl_mix) or legacy aliases (nograph, "
+                             "multi_graph_fixed, gated_multi)")
     parser.add_argument("--dataset", type=str, default="losloop",
                         choices=["losloop", "shenzhen"])
     parser.add_argument("--ph", type=int, default=1, choices=[1, 2, 3, 4])
@@ -344,11 +292,16 @@ def main():
     N = DATASET_CONFIGS[args.dataset]["N"]
     print(f"Train: {train_X.shape}, Test: {test_X.shape}, N={N}")
 
-    # Build adjacency
-    if args.method == "nograph":
+    # Build adjacency (normalize legacy CLI names to canonical ids)
+    canonical = normalize_method(args.method)
+    canonical_name_for_log = {
+        "no_spatial": "T-GCN-NoSpatial", "multi_gsl": "T-GCN-MultiGSL",
+        "multi_gsl_mix": "T-GCN-MultiGSL-Mix"}.get(canonical, args.method)
+    if canonical == "no_spatial":
         adj_factory = np.eye(N, dtype=np.float32)
         model_type = "standard"
-    elif args.method in ("gated_multi", "multi_graph_fixed"):
+    elif canonical in ("multi_gsl", "multi_gsl_mix"):
+        model_type = "multi_graph_fixed" if canonical == "multi_gsl" else "gated_multi"
         lag_blocks = load_multilag_blocks(args.dataset, args.ph, seed=42, n_lags=args.n_lags)
         if lag_blocks is None:
             print("ERROR: No DAGMA blocks found. Run DAGMA first.")
@@ -361,15 +314,17 @@ def main():
         for k, a in zip(lag_keys, adj_list):
             print(f"  {k}: {int(a.sum())} edges")
         adj_factory = adj_list
-        model_type = args.method
     else:
         print(f"ERROR: Unknown method {args.method}")
         sys.exit(1)
 
-    # Save directory
+    # Save directory: keep the historical naming scheme for checkpoint dirs
+    # (nograph / multi_graph_fixed / gated_multi) so existing artifacts stay readable.
+    legacy_dirname = {"no_spatial": "nograph", "multi_gsl": "multi_graph_fixed",
+                      "multi_gsl_mix": "gated_multi"}.get(args.method, args.method)
     save_dir = os.path.join(RESULTS_DIR,
                             f"{DATASET_CONFIGS[args.dataset]['prefix']}_ph{args.ph}_"
-                            f"seed{args.seed}_{args.method}")
+                            f"seed{args.seed}_{legacy_dirname}")
 
     # Train
     metrics = train_with_logging(
@@ -380,7 +335,7 @@ def main():
     )
 
     print(f"\n{'='*70}")
-    print(f"RESULTS: {args.method} / {args.dataset} / PH={args.ph} / seed={args.seed}")
+    print(f"RESULTS: {canonical_name_for_log} / {args.dataset} / PH={args.ph} / seed={args.seed}")
     print(f"  RMSE: {metrics['RMSE']:.4f}")
     print(f"  MAE:  {metrics['MAE']:.4f}")
     print(f"  Params: {metrics['n_params']}")

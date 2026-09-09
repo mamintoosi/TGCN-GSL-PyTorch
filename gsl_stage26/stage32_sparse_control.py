@@ -4,9 +4,9 @@ Stage 32 — Sparse-Control Experiment: matched-edge-count sparse baselines.
 
 Answers Reviewer 1, Weakness 5 ("are the gains from the learned structure or
 just from sparsity?") at matched edge parity. The Stage 26 oversmoothing table
-compares graphs of very different densities (NoGraph 207, SingleDAG 6-60,
-MultiGSL/Mix 30). Here we add, on the SAME 30 directed edges as
-T-GCN-MultiGSL-Mix's lag-graph union:
+compares graphs of very different densities (T-GCN-NoSpatial 207, single-lag
+DAGMA 6-60, T-GCN-MultiGSL/Mix 30). Here we add, on the SAME 30 directed edges
+as T-GCN-MultiGSL-Mix's lag graphs (sum over lag graphs = 12+3+15):
 
   - CorrTop30 : top-30 |Pearson correlation| training-data edges (directed,
                 off-diagonal), trained with the standard TGCN (single static
@@ -29,7 +29,6 @@ import os
 import sys
 import json
 import time
-import random
 import argparse
 from datetime import datetime
 
@@ -41,6 +40,10 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
 from tasks.supervised import SupervisedForecastTask
+from models.multigsl import (
+    correlation_topk_graph,
+    random_edge_graph,
+)
 from models.tgcn import TGCN
 
 DATASET_CONFIGS = {
@@ -79,6 +82,7 @@ def generate_sequences(data, seq_len, pre_len):
 
 
 def set_seed(seed):
+    import random
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -122,33 +126,8 @@ def load_multilag_union(dataset, ph, seed=42, n_lags=3, threshold=0.1):
     return union, per_lag_counts
 
 
-def corr_topk_graph(train_norm, k):
-    """Top-k |Pearson| directed edges from TRAINING data only (no self-loops)."""
-    N = train_norm.shape[1]
-    C = np.corrcoef(train_norm.T)
-    C = np.nan_to_num(C, nan=0.0)
-    np.fill_diagonal(C, 0.0)
-    flat = np.abs(C).ravel()
-    flat[np.arange(N) * N + np.arange(N)] = 0.0  # kill self-pairs
-    idx = np.argsort(flat)[::-1][:k]
-    adj = np.zeros((N, N), dtype=np.float32)
-    adj.flat[idx] = 1.0
-    return adj
-
-
-def rand_topk_graph(N, k, seed):
-    """k random off-diagonal directed edges (deterministic per seed)."""
-    rng = np.random.RandomState(seed)
-    adj = np.zeros((N, N), dtype=np.float32)
-    chosen = set()
-    while len(chosen) < k:
-        i, j = rng.randint(N), rng.randint(N)
-        if i == j:
-            continue
-        chosen.add((i, j))
-    for (i, j) in chosen:
-        adj[i, j] = 1.0
-    return adj
+# corr_topk_graph and rand_topk_graph moved to models.multigsl as
+# correlation_topk_graph and random_edge_graph (canonical home, no duplication).
 
 
 # ============================================================
@@ -220,7 +199,6 @@ def main():
                         help="multilag_union re-runs the T-GCN-MultiGSL-Mix graph "
                              "through the plain TGCN (same edges, no multi-lag processing)")
     args = parser.parse_args()
-
     config = DATASET_CONFIGS[args.dataset]
     N = config["N"]
     seq_len = 12
@@ -241,7 +219,7 @@ def main():
                                    "pass --n-edges accordingly")
 
     # Corr control is seed-independent (computed once from training data)
-    corr_adj = corr_topk_graph(train_norm, args.n_edges)
+    corr_adj = correlation_topk_graph(train_norm, args.n_edges)
     print(f"CorrTop{args.n_edges} edges: {int(corr_adj.sum())}")
 
     all_results = []
@@ -250,7 +228,7 @@ def main():
             if method == "corr":
                 adj, label = corr_adj, f"CorrTop{args.n_edges}"
             elif method == "rand":
-                adj, label = rand_topk_graph(N, args.n_edges, seed=seed), f"RandTop{args.n_edges}"
+                adj, label = random_edge_graph(N, args.n_edges, seed=seed), f"RandTop{args.n_edges}"
             elif method == "multilag_union":
                 adj, label = union, "MultiLagUnion(staticTGCN)"
             else:
