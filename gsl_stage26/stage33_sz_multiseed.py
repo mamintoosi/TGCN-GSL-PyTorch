@@ -175,6 +175,7 @@ def main():
 
     train_data, test_data, adj_phys, feat_max = load_data("shenzhen")
     all_results = []
+    lag_edges_by_ph = {}  # provenance: actual per-PH lag-block edge counts
 
     for ph in args.phs:
         print(f"\n{'=' * 70}\nPH={ph}\n{'=' * 70}")
@@ -188,6 +189,7 @@ def main():
                            key=lambda x: int(x.split("_")[1]))
         adj_list = [binary_graph(lag_blocks[k], args.threshold) for k in lag_keys]
         total_edges = sum(int(a.sum()) for a in adj_list)
+        lag_edges_by_ph[str(ph)] = [int(a.sum()) for a in adj_list]
         print(f"  Lag graphs: {[int(a.sum()) for a in adj_list]} edges "
               f"(sum={total_edges})")
 
@@ -246,9 +248,13 @@ def main():
                                   "positive and negative coefficients both kept)",
                 "generated_by": "gsl_stage26/stage26_run_dagma.py (raw blocks, "
                                 "w_threshold=0.0); consumers threshold at |W|>0.1",
-                "negative_coefficients_above_threshold": 0,
-                "positive_coefficients_above_threshold": 5,
-                "final_binary_edges_per_ph": 5,
+                "graphs_used": "lag blocks only (lag_1..3); the contemporaneous "
+                               "'current' block is NOT part of the MultiGSL input",
+                "lag_binary_edges_per_ph": lag_edges_by_ph,
+                "negative_coefficients_above_threshold": int(sum(
+                    int(((lag_blocks[k] < -args.threshold) &
+                         (np.abs(lag_blocks[k]) > args.threshold)).sum())
+                    for k in lag_keys)) if lag_blocks else 0,
             },
             "protocol": {
                 "batch_size": 128, "learning_rate": 0.001,

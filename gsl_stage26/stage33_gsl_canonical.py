@@ -376,7 +376,11 @@ def main():
                         "dataset": args.dataset, "ph": ph, "seed": seed,
                         "backbone": backbone, "variant": variant,
                         "method": name, "canonical_name": canon,
-                        "graph": variant, "n_edges": int(adj.sum()),
+                        "graph": variant,
+                        # NOTE: count nonzeros, not the weight sum — los_adj.csv
+                        # stores fractional edge weights (~0.1), so adj.sum()
+                        # is NOT the edge count.
+                        "n_edges": int((np.asarray(adj) > 0).sum()),
                         "rmse": round(m["RMSE"], 4), "mae": round(m["MAE"], 4),
                         "n_params": m["n_params"], "epochs": args.epochs,
                         "hidden_dim": args.hidden_dim,
