@@ -255,6 +255,13 @@ def main():
             "dataset": args.dataset, "ph": args.ph,
             "n_edges": args.n_edges, "threshold": args.threshold,
             "seeds": args.seeds, "epochs": args.epochs,
+            "protocol": {
+                "backbone": "TGCN (static graph)",
+                "batch_size": 128, "learning_rate": 0.001,
+                "weight_decay": 0.0001, "hidden_dim": 64,
+                "loss": "mse_with_regularizer", "optimizer": "Adam",
+                "seq_len": 12, "feat_max_source": "train split only",
+            },
             "multilag_reference": {
                 "per_lag_counts": per_lag_counts,
                 "sum_edges": n_sum, "union_edges": n_union,

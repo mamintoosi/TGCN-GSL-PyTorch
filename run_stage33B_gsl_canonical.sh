@@ -13,13 +13,16 @@
 # appendix as clearly-labelled historical results; this rerun supplies the
 # canonical numbers for the main text.
 #
-# What is re-learned: DAGMA on contemporaneous training snapshots (the
-# original single-graph formulation, lambda1 = 0.02 Los / 0.01 SZ), one graph
-# per PH, adjacency A = 1(W>0), self-loops removed. TRAINING DATA ONLY.
+# What is re-learned: DAGMA on contemporaneous training snapshots subsampled
+# at every PH-th row (train[0::PH], the original input construction),
+# lambda1 = 0.02 Los / 0.01 SZ, one graph per PH, DAGMA w_threshold=0.3 (the
+# original protocol relied on this library default) then adjacency
+# A = 1(W>0), self-loops removed. TRAINING DATA ONLY.
 #
-# Runtime estimate (GPU):
-#   DAGMA: ~20-40 min per PH (207x207) -> ~1.5-3 h for PH 1-4, computed once
-#   Forecasting: T-GCN, 4 variants x 5 seeds x 4 PHs x 50 epochs ~ 15-25 min
+# Runtime estimate (CPU for DAGMA, GPU for forecasting):
+#   DAGMA: ~15-40 min per PH (207x207, library-default iterations)
+#          -> ~1.5-3 h for PH 1-4, computed once and cached as .npy
+#   Forecasting: T-GCN, 2 variants x 5 seeds x 4 PHs x 50 epochs ~ 15-25 min
 #   With --cyclic and both backbones roughly doubles the forecasting time.
 # ============================================================
 

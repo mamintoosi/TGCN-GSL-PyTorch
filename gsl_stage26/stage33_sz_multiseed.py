@@ -238,6 +238,18 @@ def main():
         json.dump({
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "dataset": "shenzhen", "seeds": args.seeds, "phs": args.phs,
+            "dagma_blocks": {
+                "source": "results/stage26_validation/sz_ph{ph}_seed42_L3_lag_{1,2,3}.npy",
+                "seed": 42, "reused": True, "not_recomputed": True,
+                "threshold": args.threshold,
+            },
+            "protocol": {
+                "batch_size": 128, "learning_rate": 0.001,
+                "weight_decay": 0.0001, "hidden_dim": 64,
+                "loss": "mse_with_regularizer", "optimizer": "Adam",
+                "seq_len": 12, "epochs": args.epochs,
+                "feat_max_source": "train split only",
+            },
             "results": all_results,
         }, f, indent=2)
     print(f"\nSaved: {json_path}")

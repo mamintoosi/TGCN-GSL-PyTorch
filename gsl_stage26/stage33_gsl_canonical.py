@@ -34,17 +34,33 @@ original single-graph GSL, the numbers must come from this canonical rerun.
 
 WHAT IS RE-LEARNED
 ------------------
-DAGMA is fit on contemporaneous training snapshots X ∈ R^{T_train × N} with
-the ORIGINAL formulation (single-lag special case of the multi-lag model;
-no multi-lag blocking). Positive entries are kept (the original adjacency
-rule A = 1(W>0), which matches the committed W_est files where min|w|>0.30,
-i.e. already past any threshold); self-loops are removed. No data leakage:
-only the 80% training split is used, normalized by the training maximum.
+DAGMA is fit on the same per-PH input construction as the ORIGINAL pipeline
+(utils/data/spatiotemporal_csv_data.py): contemporaneous training snapshots
+subsampled at every PH-th row (X = train[0::PH]), a (T_train, N) matrix —
+the single-lag special case of the multi-lag model (no multi-lag blocking).
+
+Thresholding reproduces the ORIGINAL adjacency semantics exactly. The original
+code called model.fit(X, lambda1) WITHOUT w_threshold, so DAGMA's library
+default w_threshold=0.3 zeroed |W|<0.3 INSIDE fit() (dagma/linear.py:
+"self.W_est[np.abs(self.W_est) < w_threshold] = 0"), after which the project
+kept positive entries (A = 1(W>0)). On a raw unthresholded fit, A = 1(W>0)
+alone would keep thousands of tiny noise entries (e.g. 13,704 edges on SZ
+PH1) and destroy the DAG property; the committed W_est files (all nonzero
+entries in [0.31, 0.78]) confirm the effective rule was 1(W>0 & |W|>=0.3).
+We therefore pass w_threshold=0.3 explicitly to fit() and keep the project's
+A = 1(W>0) rule, which reproduces the committed graphs exactly (verified
+against data/W_est_shenzhen_pre_len1.npy: 8/8 edges; see also
+archive/revision_stages/results/dagma_fresh/GRAPH_CONSTRUCTION_AUDIT.md and
+the Stage 33 report §11 note on negative DAGMA weights: no entry is discarded
+for being negative, because |W| >= 0.3 excludes them a fortiori). No data
+leakage: only the 80% training split is used, normalized by the training
+maximum (numerically identical to the original global max for both committed
+datasets — verified: los 70.0, sz 86.4292).
 
 Usage:
-  python gsl_stage26/stage33_gsl_canonical.py --models tgcn --ph 1            # canary-ish single run
-  python gsl_stage26/stage33_gsl_canonical.py --models tgcn gcn --ph 1 2 3 4  # full PH sweep
-  python gsl_stage26/stage33_gsl_canonical.py --models tgcn --ph 1 --epochs 2 # quick smoke test
+  python gsl_stage26/stage33_gsl_canonical.py --models tgcn --phs 1            # canary-ish single run
+  python gsl_stage26/stage33_gsl_canonical.py --models tgcn gcn --phs 1 2 3 4  # full PH sweep
+  python gsl_stage26/stage33_gsl_canonical.py --models tgcn --phs 1 --epochs 2 --seeds 42   # smoke test
 """
 import os
 import sys
@@ -120,37 +136,53 @@ def set_seed(seed):
 # ORIGINAL-FORMULATION SINGLE-GRAPH GSL (training data only)
 # ============================================================
 def learn_gsl_graph(dataset, ph, seed, dagma_kwargs):
-    """Fit DAGMA on contemporaneous training snapshots; return binary adjacency.
+    """Fit DAGMA exactly as the original pipeline did; return binary adjacency.
 
-    Positive entries kept (A = 1(W>0)), self-loops removed — the original
-    adjacency rule, applied to a freshly learned, provenance-clean W.
+    Input:  X = train_norm[0::ph] — the same per-PH subsampling of the training
+            snapshots used by the original SpatioTemporalCSVData
+            (utils/data/spatiotemporal_csv_data.py), normalized by the train
+            maximum (numerically identical to the original global max).
+            Documented deviation: the original loop fitted one DAGMA per
+            offset i in {0..PH-1} and merged them with np.any(W>0, axis=2);
+            the committed per-offset edge sets were identical (SZ PH1-4: 8
+            edges at every offset), so the canonical rerun uses the offset-0
+            fit (one DAGMA fit per PH) as the clean single-graph definition.
+    Rule:   w_threshold=0.3 inside fit() (the original code relied on the
+            library default), then A = 1(W>0) with self-loops removed — the
+            original project rule. On a raw unthresholded fit, A = 1(W>0)
+            alone would keep thousands of near-zero noise entries (verified:
+            13,704 edges on SZ PH1) and destroy the DAG property.
     """
     config = DATASET_CONFIGS[dataset]
     N = config["N"]
     train_norm, _, _, feat_max = load_data(dataset)  # normalized by train max only
 
-    # Contemporaneous snapshots from the training split (original formulation)
-    X = train_norm  # (T_train, N)
+    # Per-PH subsampling of contemporaneous snapshots (original construction)
+    X = train_norm[0::ph]  # (ceil(T_train/ph), N)
 
     np.random.seed(seed)
     t0 = time.time()
     model = DagmaLinear(loss_type="l2", verbose=False)
-    W_est = model.fit(X, lambda1=config["lambda1"], w_threshold=0.0,
+    # w_threshold=0.3 = the ORIGINAL effective protocol (library default that
+    # the original fit() call relied on); see module docstring for evidence.
+    W_est = model.fit(X, lambda1=config["lambda1"], w_threshold=0.3,
                       warm_iter=dagma_kwargs["warm_iter"],
                       max_iter=dagma_kwargs["max_iter"])
     runtime = time.time() - t0
 
-    A = (W_est > 0).astype(np.float32)
+    A = (W_est > 0).astype(np.float32)   # original project rule
     np.fill_diagonal(A, 0)
     meta = {
         "dataset": dataset, "ph": ph, "seed": seed,
         "lambda1": config["lambda1"], "loss_type": "l2",
+        "w_threshold": 0.3,  # original protocol: DAGMA library default
+        "dagma_input": f"train_norm[0::{ph}] (original per-PH subsampling)",
         "warm_iter": dagma_kwargs["warm_iter"],
         "max_iter": dagma_kwargs["max_iter"],
         "feat_max": feat_max, "train_rows": int(X.shape[0]),
         "n_edges": int(A.sum()), "runtime_s": round(runtime, 1),
-        "formulation": "contemporaneous single-graph (original GSL)",
-        "adjacency_rule": "A = 1(W>0), self-loops removed",
+        "formulation": "contemporaneous single-graph, per-PH subsampled (original GSL)",
+        "adjacency_rule": "fit(w_threshold=0.3) then A = 1(W>0), self-loops removed",
     }
     return W_est.astype(np.float32), A, meta
 
@@ -230,7 +262,9 @@ def main():
     parser.add_argument("--seeds", type=int, nargs="+", default=[42, 43, 44, 45, 46])
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--hidden-dim", type=int, default=64)
-    parser.add_argument("--warm-iter", type=int, default=30000)
+    parser.add_argument("--warm-iter", type=int, default=30000,
+                        help="DAGMA warm-start iterations (original pipeline used "
+                             "the library defaults: 30000/60000)")
     parser.add_argument("--max-iter", type=int, default=60000)
     args = parser.parse_args()
 
@@ -297,10 +331,15 @@ def main():
                     label = {"tgcn": "T-GCN", "gcn": "GCN"}[backbone]
                     name = {"physical": f"{label}", "gsl": f"{label}-GSL",
                             "cgsl": f"{label}-cGSL"}[variant]
+                    # Canonical manuscript name (doc/METHOD_NAMING_MAP.md):
+                    # the road-adjacency T-GCN row is "Physical"; the GSL
+                    # family keeps its descriptive labels.
+                    canon = {"physical": "Physical", "gsl": f"{label}-GSL",
+                             "cgsl": f"{label}-cGSL"}[variant]
                     all_results.append({
                         "dataset": args.dataset, "ph": ph, "seed": seed,
                         "backbone": backbone, "variant": variant,
-                        "method": name, "canonical_name": name,
+                        "method": name, "canonical_name": canon,
                         "graph": variant, "n_edges": int(adj.sum()),
                         "rmse": round(m["RMSE"], 4), "mae": round(m["MAE"], 4),
                         "n_params": m["n_params"], "epochs": args.epochs,
