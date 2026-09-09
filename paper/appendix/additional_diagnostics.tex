@@ -61,3 +61,5 @@ Multi-lag DAGMA runtime on standard hardware (RTX 3090):
     \item Los-loop ($828 \times 828$): approximately 240 minutes per prediction horizon
 \end{itemize}
 Total computation for the 8 primary DAGMA runs (2 datasets $\times$ 4 PHs): approximately 24 hours; the additional 15-minute-resolution DAGMA run (Section~\ref{sec:los15min}) took approximately 4 hours.
+
+For reference, the contemporaneous single-graph fits of Section~\ref{sec:gsl_baseline} (207 variables, $\lambda_1 = 0.02$, warm-up 30{,}000 / max 60{,}000 iterations) took approximately 15--17 minutes per horizon on 4 CPU cores, and archived 156-variable SZ-Taxi audit fits took approximately 52--76 minutes each. A sliding-window time-varying extension would multiply these per-fit costs by the number of windows.

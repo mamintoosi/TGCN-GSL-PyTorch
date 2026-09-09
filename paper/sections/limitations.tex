@@ -3,19 +3,21 @@
 This study has several limitations that delineate the boundaries of the current evidence:
 
 \begin{enumerate}
-    \item \textbf{Dataset dependence:} The strong improvement (14.9\% at 5-minute and 27.4\% at 15-minute sampling) is observed on the Los-loop highway dataset, while the SZ-Taxi urban dataset shows only marginal improvement. Temporal resolution is ruled out as the explanation, since Los-loop improves strongly at both sampling intervals; the method's effectiveness appears to depend on the underlying traffic dynamics, plausibly on how much exploitable dependency structure the learner can discover.
+    \item \textbf{Dataset dependence:} The strong improvement (14.9\% at 5-minute and 27.4\% at 15-minute sampling) is observed on the Los-loop highway dataset, while the SZ-Taxi urban dataset shows only marginal benefit for the gated model (0.19--0.26\% at PH=1--3, not stable at PH=4) and no clear benefit for the ungated multi-graph variant. Temporal resolution is ruled out as the explanation, since Los-loop improves strongly at both sampling intervals; the method's effectiveness appears to depend on the underlying traffic dynamics, plausibly on how much exploitable dependency structure the learner can discover.
 
     \item \textbf{Two datasets only:} Evaluation is limited to two traffic datasets. Broader validation on diverse traffic networks (e.g., different cities, different sensor types, different time periods) would strengthen generalizability claims.
 
-    \item \textbf{DAGMA scalability:} The multi-lag formulation increases the DAGMA input dimension to $(L+1) \cdot N$. For the Los-loop dataset ($N=207$), this yields an $828 \times 828$ matrix requiring approximately 4 hours of computation. Scaling to networks with thousands of sensors would require more efficient graph learning algorithms.
+    \item \textbf{DAGMA scalability:} Fitting time is substantial even at modest network sizes. The contemporaneous single-graph fits used for the GSL baseline take approximately 16 minutes per horizon for the 207-node Los-loop network on 4 CPU cores; archived 156-node SZ-Taxi audit fits took approximately 52--76 minutes each; and the multi-lag formulation increases the input dimension to $(L+1) \cdot N$, yielding an $828 \times 828$ fit that requires approximately 4 hours. Scaling to networks with thousands of sensors would require more efficient graph learning algorithms.
 
     \item \textbf{Fixed lag window:} The current formulation uses a fixed lag window $L=3$. The optimal lag structure may vary across datasets and traffic conditions. Learned lag selection remains future work.
 
+    \item \textbf{No $\lambda$ sensitivity analysis:} The DAGMA sparsity hyperparameter was fixed at values used throughout ($\lambda_1 = 0.02$ for the single-graph protocol, $0.01$ for the multi-lag fits) and no systematic $\lambda$ sweep was performed. Sensitivity of the learned graphs and of forecasting performance to $\lambda_1$ was therefore not measured, and the reported graphs should be understood as one operating point rather than an optimized configuration.
+
     \item \textbf{Static learned graphs:} The lag-specific graphs are learned once from training data and remain fixed during inference. While the GRU hidden state provides temporal dynamics and the gate provides per-timestep graph selection, the underlying dependency graphs themselves do not adapt to changing traffic conditions.
 
-    \item \textbf{Limited backbone architectures:} We evaluate only T-GCN as the backbone. Whether the multi-lag approach benefits other graph-based forecasting architectures (e.g., ST-GCN, Graph WaveNet) remains to be tested.
+    \item \textbf{Limited backbone architectures:} We evaluate only the studied T-GCN/GCN-family backbones. Whether the multi-lag approach benefits other graph-based forecasting architectures (e.g., ST-GCN, Graph WaveNet) remains to be tested; broader backbone validation is future work.
 
-    \item \textbf{No causal identification:} The DAGMA formulation discovers temporal functional dependencies, not causal relationships. We do not claim that the learned graphs represent causal traffic mechanisms.
+    \item \textbf{No causal identification:} The DAGMA formulation discovers temporal functional dependencies, not causal relationships. The graph analyses in this paper are descriptive structural analyses of learned dependency structure, and we do not claim that the learned graphs represent causal traffic mechanisms or that they have been causally validated.
 
-    \item \textbf{Prediction horizons:} Results are reported for horizons PH=1--4; the 15-minute-sampling variant covers the same four horizon counts (15--60 minutes ahead). Horizon counts beyond 4 were not evaluated.
+    \item \textbf{Prediction horizons:} The main 5-minute experiments cover horizons PH=1--4; horizon counts beyond 4 (PH5--PH8) were not evaluated and remain future work. The 15-minute-sampling variant provides evidence up to 60 minutes ahead (PH=4 at 15-minute resolution), and its growing relative improvements with horizon suggest that structure quality matters more at longer wall-clock horizons, but this does not substitute for directly evaluated longer horizons in the 5-minute setting.
 \end{enumerate}

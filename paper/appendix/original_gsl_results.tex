@@ -1,10 +1,14 @@
 \section{Original GSL/cGSL Results}\label{app:original_gsl}
 
-This appendix presents the original Graph Structure Learning (GSL) and cyclic GSL (cGSL) results that motivated the multi-lag investigation. Method naming in this appendix follows the original submission; these results were produced under the original study's protocol and are not directly comparable in RMSE magnitude to the main-text tables, which use the revised pipeline.
+This appendix presents the original Graph Structure Learning (GSL) and cyclic GSL (cGSL) results that motivated the multi-lag investigation. Method naming in this appendix follows the original submission; all tables in this appendix are \textbf{historical single-seed results} produced under the original study's protocol and pipeline. They are retained for transparency and because the GSL/cGSL backbone asymmetry they document remains scientifically informative; they are \emph{not} current canonical results and are not directly comparable in RMSE magnitude to the main-text tables, which use the revised training pipeline. The main-text re-establishment of this baseline under the revised protocol is given in Section~\ref{sec:gsl_baseline}.
 
 \subsection{Method}
 
 The original GSL approach applies DAGMA to contemporaneous traffic observations $X \in \mathbb{R}^{T \times N}$, where each row is a single-timestep snapshot of all $N$ sensor readings. This produces a single $N \times N$ weight matrix $W$. The GSL variant uses the binary thresholded DAG adjacency: $A_{GSL} = \mathbf{1}(|W| > \omega)$. The cGSL variant symmetrizes: $A_{cGSL} = A_{GSL} + A_{GSL}^T$.
+
+Two protocol details, established during the revision by re-deriving the construction from the original data-loading code, complete the historical description. First, in the as-submitted pipeline DAGMA was not fitted once per horizon: for prediction horizon PH, the loader fitted $K = \mathrm{PH}$ separate DAGMA models on stride-$K$ offset-stratified subsamples of the training windows ($X = \mathrm{data}[i::K]$ for $i = 0, \ldots, K{-}1$) and used the \emph{union} of the $K$ resulting supports. The resulting as-used Los-loop graphs had 28/32/33/39 edges for PH=1--4 (the union of several DAGs need not itself be acyclic). Second, the library's absolute-magnitude threshold ($\omega = 0.3$) was applied inside each fit, and the historical union rule additionally retained positive coefficients only.
+
+The revised protocol (Section~\ref{sec:gsl_baseline}) instead fits one DAGMA model per horizon on the offset-0 subsample, yielding a genuine single 28-edge DAG per horizon, and retains both coefficient signs after the library threshold. Its slice-0 fits reproduce the historical slice-0 graph supports exactly at PH=1, 2, and 4 (28/28 edges; 26/28 at PH=3), with shared-edge weights agreeing to within approximately 0.016; the revised per-horizon graphs are strict subsets of the historical unions. The historical tables below remain unchanged single-seed results of the original pipeline.
 
 \subsection{GCN Results}
 
@@ -39,7 +43,7 @@ PH & Method & RMSE & MAE & RMSE & MAE \\
 \end{tabular}
 \end{table}
 
-GCN-cGSL (symmetrized cyclic graph) consistently outperforms both standard GCN and GCN-GSL, achieving up to 21.6\% RMSE improvement on SZ-taxi and 24.7\% on Los-loop. This suggests that the purely spatial GCN benefits from bidirectional (cyclic) graph connections.
+GCN-cGSL (symmetrized cyclic graph) consistently outperforms both standard GCN and GCN-GSL, with mean RMSE improvements over the physical graph of 21.6\% on SZ-taxi and 24.7\% on Los-loop (multi-horizon means over PH=1--4, computed from Table~\ref{tab:gcn_gsl_combined}). This suggests that the purely spatial GCN benefits from bidirectional (cyclic) graph connections.
 
 \subsection{TGCN Results}
 
@@ -74,8 +78,8 @@ PH & Method & RMSE & MAE & RMSE & MAE \\
 \end{tabular}
 \end{table}
 
-TGCN-GSL (acyclic DAG graph) outperforms both standard TGCN and TGCN-cGSL, achieving up to 21.8\% RMSE improvement on Los-loop. The acyclic structure aligns well with T-GCN's temporal modeling through the GRU component.
+TGCN-GSL (acyclic DAG graph) outperforms both standard TGCN and TGCN-cGSL, achieving a mean 21.8\% RMSE improvement over the physical graph on Los-loop (multi-horizon mean over PH=1--4, single seed, original pipeline; per-horizon maxima are higher, e.g., PH=1: 6.588 $\rightarrow$ 4.818, a 26.9\% reduction). The acyclic structure aligns well with T-GCN's temporal modeling through the GRU component. Under the revised pipeline this comparison is reproduced at five seeds with a 21.7\% mean improvement (25.5\% at PH=1; Section~\ref{sec:gsl_baseline}), which independently validates the magnitude of the original claim even though the absolute RMSE values of the two pipelines are not directly comparable.
 
 \subsection{Key Observation}
 
-The asymmetry between GCN (cyclic preferred) and T-GCN (acyclic preferred) motivated the investigation into what the learned graph actually represents. The multi-lag formulation (main text) resolves this by making the temporal structure explicit rather than relying on post-hoc interpretation of a single ambiguous graph.
+The asymmetry between GCN (cyclic preferred) and T-GCN (acyclic preferred) motivated the investigation into what the learned graph actually represents. The multi-lag formulation (main text) resolves this by making the temporal structure explicit rather than relying on post-hoc interpretation of a single ambiguous graph. The reproduction analysis additionally showed that this original single-graph construction was contemporaneous (Section~\ref{sec:gsl_baseline}): the DAGs above encode present-observation functional dependencies, and the temporal interpretation is supplied by the explicitly lagged multi-lag construction of Section~\ref{sec:multilag}.

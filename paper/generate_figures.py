@@ -112,12 +112,19 @@ def fig1_graph_comparison():
     
     # Combine for visualization
     lag_union = np.clip(lag_1_thr + lag_2_thr + lag_3_thr, 0, 3)
+    # Stage 39: remove self-loops from the union before counting/reporting edges
+    # and degrees. The published graph definition removes self-loops; the previous
+    # version of this figure counted diagonal entries, inflating the union count.
+    np.fill_diagonal(lag_union, 0)
     
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
     
     # Panel A: Physical
     im0 = axes[0].imshow(phys_adj, cmap='Blues', aspect='equal', interpolation='nearest')
-    axes[0].set_title(f'(a) Physical Graph\n({int(phys_adj.sum())} edges, {phys_adj.shape[0]} nodes)')
+    # Stage 39: count positive entries (edges), not the sum of edge weights; the
+    # previous version printed the weight sum (1307) as an edge count.
+    phys_edges = int((phys_adj > 0).sum())
+    axes[0].set_title(f'(a) Physical Graph\n({phys_edges} edges, {phys_adj.shape[0]} nodes)')
     axes[0].set_xlabel('Node')
     axes[0].set_ylabel('Node')
     plt.colorbar(im0, ax=axes[0], fraction=0.046, pad=0.04)
@@ -133,7 +140,11 @@ def fig1_graph_comparison():
                  label='# lag graphs')
     
     # Panel C: Degree comparison
-    phys_deg = phys_adj.sum(axis=1)
+    # Degrees exclude self-connections on both graphs (the DAGMA graphs have
+    # self-loops removed; the physical diagonal holds conventional
+    # self-connections), so the comparison is like-for-like.
+    phys_offdiag = (phys_adj > 0) & ~np.eye(phys_adj.shape[0], dtype=bool)
+    phys_deg = phys_offdiag.sum(axis=1)
     dag_deg = (lag_union > 0).astype(float).sum(axis=1)
     
     axes[2].hist(phys_deg, bins=30, alpha=0.6, color=COLORS['Physical'], 

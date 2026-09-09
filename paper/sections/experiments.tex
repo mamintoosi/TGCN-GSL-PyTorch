@@ -38,6 +38,10 @@ We compare the following T-GCN variants:
 
 All models use hidden dimension $H=64$, Adam optimizer (learning rate 0.001, weight decay 0.0001), batch size 128, historical window $n=12$, and 50 training epochs. The loss function is MSE with L1 regularization. Results are reported as mean $\pm$ standard deviation over 5 random seeds (seeds 42--46) for the main comparison.
 
+\subsection{Reproducibility}\label{sec:reproducibility}
+
+Graph construction and forecasting are separately reproducible. DAGMA-linear is deterministic (zero initialization, no internal randomness): a dedicated determinism audit verified bit-identical outputs across repeated runs and processes, with differences at approximately one ULP across thread counts and identical thresholded support. Training-time randomness is isolated by the seed policy: every reported table states its seed count, and the main comparisons use seeds 42--46 with population-standard-deviation reporting (mean$\pm$std). The learned graphs are thresholded by absolute magnitude inside the DAGMA fit (library semantics; Section~\ref{sec:method}); no negative coefficient survived the threshold on either dataset, so the support rule is empirically equivalent to a positive-only rule here. The original submission's graph artifacts were archived and re-derived from the original data-loading code; the revised protocol's slice-0 fits reproduce the historical slice-0 graph supports exactly at PH=1, 2, and 4 (26/28 at PH=3), with shared-edge weights agreeing to within approximately 0.016 (Section~\ref{sec:gsl_baseline}). Detailed provenance of every graph artifact---input construction, $\lambda_1$, threshold, sign counts, and software versions---is documented in the project repository.
+
 \subsection{Evaluation Metrics}
 
 We report Root Mean Squared Error (RMSE) and Mean Absolute Error (MAE):

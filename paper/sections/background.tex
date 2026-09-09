@@ -10,7 +10,7 @@ where $n$ is the historical window size and $T$ is the prediction horizon.
 
 \subsection{Graph Convolutional Networks}
 
-GCNs extend convolution to graph-structured data through a layer-wise propagation rule \citep{kipf2017semi}:
+GCNs extend convolution to graph-structured data through a layer-wise propagation rule, due to Kipf and Welling \citep{kipf2017semi}:
 \begin{equation}
 \mathbf{H}^{(l+1)}= \sigma\!\left(\tilde{\mathbf{D}}^{-\frac{1}{2}} \tilde{\mathbf{A}}\tilde{\mathbf{D}}^{-\frac{1}{2}}\mathbf{H}^{(l)} \mathbf{W}^{(l)} \right)
 \label{eq:gcn-layer}
@@ -23,7 +23,7 @@ f(\mathbf{A},\mathbf{X})=\sigma\!\left(\hat{A}\sigma\!\left(\hat{A}\mathbf{X} \m
 
 \subsection{Temporal Graph Convolutional Network}
 
-The T-GCN \citep{zhao2019t} combines GCN for spatial feature extraction with a Gated Recurrent Unit (GRU) for temporal modeling. At each timestep, the GCN extracts spatial features $\mathbf{Z}_t=f(\mathbf{A},\mathbf{X}_t)$, which are then processed by the GRU to capture temporal dynamics. The GRU uses update gate $\mathbf{u}_t$, reset gate $\mathbf{r}_t$, and candidate hidden state $\mathbf{c}_t$ with learnable weight matrices $\mathbf{W}_u$, $\mathbf{W}_r$, $\mathbf{W}_c$. The model is trained by minimizing:
+The T-GCN of Zhao et al. \citep{zhao2019t} combines GCN for spatial feature extraction with a Gated Recurrent Unit (GRU) for temporal modeling. At each timestep, the GCN extracts spatial features $\mathbf{Z}_t=f(\mathbf{A},\mathbf{X}_t)$, which are then processed by the GRU to capture temporal dynamics. The GRU uses update gate $\mathbf{u}_t$, reset gate $\mathbf{r}_t$, and candidate hidden state $\mathbf{c}_t$ with learnable weight matrices $\mathbf{W}_u$, $\mathbf{W}_r$, $\mathbf{W}_c$. The model is trained by minimizing:
 \begin{equation}
 \mathcal{L}=\| Y_{t}-\widehat{Y_{t}}\|_2+\lambda \|\Theta\|_1
 \end{equation}

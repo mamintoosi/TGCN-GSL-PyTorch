@@ -2,11 +2,11 @@
 
 \subsection{Dense Physical Graphs and Oversmoothing}\label{sec:oversmoothing}
 
-A fundamental finding across our experiments is that dense physical graphs degrade T-GCN performance. Table~\ref{tab:oversmoothing} compares the physical graph against a no-graph baseline and sparse learned graphs, all on Los-loop (PH=1, seed=42).
+A fundamental finding across our experiments is that dense physical graphs degrade T-GCN performance. Table~\ref{tab:oversmoothing} compares the physical graph against a no-graph baseline and sparse learned graphs on Los-loop (PH=1; seed-42 values except the matched-budget controls, which are five-seed means).
 
 \begin{table}[t]
 \centering
-\caption{Oversmoothing evidence: Los-loop (PH=1, seed=42). Dense graphs---whether physical or learned from correlations---produce substantially worse RMSE than no graph at all, isolating density (not the graph's origin) as the harmful factor. Sparse learned graphs and multi-lag graphs improve over T-GCN-NoSpatial.}
+\caption{Oversmoothing evidence: Los-loop (PH=1, seed=42). Dense graphs---whether physical or learned from correlations---produce substantially worse RMSE than no graph at all, isolating density (not the graph's origin) as the harmful factor. Sparse learned graphs and multi-lag graphs improve over T-GCN-NoSpatial. Sparse controls (bottom block) are five-seed mean$\pm$std at a matched 30-edge budget; other rows are seed-42 values.}
 \label{tab:oversmoothing}
 \begin{tabular}{lccc}
 \toprule
@@ -19,6 +19,10 @@ Single DAGMA ($\tau$=0.3) & 6 & 5.213 & 3.192 \\
 Single DAGMA ($\tau$=0.1) & 60 & 6.057 & 3.693 \\
 T-GCN-MultiGSL & 30 & 4.715\textsuperscript{*} & 2.755 \\
 T-GCN-MultiGSL-Mix & 30 & 4.458 & 2.696 \\
+\midrule
+\multicolumn{4}{l}{\footnotesize \emph{Matched-budget sparse controls (five seeds, mean$\pm$std, same 30-edge budget):}} \\
+Random sparse (RandTop30) & 30 & 6.096$\pm$0.107 & 3.756$\pm$0.150 \\
+Top-correlation sparse (CorrTop30) & 30 & 5.389$\pm$0.088 & 3.247$\pm$0.056 \\
 \bottomrule
 \multicolumn{4}{l}{\footnotesize \textsuperscript{*}\,Stage-26 evaluation run; the validation rerun of the identical configuration gives 4.717}\\
 \multicolumn{4}{l}{\footnotesize (Table~\ref{tab:multiseed}). Both are reported for transparency.}
@@ -27,16 +31,19 @@ T-GCN-MultiGSL-Mix & 30 & 4.458 & 2.696 \\
 
 The physical graph (2833 edges) produces RMSE of 7.658, while T-GCN-NoSpatial (identity adjacency) achieves 5.143---a 32.8\% improvement from removing the graph entirely (single seed). This confirms that dense spatial aggregation hurts forecasting. The effect is driven by density rather than by the physical origin of the graph: a dense \emph{learned} correlation graph with 1656 edges (Corr-$K{=}8$, each node connected to its eight most correlated sensors) also degrades to 6.915, close to the physical graph's 7.658. Only when the graph is sparse do we see gains: the sparse T-GCN-MultiGSL and T-GCN-MultiGSL-Mix approaches further improve over T-GCN-NoSpatial, demonstrating that carefully structured sparse graphs provide genuine benefit.
 
+\paragraph{Is sparsity alone responsible? Matched-budget controls.}
+A natural concern is whether the advantage of the learned graphs merely reflects their sparsity---fewer edges means less oversmoothing---rather than the specific learned structure. We therefore trained T-GCN on two sparse control graphs at exactly the same 30-edge budget as T-GCN-MultiGSL, over five seeds (Table~\ref{tab:oversmoothing}, bottom block): a random sparse graph (RandTop30; 30 edges placed uniformly at random) and a top-correlation graph (CorrTop30; the 30 largest absolute cross-sensor Pearson correlations computed on training data only). Neither control reproduces the learned-graph gain. The random sparse graph is markedly \emph{worse} than no graph at all (6.096$\pm$0.107 vs.\ 5.234$\pm$0.090), and the correlation-based placement (5.389$\pm$0.088) is also no better than T-GCN-NoSpatial. Two further controls sharpen the conclusion. First, assembling the same DAGMA-derived lag edges into a single union adjacency (28 edges) used by a standard T-GCN cell yields 5.928 (PH=1, seed 42)---worse than no graph---so the edges alone, without per-lag use, do not produce the gain. Second, a thresholded single-DAG graph (60 edges, Table~\ref{tab:oversmoothing}) also underperforms. Sparsity is therefore necessary but not sufficient: at a matched 30-edge budget, neither a random sparse graph nor a top-correlation graph matches T-GCN-NoSpatial, whereas the same number of DAGMA lag-block edges yields 4.794 (T-GCN-MultiGSL) and 4.452 (T-GCN-MultiGSL-Mix) as five-seed means. The benefit arises from the \emph{combination} of DAGMA-learned lag-specific edges and their per-lag use in the multi-graph architecture, not from sparsity alone.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.95\textwidth]{figures/fig1_graph_comparison.pdf}
-\caption{Physical versus learned graph structure (Los-loop). (a) Physical adjacency matrix with 2833 edges. (b) Multi-lag DAGMA union graph with 30 edges ($\tau=0.1$). (c) Node degree distribution: physical graph has mean degree 12.7, while DAGMA graph has mean degree 0.14.}
+\caption{Physical versus learned graph structure (Los-loop). (a) Physical adjacency matrix with 2833 edges (including 207 diagonal self-connections). (b) Multi-lag DAGMA union graph ($\tau=0.1$): 30 lag-specific edges across the three lag graphs, 28 distinct off-diagonal edges. (c) Node degree distribution (excluding self-connections): physical graph has mean degree 12.7, while the DAGMA union graph has mean degree 0.14.}
 \label{fig:graph_comparison}
 \end{figure}
 
 \subsection{From Single-Graph GSL to Multi-Lag Structure}\label{sec:multilag_structure}
 
-The original submission's GSL/cGSL experiments (Appendix~\ref{app:original_gsl}) established that a sparse DAGMA-learned graph substantially outperforms the dense physical adjacency for both GCN and T-GCN, with a striking asymmetry: the symmetrized cyclic variant (cGSL) was optimal for the purely spatial GCN, while the acyclic DAG was optimal for the temporally equipped T-GCN. On Los-loop, TGCN-GSL reduced RMSE by a mean 21.8\% across horizons PH=1--4 relative to the physical graph (e.g., PH=1: 6.588 $\rightarrow$ 4.818), a single-seed result whose full tables and protocol are retained in Appendix~\ref{app:original_gsl}. That asymmetry raised the question this revision answers: \emph{what does a single learned DAG actually encode?} Two controls were missing in the original study. First, a no-graph baseline, which reveals that the dense physical graph itself is harmful (Section~\ref{sec:oversmoothing}). Second, an explicit temporal decomposition of the learned structure, which the multi-lag formulation provides---converting a post-hoc interpretation of one ambiguous matrix into directly measurable, structurally distinct lag-specific graphs.
+The original submission's GSL/cGSL experiments (Appendix~\ref{app:original_gsl}) established that a sparse DAGMA-learned graph substantially outperforms the dense physical adjacency for both GCN and T-GCN, with a striking asymmetry: the symmetrized cyclic variant (cGSL) was optimal for the purely spatial GCN, while the acyclic DAG was optimal for the temporally equipped T-GCN. On Los-loop, TGCN-GSL reduced RMSE by a mean 21.8\% across horizons PH=1--4 relative to the physical graph (e.g., PH=1: 6.588 $\rightarrow$ 4.818), a single-seed result whose full tables and protocol are retained in Appendix~\ref{app:original_gsl}. Under the revised training pipeline this baseline is independently reproduced at five seeds (21.7\% mean improvement, Section~\ref{sec:gsl_baseline}); absolute RMSE values are not directly comparable between the two pipelines. That asymmetry raised the question this revision answers: \emph{what does a single learned DAG actually encode?} Two controls were missing in the original study. First, a no-graph baseline, which reveals that the dense physical graph itself is harmful (Section~\ref{sec:oversmoothing}). Second, an explicit temporal decomposition of the learned structure, which the multi-lag formulation provides---converting a post-hoc interpretation of one ambiguous matrix into directly measurable, structurally distinct lag-specific graphs.
 
 The multi-lag DAGMA formulation ($L=3$) produces lag-specific graphs with substantially different structures. Table~\ref{tab:lag_stats} reports the statistics for Los-loop at threshold $\tau = 0.1$.
 
@@ -64,6 +71,30 @@ The current block has 70 cross-sensor edges, lag\_1 has 90 edges (dominated by s
 \caption{Lag-specific graph analysis. (a) Edge count per lag for Los-loop and SZ-Taxi ($\tau=0.1$). (b) Jaccard overlap between lag-specific edge sets (Los-loop): low overlap confirms structural distinctness. (c) DAGMA weight distributions per lag.}
 \label{fig:lag_stats}
 \end{figure}
+
+\subsection{The Single-Graph GSL Baseline Revisited}\label{sec:gsl_baseline}
+
+Before evaluating the multi-lag formulation, we re-establish the single-graph GSL baseline of the original submission under the revised training pipeline, with full provenance. The protocol is the contemporaneous construction of Section~\ref{sec:multilag}: for each horizon PH, DAGMA is fitted once to the offset-0 subsampled training windows (a genuine single DAG per horizon; $\lambda_1 = 0.02$, L2 loss, sparsity threshold $\omega = 0.3$ applied inside the fit), and the resulting 28-edge DAG is used with standard T-GCN. Both baselines are evaluated over five seeds (42--46).
+
+\begin{table}[t]
+\centering
+\caption{Revised-protocol single-graph GSL baseline on Los-loop (five seeds 42--46, mean$\pm$std). The T-GCN-GSL row uses a 28-edge contemporaneous DAGMA DAG per horizon; Physical is the dense road-network graph (2833 edges). Absolute RMSE values are not directly comparable to the original submission's tables (Appendix~\ref{app:original_gsl}) because the training pipeline was revised.}
+\label{tab:gsl_baseline}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Method} & \textbf{PH=1} & \textbf{PH=2} & \textbf{PH=3} & \textbf{PH=4} \\
+\midrule
+Physical (2833 edges) & 7.772$\pm$0.140 & 8.118$\pm$0.189 & 8.456$\pm$0.047 & 8.554$\pm$0.169 \\
+T-GCN-GSL (28 edges) & 5.792$\pm$0.196 & 6.328$\pm$0.166 & 6.669$\pm$0.080 & 6.999$\pm$0.084 \\
+\midrule
+\textbf{Improvement} & \textbf{25.5\%} & 22.0\% & 21.1\% & 18.2\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As Table~\ref{tab:gsl_baseline} shows, the sparse learned DAG outperforms the dense physical graph at every horizon, with a mean improvement of 21.7\% across PH=1--4 (25.5\% at PH=1). The original submission reported this comparison as a single-seed 26.9\% PH=1 improvement and a 21.8\% multi-horizon mean under its original pipeline (Appendix~\ref{app:original_gsl}); the revised protocol reproduces both findings in relative terms at five seeds (25.5\% and 21.7\%), with non-overlapping $\pm 1\sigma$ bands at every horizon. Absolute RMSE values differ between the two protocols because the training pipeline itself was revised, so the two sets of numbers must not be compared directly.
+
+The reproduction extends to the learned graphs themselves. The original submission's DAGMA fits were recovered from the archived artifacts and re-derived from the original data-loading code, which fitted one DAGMA model per offset $i \in \{0, \ldots, \mathrm{PH}{-}1\}$ on stride-$\mathrm{PH}$ subsampled windows and unioned the $K$ resulting supports. The revised protocol's first-offset (slice-0) fits reproduce the original slice-0 graphs at the support level: exact 28/28 edge-set agreement at PH=1, 2, and 4, 26/28 at PH=3, with shared-edge weights agreeing to within approximately 0.016 (not bit-identical, owing to the float64$\rightarrow$float32 data path and two years of library/environment drift). The historical as-used graphs additionally unioned the $K$ offset fits, yielding 28/32/33/39 edges for PH=1--4; the revised single-DAG-per-horizon graphs are strictly contained in those unions and match the manuscript's own description of the method (``a single $N \times N$ weight matrix $W$''). Appendix~\ref{app:original_gsl} documents both protocols.
 
 \subsection{T-GCN-MultiGSL-Mix: Multi-Seed Validation and Parameter Control}\label{sec:multiseed}\label{sec:param_control}
 
@@ -155,7 +186,7 @@ Each individual lag provides approximately 10\% improvement over T-GCN-NoSpatial
 \label{fig:lag_ablation}
 \end{figure}
 
-Table~\ref{tab:multiph} reports results across all four prediction horizons on Los-loop.
+Table~\ref{tab:multiph} reports results across all four prediction horizons on Los-loop (seed 42; the five-seed mean$\pm$std for Physical and the single-graph GSL baseline is given in Table~\ref{tab:gsl_baseline}).
 
 \begin{table}[t]
 \centering
@@ -165,7 +196,8 @@ Table~\ref{tab:multiph} reports results across all four prediction horizons on L
 \toprule
 \textbf{Method} & \textbf{PH=1} & \textbf{PH=2} & \textbf{PH=3} & \textbf{PH=4} \\
 \midrule
-Physical & 7.658 & 8.002 & 8.512 & 8.540 \\
+Physical (2833 edges) & 7.658 & 8.002 & 8.512 & 8.540 \\
+T-GCN-GSL (28 edges) & 5.548 & 6.156 & 6.645 & 6.932 \\
 T-GCN-NoSpatial & 5.143 & 5.642 & 6.164 & 6.502 \\
 T-GCN-MultiGSL & 4.715 & 5.549 & 5.934 & 6.336 \\
 \textbf{T-GCN-MultiGSL-Mix} & \textbf{4.458} & \textbf{5.308} & \textbf{5.687} & \textbf{6.004} \\
@@ -202,21 +234,21 @@ At 15-minute sampling the relative improvement over T-GCN-NoSpatial is \emph{lar
 
 \subsection{Dataset Dependence: the SZ-Taxi Boundary}\label{sec:sz_boundary}
 
-Table~\ref{tab:sz_multiph} reports the SZ-Taxi results, promoted here from the appendix because the boundary of the method is as informative as its successes.
+Table~\ref{tab:sz_multiph} reports the SZ-Taxi results over five seeds, promoted here from the appendix because the boundary of the method is as informative as its successes.
 
 \begin{table}[t]
 \centering
-\caption{SZ-Taxi multi-horizon results (seed=42, single seed). T-GCN-MultiGSL-Mix improvement is marginal. Note that the oversmoothing pattern replicates: the dense physical graph is again far worse than no graph.}
+\caption{SZ-Taxi multi-horizon results (five seeds 42--46, mean$\pm$std). Values are given to four decimal places because the between-method differences are small. The gated T-GCN-MultiGSL-Mix shows a marginal, directionally consistent advantage at PH=1--3 (winning in 5/5 paired seeds at each horizon) and no stable advantage at PH=4 (3/5 seeds); the ungated T-GCN-MultiGSL does not improve over T-GCN-NoSpatial. The oversmoothing pattern replicates on this dataset: the dense physical graph is again far worse than no graph (seed-42 RMSE 5.267 vs.\ 4.116).}
 \label{tab:sz_multiph}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Method} & \textbf{PH=1} & \textbf{PH=2} & \textbf{PH=3} & \textbf{PH=4} \\
 \midrule
-Physical & 5.267 & 5.406 & 5.629 & 5.604 \\
-T-GCN-NoSpatial & 4.116 & 4.160 & 4.189 & 4.221 \\
-\textbf{T-GCN-MultiGSL-Mix} & 4.108 & 4.149 & 4.184 & 4.221 \\
+T-GCN-NoSpatial & 4.1192$\pm$0.0069 & 4.1623$\pm$0.0055 & 4.1884$\pm$0.0011 & 4.2196$\pm$0.0013 \\
+T-GCN-MultiGSL & 4.1302$\pm$0.0152 & 4.1600$\pm$0.0036 & 4.1988$\pm$0.0121 & 4.2273$\pm$0.0092 \\
+\textbf{T-GCN-MultiGSL-Mix} & \textbf{4.1091$\pm$0.0052} & \textbf{4.1515$\pm$0.0026} & \textbf{4.1804$\pm$0.0052} & 4.2159$\pm$0.0073 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-On SZ-Taxi the improvement is marginal: $\leq0.3\%$ at PH=1--3 and $-0.02\%$ at PH=4 (single seed). This is not explained by temporal resolution: SZ-Taxi and the 15-minute Los-loop variant share the sampling interval, yet Los-loop shows strong improvements at both 5-minute and 15-minute sampling (Sections~\ref{sec:multiseed} and~\ref{sec:los15min}), so the divergence tracks the dataset rather than the sampling interval. A candidate mechanism consistent with the evidence is graph learnability: at the operating threshold, DAGMA retains only 2 cross-sensor edges for SZ-Taxi versus 30--32 for Los-loop, suggesting that the urban network's dependency structure at 15-minute aggregation offers the learner far less exploitable signal. Other dataset differences (156 vs.\ 207 sensors, urban vs.\ highway dynamics) may also contribute. We therefore report SZ-Taxi as a dataset-dependent boundary of the method rather than claiming universal benefit.
+On SZ-Taxi the improvement is marginal and dataset-dependent. The gated T-GCN-MultiGSL-Mix improves over T-GCN-NoSpatial by only 0.19--0.26\% at PH=1--3, although the direction is consistent, with Mix winning in 5/5 paired seeds at each of these horizons. At PH=4 the difference (+0.09\%) is not stable: Mix wins in only 3/5 seeds, with per-seed deltas straddling zero, so we describe the PH=4 result as within noise rather than as an improvement. The ungated T-GCN-MultiGSL variant does not help on this dataset (its RMSE is equal to or worse than T-GCN-NoSpatial at three of the four horizons), indicating that the small gain comes from the gated mixing mechanism operating on the learned lag graphs, not from the graphs alone. No significance tests are claimed for these comparisons; we report means, standard deviations, and paired win counts only. This is not explained by temporal resolution: SZ-Taxi and the 15-minute Los-loop variant share the sampling interval, yet Los-loop shows strong improvements at both 5-minute and 15-minute sampling (Sections~\ref{sec:multiseed} and~\ref{sec:los15min}), so the divergence tracks the dataset rather than the sampling interval. A candidate mechanism consistent with the evidence is graph learnability: at the operating threshold, DAGMA retains only 2 cross-sensor lag edges for SZ-Taxi versus 30--32 for Los-loop, suggesting that the urban network's dependency structure at 15-minute aggregation offers the learner far less exploitable signal. Other dataset differences (156 vs.\ 207 sensors, urban vs.\ highway dynamics) may also contribute. We therefore report SZ-Taxi as a dataset-dependent boundary of the method rather than claiming universal benefit.
