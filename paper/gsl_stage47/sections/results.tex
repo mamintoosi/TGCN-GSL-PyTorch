@@ -1,0 +1,308 @@
+% ======================================================================
+% Section 5 — Results
+% Compatible with \documentclass[pdflatex,sn-mathphys-num]{sn-jnl}
+% Numbers: Stage 40 canonical 5-seed means (seeds 42–46), sample std ddof=1
+% Sources: gsl_stage41/stage41_summary.csv, stage41_improvements.csv,
+%          stage41_paired_tests.csv, stage41_summary.json (sparse controls),
+%          Stage 44 §7–8 (capacity + 15-min), Stage 46 terminology
+% ======================================================================
+\section{Results}\label{sec:results}
+
+This section reports the forecasting results under the protocol of
+Sect.~\ref{sec:setup}. Unless stated otherwise, every value is the mean RMSE
+over the five training seeds $\{42,\dots,46\}$ with the sample standard
+deviation in parentheses; graphs are fixed across seeds. Improvements are
+relative RMSE reductions with respect to the named reference. Statistical
+qualifications follow Sect.~\ref{sec:stats}: with $n=5$ we do not make
+definitive significance claims. Interpretation is deferred to the Discussion.
+
+\subsection{The Physical Graph Is Not a Sound Default}\label{sec:res-physical}
+
+Table~\ref{tab:tgcn-main} reports the T-GCN family on both datasets. The
+physical road-network graph (T-GCN) is the worst configuration in its family
+in every dataset--horizon cell. On Los-loop at PH1, T-GCN attains
+$7.88\pm 0.28$ RMSE, whereas the graph-free control T-GCN-NoSpatial attains
+$5.25\pm 0.19$ --- a relative RMSE reduction of $33.3\%$ when the physical
+graph is removed. The same direction holds at PH2--PH4 on Los-loop
+($29.2\%$, $27.0\%$, and $24.1\%$ relative to T-GCN) and at every horizon on
+SZ-Taxi ($24.4\%$, $25.1\%$, $25.2\%$, $25.1\%$). Across all eight
+dataset$\times$horizon cells, NoSpatial beats Physical in $5/5$ seeds.
+
+The GCN family (Table~\ref{tab:gcn-main}) shows the same reversal: GCN
+(physical) attains $8.14\pm 0.11$ on Los-loop PH1 versus $4.88\pm 0.31$ for
+GCN-NoSpatial, and remains worse than GCN-NoSpatial at every horizon on both
+datasets.
+
+These results establish the graph-free control, not the physical graph, as
+the appropriate reference for evaluating learned structure at these operating
+points.
+
+\subsection{A Single Learned Graph Does Not Close the Gap}\label{sec:res-single}
+
+The contemporaneous learned graphs GSL and cGSL
+(Sects.~\ref{sec:gsl_contemp}) improve on the physical graph in most
+T-GCN cells, but they do not close the gap to the graph-free control.
+
+On Los-loop, T-GCN-GSL and T-GCN-cGSL obtain $5.86\pm 0.21$ and
+$5.82\pm 0.23$ at PH1, versus $5.25\pm 0.19$ for NoSpatial: both are
+approximately $11\%$ \emph{worse} than removing the graph, while still
+reducing error by roughly $26\%$ relative to the physical baseline. The same
+ordering --- Physical $>$ single learned graph $>$ NoSpatial in error ---
+holds at PH2--PH4 on Los-loop and at every horizon on SZ-Taxi. In no
+dataset$\times$horizon cell does either contemporaneous learned graph beat
+the graph-free control.
+
+The GCN family is less uniform. GCN-cGSL ($5.76\pm 0.20$ on Los-loop PH1)
+beats the physical GCN but still loses to GCN-NoSpatial ($4.88\pm 0.31$).
+GCN-GSL is the notable exception: on Los-loop it is often comparable to, or
+worse than, the physical GCN ($7.83\pm 0.11$ at PH1) and does not
+consistently improve on that baseline. Symmetrization therefore helps the
+non-recurrent GCN backbone (cGSL $<$ GSL in error on Los-loop PH1:
+$5.76$ vs $7.83$) while the directed and symmetrized variants are nearly
+indistinguishable for T-GCN ($5.86$ vs $5.82$). Mechanism-level discussion
+of this asymmetry is deferred to Sect.~6.
+
+In summary, replacing the physical adjacency with a single learned
+contemporaneous graph recovers only part of the error reduction obtained by
+removing the graph entirely. Motivated by this gap, the remainder of the
+results examine lag-specific multi-lag graphs and, critically, how those
+graphs are consumed.
+
+\subsection{Sparsity and Capacity Controls}\label{sec:res-controls}
+
+Before interpreting any multi-lag gain, we report the matched-sparsity and
+capacity controls of Sect.~\ref{sec:controls}. These controls exist
+\textbf{only for Los-loop at PH1} and do not establish conclusions for other
+cells.
+
+At a matched budget of $30$ directed edges, the random control RandTop30
+obtains $6.10\pm 0.12$ and the top-correlation control CorrTop30 obtains
+$5.39\pm 0.10$. Both are worse than the graph-free control on the same cell
+($5.25\pm 0.19$). By contrast, the DAGMA multi-lag graphs at the same
+$30$-edge budget obtain $4.84\pm 0.11$ under fixed per-timestep consumption
+(T-GCN-MultiGSL) and $4.49\pm 0.14$ under gated consumption
+(T-GCN-MultiGSL-Mix). Table~\ref{tab:controls} summarizes the comparison.
+
+These matched-budget results show that sparsity alone does not explain the
+Los-loop PH1 multi-lag gain: two non-learned $30$-edge graphs are worse than
+no graph, whereas DAGMA-placed edges with per-lag consumption are better.
+The conclusion is scoped to this single experimental cell.
+
+The capacity control (single seed, seed 42, labeled as such) compares
+T-GCN-NoSpatial at hidden dimension $64$ ($12{,}672$ parameters,
+RMSE $5.14$) with a hidden-dimension-$74$ variant
+($16{,}872$ parameters, RMSE $5.14$) that more closely matches the parameter
+count of T-GCN-MultiGSL-Mix ($17{,}091$). Increasing capacity on the
+graph-free model changes RMSE by less than $0.02$, whereas Mix reaches
+$4.49$ at five seeds on the same cell. The Mix gain is therefore not
+explained by its additional $4{,}419$ gate parameters alone.
+
+\subsection{Multi-Lag Graphs: Consumption Matters}\label{sec:res-dissociation}
+
+We next compare configurations that use the \emph{same} multi-lag DAGMA
+artifacts (Sect.~\ref{sec:gsl_multilag}) under different consumption
+mechanisms (Sect.~\ref{sec:consumption}).
+
+On Los-loop at PH1, T-GCN-MultiGSL (fixed cyclic lag assignment; $0$ extra
+parameters) obtains $4.84\pm 0.11$, improving on NoSpatial by $7.8\%$.
+T-GCN-MultiGSL-Weighted, which learns only three global scalars, obtains
+$4.83\pm 0.11$ --- effectively identical to the fixed assignment. The global
+lag mixture does not add value beyond the fixed per-timestep rule.
+
+The striking comparison is with GCN-MultiGSL, which consumes the
+\emph{identical} three lag graphs as one static union
+$\mathbf{A}_{\cup}=\bigvee_k\mathbf{A}_k$ ($28$ of the $30$ lagged edge
+slots appear in the union). GCN-MultiGSL obtains $9.78\pm 0.14$ on Los-loop
+PH1: worse than the physical GCN ($8.14\pm 0.11$) and more than twice the
+error of T-GCN-MultiGSL on the same graphs ($4.84\pm 0.11$). The direction
+persists at PH2--PH4 (GCN-MultiGSL $10.05$--$10.27$ versus T-GCN-MultiGSL
+$5.45$--$6.26$).
+
+Because the union holds nearly the same edges as the three lag graphs, the
+edge set alone cannot account for the difference between the two outcomes.
+At the same time, GCN and T-GCN also differ in backbone architecture, so
+this comparison provides evidence that \emph{how the multi-lag structure is
+consumed} is a major determinant of whether it is useful; it is not a fully
+controlled isolation of consumption as the sole differing factor. On
+SZ-Taxi, where the multi-lag graphs retain only $2$ edges, the corresponding
+contrast is small in absolute RMSE.
+
+\subsection{Gated Mixing on Los-Loop: The Positive Result}\label{sec:res-mix}
+
+T-GCN-MultiGSL-Mix, which gates the three static lag graphs per node and per
+input timestep, is the strongest configuration on Los-loop at every horizon
+(Table~\ref{tab:tgcn-main}). Relative to the graph-free control, Mix reduces
+RMSE by $14.5\%$, $11.9\%$, $9.2\%$, and $10.9\%$ at PH1--PH4. Relative to
+the physical T-GCN baseline, the corresponding reductions are $43.0\%$,
+$37.6\%$, $33.7\%$, and $32.3\%$.
+
+At PH1, Mix attains $4.49\pm 0.14$ versus $5.25\pm 0.19$ for NoSpatial. The
+paired per-seed difference is positive in $5/5$ seeds at every horizon
+(mean paired difference $0.76$, $0.68$, $0.56$, and $0.72$ RMSE at
+PH1--PH4; paired-$t$ $p\le 0.0015$ at PH1--PH2 and $p\le 0.00002$ at PH4,
+reported for reference under the $n=5$ caveat of Sect.~\ref{sec:stats}).
+Mix also improves on the fixed MultiGSL assignment in $5/5$ seeds at every
+horizon, by $0.35$--$0.40$ RMSE on Los-loop (approximately $6$--$7\%$
+relative). Weighted remains within $0.01$ RMSE of Fixed at every Los-loop
+horizon and is treated as a null ablation.
+
+Figure~\ref{fig:perseed} (to be supplied) shows the per-seed distributions
+for NoSpatial, MultiGSL, Weighted, and Mix on Los-loop PH1--PH4; the means
+match Table~\ref{tab:tgcn-main}.
+
+This is the study's main positive result: on Los-loop, lag-specific learned
+graphs improve on the graph-free baseline only when they are consumed in a
+temporally aligned manner, and the per-node gate adds a further consistent
+gain over the fixed assignment.
+
+\subsection{Boundaries: Temporal Resolution and Dataset Dependence}\label{sec:res-boundaries}
+
+\paragraph{SZ-Taxi.}
+On SZ-Taxi, every learned variant remains within seed variability of the
+graph-free control. At PH1, T-GCN-MultiGSL-Mix obtains $4.119\pm 0.020$
+versus $4.120\pm 0.004$ for NoSpatial (difference $\le 0.015$ RMSE at every
+horizon; Mix wins $4/5$, $4/5$, $5/5$, and $4/5$ paired seeds at PH1--PH4).
+Relative RMSE reductions versus NoSpatial are at most $0.34\%$. The learned
+multi-lag graphs on SZ-Taxi retain only $2$ lagged edges (union $2$), versus
+$30$ lagged slots (union $28$) on Los-loop. The Los-loop positive result
+therefore does not transfer to SZ-Taxi under the present construction.
+
+\paragraph{Temporal-resolution variant of Los-loop.}
+Resampling Los-loop to $15$-minute intervals (Sect.~\ref{sec:variant15})
+preserves and strengthens the relative improvement of Mix over the graph-free
+baseline at matched wall-clock horizons of $15$--$60$ minutes. At PH1 of the
+$15$-minute series ($15$ minutes ahead), NoSpatial obtains
+$8.600\pm 0.249$, MultiGSL $7.246\pm 0.298$, and Mix $6.240\pm 0.187$
+(a $27.4\%$ relative RMSE reduction versus NoSpatial; Mix wins $5/5$ seeds).
+The relative reduction persists at PH2--PH4 of the variant
+($21.4\%$, $19.8\%$, $16.1\%$). Absolute RMSE magnitudes are not comparable
+across sampling intervals, and PH indices of the variant are not equivalent
+to PH indices of the $5$-minute series. Full values are collected in
+Table~\ref{tab:los15}.
+
+\paragraph{Summary of the boundary.}
+Learned multi-lag structure with lag-aligned consumption helps where the
+learned graphs are informative (Los-loop at both sampling intervals). Where
+the learned graphs are nearly empty (SZ-Taxi), all learned variants collapse
+to the graph-free baseline.
+
+% ======================================================================
+% Tables
+% ======================================================================
+
+\begin{table}[t]
+\centering
+\caption{T-GCN family: test RMSE (mean, sample standard deviation in
+parentheses) over five seeds. Physical: road-network graph.
+NoSpatial: identity adjacency. GSL/cGSL: learned contemporaneous graphs.
+MultiGSL family: learned multi-lag graphs under fixed, global-weighted, and
+gated consumption (Sect.~\ref{sec:method}).}
+\label{tab:tgcn-main}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Method & PH1 & PH2 & PH3 & PH4 \\
+\midrule
+\multicolumn{5}{l}{\textit{Los-loop (5\,min)}} \\
+T-GCN (Physical) & 7.88 (0.28) & 8.13 (0.09) & 8.37 (0.17) & 8.66 (0.16) \\
+T-GCN-NoSpatial & 5.25 (0.19) & 5.76 (0.08) & 6.11 (0.07) & 6.58 (0.12) \\
+T-GCN-GSL & 5.86 (0.21) & 6.30 (0.06) & 6.66 (0.12) & 7.04 (0.09) \\
+T-GCN-cGSL & 5.82 (0.23) & 6.35 (0.12) & 6.67 (0.11) & 7.09 (0.12) \\
+T-GCN-MultiGSL & 4.84 (0.11) & 5.45 (0.14) & 5.94 (0.03) & 6.26 (0.03) \\
+T-GCN-MultiGSL-Weighted & 4.83 (0.11) & 5.44 (0.13) & 5.93 (0.03) & 6.25 (0.03) \\
+T-GCN-MultiGSL-Mix & \textbf{4.49 (0.14)} & \textbf{5.08 (0.15)} & \textbf{5.55 (0.16)} & \textbf{5.86 (0.07)} \\
+\midrule
+\multicolumn{5}{l}{\textit{SZ-Taxi (15\,min)}} \\
+T-GCN (Physical) & 5.45 (0.11) & 5.55 (0.08) & 5.60 (0.05) & 5.63 (0.06) \\
+T-GCN-NoSpatial & 4.12 (0.00) & 4.16 (0.01) & 4.19 (0.01) & 4.23 (0.01) \\
+T-GCN-GSL & 4.28 (0.05) & 4.31 (0.03) & 4.33 (0.01) & 4.37 (0.02) \\
+T-GCN-cGSL & 4.30 (0.03) & 4.34 (0.02) & 4.38 (0.03) & 4.41 (0.01) \\
+T-GCN-MultiGSL & 4.13 (0.02) & 4.16 (0.00) & 4.20 (0.01) & 4.22 (0.00) \\
+T-GCN-MultiGSL-Weighted & 4.13 (0.02) & 4.16 (0.00) & 4.20 (0.01) & 4.22 (0.00) \\
+T-GCN-MultiGSL-Mix & 4.12 (0.02) & 4.15 (0.01) & 4.18 (0.00) & 4.22 (0.01) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{GCN family: test RMSE (mean, sample standard deviation in
+parentheses) over five seeds. GCN-MultiGSL consumes the union of the three
+multi-lag graphs as one static adjacency (Sect.~\ref{sec:consumption}).}
+\label{tab:gcn-main}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Method & PH1 & PH2 & PH3 & PH4 \\
+\midrule
+\multicolumn{5}{l}{\textit{Los-loop (5\,min)}} \\
+GCN (Physical) & 8.14 (0.11) & 8.54 (0.28) & 8.76 (0.26) & 8.76 (0.29) \\
+GCN-NoSpatial & 4.88 (0.31) & 5.60 (0.39) & 6.02 (0.28) & 6.26 (0.26) \\
+GCN-GSL & 7.83 (0.11) & 8.48 (0.21) & 8.45 (0.19) & 8.93 (0.12) \\
+GCN-cGSL & 5.76 (0.20) & 6.33 (0.32) & 6.68 (0.25) & 6.88 (0.21) \\
+GCN-MultiGSL & 9.78 (0.14) & 10.05 (0.16) & 10.24 (0.13) & 10.27 (0.11) \\
+\midrule
+\multicolumn{5}{l}{\textit{SZ-Taxi (15\,min)}} \\
+GCN (Physical) & 5.96 (0.01) & 5.98 (0.00) & 5.99 (0.00) & 6.00 (0.00) \\
+GCN-NoSpatial & 4.11 (0.00) & 4.15 (0.00) & 4.19 (0.00) & 4.22 (0.00) \\
+GCN-GSL & 4.88 (0.01) & 4.91 (0.00) & 4.93 (0.01) & 4.96 (0.00) \\
+GCN-cGSL & 4.64 (0.00) & 4.67 (0.00) & 4.70 (0.00) & 4.73 (0.00) \\
+GCN-MultiGSL & 4.82 (0.01) & 4.85 (0.00) & 4.88 (0.01) & 4.90 (0.00) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Matched-sparsity controls on Los-loop at PH1 only
+(Sect.~\ref{sec:controls}). All graphs use a $30$-edge budget under the
+canonical T-GCN protocol; five seeds except the capacity row, which is
+single-seed (seed 42) and labeled as such.}
+\label{tab:controls}
+\small
+\begin{tabular}{lccc}
+\toprule
+Configuration & RMSE & Edges / extra params & vs NoSpatial \\
+\midrule
+RandTop30 & 6.10 (0.12) & 30 random & $+16.1\%$ \\
+CorrTop30 & 5.39 (0.10) & 30 top-$|$Pearson$|$ & $+2.6\%$ \\
+T-GCN-NoSpatial & 5.25 (0.19) & identity & --- \\
+T-GCN-MultiGSL & 4.84 (0.11) & 30 DAGMA lag slots & $-7.8\%$ \\
+T-GCN-MultiGSL-Mix & 4.49 (0.14) & same graphs, gated & $-14.5\%$ \\
+\midrule
+NoSpatial $h{=}64$ (seed 42) & 5.14 & $12{,}672$ params & --- \\
+NoSpatial $h{=}74$ (seed 42) & 5.14 & $16{,}872$ params & $\approx 0\%$ \\
+Mix (seed 42) & 4.46 & $17{,}091$ params & $-13.3\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Temporal-resolution variant of Los-loop at $15$-minute sampling
+(Sect.~\ref{sec:variant15}). PH $k$ denotes $15k$ minutes ahead and is
+\emph{not} comparable to PH $k$ of the $5$-minute series. Five seeds.}
+\label{tab:los15}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Method & PH1 (15\,min) & PH2 (30\,min) & PH3 (45\,min) & PH4 (60\,min) \\
+\midrule
+T-GCN-NoSpatial & 8.600 (0.249) & 9.311 (0.197) & 10.048 (0.074) & 10.460 (0.196) \\
+T-GCN-MultiGSL & 7.246 (0.298) & 8.571 (0.327) & 9.112 (0.077) & 9.756 (0.210) \\
+T-GCN-MultiGSL-Mix & \textbf{6.240 (0.187)} & \textbf{7.322 (0.338)} & \textbf{8.063 (0.203)} & \textbf{8.777 (0.326)} \\
+\midrule
+Mix vs NoSpatial & $-27.4\%$ & $-21.4\%$ & $-19.8\%$ & $-16.1\%$ \\
+Mix wins (of 5 seeds) & 5 & 5 & 5 & 5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Placeholder floats for figures prepared in a later stage:
+% \begin{figure}[t] ... \caption{Consumption dissociation: GCN-MultiGSL (static
+% union) vs T-GCN-MultiGSL (per-timestep) on identical multi-lag graphs,
+% Los-loop PH1.} \label{fig:dissociation} \end{figure}
+% \begin{figure}[t] ... \caption{Per-seed RMSE distributions on Los-loop.}
+% \label{fig:perseed} \end{figure}
+% \begin{figure}[t] ... \caption{Physical adjacency vs multi-lag union.}
+% \label{fig:graphstruct} \end{figure}

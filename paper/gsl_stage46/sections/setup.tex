@@ -1,0 +1,178 @@
+% ======================================================================
+% Section 4 — Experimental Setup
+% Compatible with \documentclass[pdflatex,sn-mathphys-num]{sn-jnl}
+% Citations: natbib \citep/\citet against MyReferences.bib
+% ======================================================================
+\section{Experimental Setup}\label{sec:setup}
+
+This section describes the complete experimental protocol. All twelve
+forecasting configurations, the auxiliary controls, and the temporal-resolution
+variant share the same data handling, training procedure, and evaluation.
+
+\subsection{Datasets}\label{sec:datasets}
+
+Two widely used public traffic benchmarks are used
+\citep{zhao2019t}:
+
+\begin{itemize}
+\item \textbf{Los-loop.} Speed measurements from $207$ highway loop detectors
+on Los Angeles County highways, collected in March 2012 and aggregated at
+$5$-minute intervals; the series comprises $2016$ timesteps (seven days).
+\item \textbf{SZ-Taxi.} Speed measurements from $156$ urban road sensors in
+the Luohu District of Shenzhen, China, collected in January 2015 and
+aggregated at $15$-minute intervals; the series comprises $2976$ timesteps.
+\end{itemize}
+
+Each dataset provides a feature matrix (sensor speeds over time) and a
+road-network adjacency, which is used for the physical baseline
+(Sect.~\ref{sec:task}).
+
+\subsection{Data Split and Normalization}\label{sec:split}
+
+The series are split chronologically into $80\%$ training and $20\%$ test
+segments: $1612$ training and $404$ test timesteps for Los-loop, and $2380$
+training and $596$ test timesteps for SZ-Taxi. Input windows and targets are
+generated separately within each segment, so no forecasting window crosses
+the train/test boundary.
+
+Features are normalized by dividing by the \emph{training-split} maximum
+only: $70.0$ (km/h) for Los-loop and $86.4292$ for SZ-Taxi. The test split is
+not used for normalization or graph learning.
+
+\subsection{Forecasting Protocol}\label{sec:protocol}
+
+The input window length is $T=12$ and the prediction horizons are
+$\mathrm{PH}\in\{1,2,3,4\}$, expressed in steps of the dataset's sampling
+interval and produced as the multi-step target defined in
+Sect.~\ref{sec:task}. In wall-clock terms the horizons correspond to:
+
+\begin{itemize}
+\item \textbf{Los-loop} ($5$-minute steps): $\mathrm{PH1}=5$\,min,
+$\mathrm{PH2}=10$\,min, $\mathrm{PH3}=15$\,min, $\mathrm{PH4}=20$\,min ahead.
+\item \textbf{SZ-Taxi} ($15$-minute steps): $\mathrm{PH1}=15$\,min,
+$\mathrm{PH2}=30$\,min, $\mathrm{PH3}=45$\,min, $\mathrm{PH4}=60$\,min ahead.
+\end{itemize}
+
+Because the two datasets use different sampling intervals, horizon indices
+are only comparable within, not across, datasets.
+
+\subsection{Methods}\label{sec:methods}
+
+The study evaluates twelve configurations: seven in the T-GCN family and five
+in the GCN family, spanning the graph sources and consumption mechanisms
+defined in Sect.~\ref{sec:method}.
+
+\paragraph{T-GCN family.}
+T-GCN (physical graph), T-GCN-NoSpatial (graph-free control), T-GCN-GSL,
+T-GCN-cGSL (learned contemporaneous graphs, static consumption), and three
+consumption mechanisms over the learned multi-lag graphs: T-GCN-MultiGSL
+(fixed cyclic lag assignment), T-GCN-MultiGSL-Weighted (global lag mixture),
+and T-GCN-MultiGSL-Mix (per-node, per-timestep gate).
+
+\paragraph{GCN family.}
+GCN (physical graph), GCN-NoSpatial (graph-free control), GCN-GSL,
+GCN-cGSL (learned contemporaneous graphs), and GCN-MultiGSL (static union of
+the multi-lag graphs).
+
+All configurations use architecturally identical backbones within each
+family and differ only in the adjacency supplied and, for the multi-lag
+T-GCN variants, in how the lag graphs are consumed
+(Sect.~\ref{sec:consumption}).
+
+\subsection{Training Protocol}\label{sec:training}
+
+All forecasting models are trained with Adam (learning rate $10^{-3}$, weight
+decay $10^{-4}$), batch size $128$, for $50$ epochs, with hidden dimension
+$64$ and a shared linear output layer mapping the hidden state to the
+$\mathrm{PH}$-dimensional target.
+
+The training loss differs by backbone family, as in the reference
+implementations of the two architectures. The T-GCN family is trained with an
+$\ell_2$ loss combined with an $\ell_2$ penalty on the model weights,
+\[
+\mathcal{L}_{\text{T-GCN}}
+= \frac{1}{2}\sum_{i}\bigl(\hat{y}_i-y_i\bigr)^{2}
++ \lambda_{\text{reg}} \cdot \frac{1}{2}\sum_{\theta\in\Theta}\lVert\theta\rVert_2^2,
+\qquad \lambda_{\text{reg}}=1.5\times 10^{-3},
+\]
+where the sums run over prediction elements and over all trainable weights;
+the GCN family is trained with the plain mean squared error. Both families
+share the same output layer and optimizer settings.
+
+Each configuration is trained under five seeds,
+$\{42,43,44,45,46\}$, and all reported statistics aggregate over these five
+training runs. The learned graphs are fitted once and are deterministic; they
+are shared across the five forecasting-model training seeds, so seed
+variability reflects the training and evaluation of the forecasting models
+only.
+
+Graph learning uses DAGMA-linear \citep{Bello2024DAGMA} with the $\ell_2$
+loss type, $30{,}000$ warm-up iterations and $60{,}000$ maximum iterations
+(library defaults), and internal seed $42$; the estimator is deterministic
+(zero initialization, no stochastic component) under this configuration. All
+graph-learning hyperparameters and threshold regimes are as specified in
+Sects.~\ref{sec:gsl_contemp} and \ref{sec:gsl_multilag}.
+
+\subsection{Evaluation Metrics}\label{sec:metrics}
+
+The primary metric is the root mean squared error (RMSE); the mean absolute
+error (MAE) is reported as a secondary metric. Both are computed on the
+de-normalized original speed scale. Test evaluation is performed on the
+complete test set in a single full-batch pass.
+
+\subsection{Statistical Reporting}\label{sec:stats}
+
+Main-text numbers are five-seed means with sample standard deviations
+($\mathrm{ddof}=1$). We report paired per-seed win counts and paired
+$t$-tests for reference. With $n=5$, the exact Wilcoxon signed-rank test
+cannot fall below $p=0.0625$; we therefore make no definitive significance
+claims.
+
+\subsection{Matched-Sparsity and Capacity Controls}\label{sec:controls}
+
+Two supplementary controls probe alternative explanations of the multi-lag
+results. Both use the same training protocol as the main experiments, and
+both are scope-labeled: they are attached to a single experimental cell
+rather than to the complete configuration matrix, and their conclusions do
+not extend beyond that cell.
+
+\paragraph{Matched sparsity (Los-loop, $\mathrm{PH}=1$).}
+On the Los-loop PH1 cell, the multi-lag construction consumes $30$ lagged
+edge slots. This control compares, at the same $30$-edge budget: RandTop30,
+a graph of $30$ uniformly random directed edges, redrawn per seed; CorrTop30,
+the $30$ largest-magnitude pairwise Pearson correlations of the training
+data; and the DAGMA multi-lag graphs under the fixed and the gated
+consumption mechanisms. Five seeds are used per graph. This control cell
+lies outside the complete $12$-method dataset $\times$ horizon matrix and is
+reported separately. No sparsified variant of the physical graph and no
+sensitivity sweep over sparsity coefficients or thresholds was performed.
+
+\paragraph{Capacity control.}
+The gated mechanism adds $4{,}419$ parameters relative to T-GCN-MultiGSL
+(Sect.~\ref{sec:consumption}). To check that its results are not explained by
+capacity alone, a hidden-dimension-$74$ T-GCN-NoSpatial variant
+($16{,}872$ parameters, matching the $17{,}091$-parameter gated model more
+closely than the $12{,}672$-parameter standard T-GCN) is compared against
+the hidden-$64$ NoSpatial and the gated model on the same cell. This check
+is single-seed and is labeled as such.
+
+\subsection{Temporal-Resolution Variant}\label{sec:variant15}
+
+To probe the effect of temporal resolution, the Los-loop series is aggregated
+by averaging consecutive groups of three $5$-minute observations, yielding a
+$15$-minute series of length $T=672$ with an $80/20$ split. Prediction
+horizons $\mathrm{PH}\in\{1,2,3,4\}$ correspond to $15$, $30$, $45$, and
+$60$ minutes ahead. This is a \emph{temporal-resolution variant} of
+Los-loop, not a third dataset, and its PH indices must not be interpreted as
+equivalent to PH indices in the original $5$-minute Los-loop series. A
+separate PH-independent multi-lag DAGMA fit is performed on this training
+split ($\lambda_1=0.01$; consumer threshold $|W|>0.1$), and three
+configurations are trained per horizon with five seeds under the standard
+protocol: T-GCN-NoSpatial, T-GCN-MultiGSL, and T-GCN-MultiGSL-Mix.
+
+\subsection{Implementation and Reproducibility}\label{sec:repro}
+
+The implementation, data, and configuration files are available at
+\url{https://github.com/mamintoosi/TGCN-GSL-PyTorch}. Graph learning uses
+training data only and has no access to the test split, for both the
+contemporaneous and the multi-lag constructions and for all control graphs.

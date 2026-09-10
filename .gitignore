@@ -180,3 +180,5 @@ tmp/
 tmp/
 /paper/*.out
 *.blg
+/paper/previous_revision
+/paper/submitted_version

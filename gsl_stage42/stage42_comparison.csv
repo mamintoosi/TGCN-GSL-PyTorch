@@ -1,0 +1,49 @@
+dataset,ph,family,method,submitted_rmse,stage40_mean_rmse,stage40_std_rmse,stage40_min_rmse,stage40_max_rmse,abs_diff_stage40_minus_submitted,rel_diff_pct,classification,submitted_rank,stage40_rank,rank_preserved,baseline_relation_submitted,baseline_relation_stage40
+shenzhen,1,GCN,GCN,5.958,5.9596,0.0053,5.9561,5.9687,0.0016,0.03,essentially consistent,3,3,yes,is-baseline,is-baseline
+shenzhen,1,GCN,GCN-GSL,4.886,4.8803,0.008,4.8681,4.8905,-0.0057,-0.12,essentially consistent,2,2,yes,better,better
+shenzhen,1,GCN,GCN-cGSL,4.648,4.6412,0.0038,4.6381,4.6477,-0.0068,-0.15,essentially consistent,1,1,yes,better,better
+shenzhen,1,T-GCN,T-GCN,4.866,5.4493,0.1092,5.3467,5.632,0.5833,11.99,consistent in qualitative trend but numerically different,3,3,yes,is-baseline,is-baseline
+shenzhen,1,T-GCN,T-GCN-GSL,4.214,4.2809,0.0509,4.2532,4.3717,0.0669,1.59,essentially consistent,1,1,yes,better,better
+shenzhen,1,T-GCN,T-GCN-cGSL,4.821,4.3008,0.0326,4.2643,4.3471,-0.5202,-10.79,consistent in qualitative trend but numerically different,2,2,yes,better,better
+shenzhen,2,GCN,GCN,5.983,5.9752,0.0021,5.9731,5.9786,-0.0078,-0.13,essentially consistent,3,3,yes,is-baseline,is-baseline
+shenzhen,2,GCN,GCN-GSL,4.904,4.9097,0.003,4.905,4.9132,0.0057,0.12,essentially consistent,2,2,yes,better,better
+shenzhen,2,GCN,GCN-cGSL,4.672,4.6744,0.0015,4.673,4.6765,0.0024,0.05,essentially consistent,1,1,yes,better,better
+shenzhen,2,T-GCN,T-GCN,4.506,5.5515,0.0825,5.441,5.6687,1.0455,23.2,consistent in qualitative trend but numerically different,2,3,no,is-baseline,is-baseline
+shenzhen,2,T-GCN,T-GCN-GSL,4.239,4.3089,0.0267,4.2891,4.3555,0.0699,1.65,essentially consistent,1,1,yes,better,better
+shenzhen,2,T-GCN,T-GCN-cGSL,4.534,4.3353,0.0159,4.3161,4.3597,-0.1987,-4.38,materially inconsistent,3,2,no,worse,better
+shenzhen,3,GCN,GCN,5.991,5.9893,0.002,5.9876,5.9917,-0.0017,-0.03,essentially consistent,3,3,yes,is-baseline,is-baseline
+shenzhen,3,GCN,GCN-GSL,4.958,4.93,0.0094,4.9178,4.944,-0.028,-0.57,essentially consistent,2,2,yes,better,better
+shenzhen,3,GCN,GCN-cGSL,4.712,4.7009,0.0019,4.6987,4.7034,-0.0111,-0.23,essentially consistent,1,1,yes,better,better
+shenzhen,3,T-GCN,T-GCN,4.685,5.6016,0.0475,5.5351,5.6473,0.9166,19.56,consistent in qualitative trend but numerically different,3,3,yes,is-baseline,is-baseline
+shenzhen,3,T-GCN,T-GCN-GSL,4.344,4.3325,0.0116,4.3201,4.3487,-0.0115,-0.27,essentially consistent,1,1,yes,better,better
+shenzhen,3,T-GCN,T-GCN-cGSL,4.63,4.3798,0.0255,4.3353,4.3974,-0.2502,-5.4,consistent in qualitative trend but numerically different,2,2,yes,better,better
+shenzhen,4,GCN,GCN,6.002,6.0011,0.0009,6.0,6.0021,-0.0009,-0.02,essentially consistent,3,3,yes,is-baseline,is-baseline
+shenzhen,4,GCN,GCN-GSL,4.933,4.9579,0.005,4.9505,4.9643,0.0249,0.5,essentially consistent,2,2,yes,better,better
+shenzhen,4,GCN,GCN-cGSL,4.726,4.7283,0.0018,4.7271,4.7315,0.0023,0.05,essentially consistent,1,1,yes,better,better
+shenzhen,4,T-GCN,T-GCN,4.934,5.6326,0.057,5.5734,5.6937,0.6986,14.16,consistent in qualitative trend but numerically different,3,3,yes,is-baseline,is-baseline
+shenzhen,4,T-GCN,T-GCN-GSL,4.366,4.3698,0.0208,4.3516,4.4045,0.0038,0.09,essentially consistent,1,1,yes,better,better
+shenzhen,4,T-GCN,T-GCN-cGSL,4.774,4.4147,0.0138,4.3939,4.4293,-0.3593,-7.53,consistent in qualitative trend but numerically different,2,2,yes,better,better
+losloop,1,GCN,GCN,7.724,8.1445,0.1118,7.9991,8.3038,0.4205,5.44,consistent in qualitative trend but numerically different,3,3,yes,is-baseline,is-baseline
+losloop,1,GCN,GCN-GSL,7.527,7.8265,0.1055,7.7339,7.9477,0.2995,3.98,essentially consistent,2,2,yes,better,better
+losloop,1,GCN,GCN-cGSL,5.44,5.7631,0.1971,5.573,6.0279,0.3231,5.94,consistent in qualitative trend but numerically different,1,1,yes,better,better
+losloop,1,T-GCN,T-GCN,6.588,7.8771,0.2839,7.4562,8.1862,1.2891,19.57,consistent in qualitative trend but numerically different,3,3,yes,is-baseline,is-baseline
+losloop,1,T-GCN,T-GCN-GSL,4.818,5.8589,0.2058,5.4999,6.0192,1.0409,21.6,materially inconsistent,1,2,no,better,better
+losloop,1,T-GCN,T-GCN-cGSL,6.55,5.8205,0.2284,5.4719,6.1013,-0.7295,-11.14,materially inconsistent,2,1,no,better,better
+losloop,2,GCN,GCN,7.94,8.5386,0.279,8.177,8.8685,0.5986,7.54,consistent in qualitative trend but numerically different,3,3,yes,is-baseline,is-baseline
+losloop,2,GCN,GCN-GSL,7.867,8.4789,0.2121,8.2455,8.7928,0.6119,7.78,consistent in qualitative trend but numerically different,2,2,yes,better,better
+losloop,2,GCN,GCN-cGSL,5.806,6.3306,0.3196,5.9402,6.7807,0.5246,9.03,consistent in qualitative trend but numerically different,1,1,yes,better,better
+losloop,2,T-GCN,T-GCN,6.96,8.1329,0.0851,8.0302,8.2296,1.1729,16.85,consistent in qualitative trend but numerically different,3,3,yes,is-baseline,is-baseline
+losloop,2,T-GCN,T-GCN-GSL,5.4,6.3009,0.0601,6.2264,6.3748,0.9009,16.68,consistent in qualitative trend but numerically different,1,1,yes,better,better
+losloop,2,T-GCN,T-GCN-cGSL,6.915,6.3536,0.1197,6.2116,6.5083,-0.5614,-8.12,consistent in qualitative trend but numerically different,2,2,yes,better,better
+losloop,3,GCN,GCN,8.102,8.7647,0.2588,8.3876,9.0764,0.6627,8.18,consistent in qualitative trend but numerically different,3,3,yes,is-baseline,is-baseline
+losloop,3,GCN,GCN-GSL,8.073,8.4482,0.1874,8.1826,8.6946,0.3752,4.65,essentially consistent,2,2,yes,better,better
+losloop,3,GCN,GCN-cGSL,6.171,6.6844,0.2507,6.2967,6.9457,0.5134,8.32,consistent in qualitative trend but numerically different,1,1,yes,better,better
+losloop,3,T-GCN,T-GCN,7.361,8.3676,0.1741,8.2465,8.6686,1.0066,13.67,consistent in qualitative trend but numerically different,3,3,yes,is-baseline,is-baseline
+losloop,3,T-GCN,T-GCN-GSL,5.846,6.6554,0.1162,6.5672,6.8532,0.8094,13.84,consistent in qualitative trend but numerically different,1,1,yes,better,better
+losloop,3,T-GCN,T-GCN-cGSL,7.331,6.6689,0.112,6.5324,6.8444,-0.6621,-9.03,consistent in qualitative trend but numerically different,2,2,yes,better,better
+losloop,4,GCN,GCN,8.285,8.7648,0.2858,8.4902,9.1995,0.4798,5.79,consistent in qualitative trend but numerically different,2,2,yes,is-baseline,is-baseline
+losloop,4,GCN,GCN-GSL,9.067,8.9335,0.1243,8.8042,9.0928,-0.1335,-1.47,essentially consistent,3,3,yes,worse,worse
+losloop,4,GCN,GCN-cGSL,6.745,6.8808,0.2125,6.6799,7.1948,0.1358,2.01,essentially consistent,1,1,yes,better,better
+losloop,4,T-GCN,T-GCN,7.568,8.6594,0.1626,8.4484,8.8245,1.0914,14.42,consistent in qualitative trend but numerically different,3,3,yes,is-baseline,is-baseline
+losloop,4,T-GCN,T-GCN-GSL,6.257,7.0403,0.0946,6.91,7.1349,0.7833,12.52,consistent in qualitative trend but numerically different,1,1,yes,better,better
+losloop,4,T-GCN,T-GCN-cGSL,7.539,7.0881,0.1227,6.9865,7.2883,-0.4509,-5.98,consistent in qualitative trend but numerically different,2,2,yes,better,better

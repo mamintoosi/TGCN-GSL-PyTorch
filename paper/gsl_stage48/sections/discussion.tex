@@ -1,0 +1,121 @@
+% ======================================================================
+% Section 6 — Discussion
+% Compatible with \documentclass[pdflatex,sn-mathphys-num]{sn-jnl}
+% Bind to Stage 47 Results labels; no new numbers beyond Results
+% ======================================================================
+\section{Discussion}\label{sec:discussion}
+
+The results separate two design questions that are often conflated in
+graph-based traffic forecasting: \emph{which graph is supplied to the
+backbone}, and \emph{how that graph is used over the input window}. The
+discussion below reads the empirical pattern under that separation. We keep
+interpretation at the level of statistical dependency and architecture; we
+do not claim causal traffic mechanisms.
+
+\subsection{Why Dense Graphs Fail and What Learned Structure Adds}\label{sec:disc-dense}
+
+The physical road-network graph is a harmful default for these backbones at
+the operating points we study. On Los-loop the physical adjacency is dense
+(order $10^{3}$ entries including self-loops for $207$ sensors), yet the
+graph-free identity control reduces RMSE by roughly a quarter to a third
+relative to that graph at every horizon and on both datasets
+(Sects.~\ref{sec:res-physical} and \ref{tab:tgcn-main}). A simple reading is
+\emph{oversmoothing} or, more generally, harmful aggregation: when almost
+every sensor is treated as a neighbor of every other, the graph convolution
+mixes signals that are not jointly informative for forecasting, and the
+recurrent or non-recurrent backbone cannot recover node-specific dynamics
+from the smeared representation. Identity adjacency freezes that mixing
+without removing the temporal path, which is consistent with the large,
+seed-stable gap between Physical and NoSpatial.
+
+Learned single graphs (GSL, cGSL) occupy an intermediate position. They
+shrink the physical graph to a much smaller support (e.g.\ $28$
+contemporaneous edges on Los-loop) and usually improve on Physical, but they
+still lose to NoSpatial in every dataset$\times$horizon cell
+(Sect.~\ref{sec:res-single}). Sparsity alone is not sufficient: at a matched
+$30$-edge budget, random and top-correlation graphs are worse than no graph,
+while DAGMA-placed multi-lag edges with per-lag consumption are better
+(Sect.~\ref{sec:res-controls}, Los-loop PH1 only). What the single learned
+graphs appear to add, relative to Physical, is a less harmful neighborhood;
+what they fail to add, relative to NoSpatial, is enough useful structure to
+pay for any residual mis-specification. The multi-lag experiments ask
+whether that residual can be recovered when dependency structure is allowed
+to be lag-specific and is consumed in a lag-aligned way.
+
+This reading is consistent with the proximity-versus-dependency motivation:
+physical connectivity is an imperfect proxy for functional co-movement, and
+a dense proxy can be worse than no proxy. It does not imply that
+graph-based forecasting is generally harmful; it implies that the default
+reference graph should be tested against a graph-free control before
+learned structure is credited with gains.
+
+\subsection{Structure Versus Consumption}\label{sec:disc-consumption}
+
+The central architectural observation is the dissociation in
+Sect.~\ref{sec:res-dissociation}. The three lag-specific DAGMA graphs are
+fitted once and shared. Consumed as a static union by GCN-MultiGSL, they
+yield $9.78\pm 0.14$ RMSE on Los-loop PH1; consumed per timestep by
+T-GCN-MultiGSL, the same artifacts yield $4.84\pm 0.11$. The union retains
+$28$ of the $30$ lagged edge slots, so the bulk of the edge content is
+present in both conditions. The opposite outcomes therefore \emph{cannot be
+explained by the edge set alone}. Because GCN and T-GCN also differ in
+backbone (non-recurrent versus recurrent), this comparison is not a fully
+controlled isolation of consumption; it provides evidence that graph
+consumption is a major determinant of whether the learned multi-lag
+structure is useful.
+
+Within the T-GCN family, the consumption ladder is equally informative.
+Fixed cyclic lag assignment already beats NoSpatial on Los-loop
+($7.8\%$ relative RMSE reduction at PH1). Adding three global scalars
+(Weighted) changes almost nothing (differences $\le 0.01$ RMSE), so a single
+static mixture over lags is not what drives the gain. Replacing that global
+mixture with a per-node, per-timestep gate (Mix) adds a further
+$0.35$--$0.40$ RMSE on Los-loop in $5/5$ seeds at every horizon
+(Sect.~\ref{sec:res-mix}), without modifying the learned edge sets. The
+results thus indicate that the utility of the learned multi-lag structure
+depends critically on how the graphs are consumed: lag-aligned use helps
+where the graphs are informative, and finer selection helps further. The
+gate varies \emph{use}, not \emph{structure}; the graphs remain static
+fitted artifacts.
+
+The cGSL--GSL contrast is a miniature of the same theme. Binary
+symmetrization of the same contemporaneous artifact helps the non-recurrent
+GCN substantially (cGSL $5.76$ vs GSL $7.83$ on Los-loop PH1) and is nearly
+irrelevant for T-GCN ($5.82$ vs $5.86$). One consistent explanation is
+\emph{aggregation compatibility}: a symmetric aggregator is better matched
+to a symmetric operator, whereas the recurrent cell can absorb directed
+asymmetry without the same penalty. We offer this as an observation of the
+current study, not as a general theorem about DAG versus cyclic graphs, and
+we do not revive a temporal reading of the contemporaneous DAG.
+
+\subsection{What the Learned Graph Represents}\label{sec:disc-interpretation}
+
+We describe the learned graphs as descriptive statistical dependency
+structure under a linear DAGMA fit with an acyclicity regularizer. The
+multi-lag construction stacks explicit lag blocks, and the consumption
+ablations show that treating those blocks as lag-specific operators is more
+effective than merging them into one static adjacency. That pattern is
+\emph{consistent with} a lag-structured reading of the fitted matrices, but
+we did not independently validate the lag interpretation against ground-truth
+propagation, and acyclicity is an optimization constraint rather than causal
+evidence.
+
+The dataset boundary sharpens this reading. On SZ-Taxi the multi-lag fit
+retains only two lagged edges, and every learned variant remains within seed
+variability of the graph-free control (Sect.~\ref{sec:res-boundaries}). On
+Los-loop, where the lag blocks are substantially denser
+($12/3/15$ slots; union $28$), lag-aligned consumption yields the study's
+positive result, and the $15$-minute resolution variant preserves a large
+relative improvement over NoSpatial at $15$--$60$ minutes ahead
+(Table~\ref{tab:los15}). The honest synthesis is conditional: learned
+multi-lag graphs help forecasting when the fitted dependency structure is
+informative enough to be worth consuming, and when the consumption mechanism
+respects the lag organization of that structure. Where the fit is nearly
+empty, the method collapses to the graph-free baseline.
+
+None of this implies that the physical graph is useless in absolute terms,
+or that learned graphs will help every network. It implies that the default
+practice of treating a dense proximity graph as ground truth, and of
+crediting any learned graph that improves on it, is incomplete without a
+graph-free control and without an explicit account of how the graph is
+consumed over time.

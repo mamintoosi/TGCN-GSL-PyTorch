@@ -1,0 +1,294 @@
+% ======================================================================
+% Section 3 — Problem Formulation and Graph Learning Framework
+% Compatible with \documentclass[pdflatex,sn-mathphys-num]{sn-jnl}
+% Citations: natbib \citep/\citet against MyReferences.bib
+% ======================================================================
+\section{Problem Formulation and Graph Learning Framework}\label{sec:method}
+
+This section defines the forecasting task, the graph constructions, and the
+mechanisms by which the forecasting backbones consume graph structure. Two
+design dimensions are kept strictly separate throughout: the \emph{source} of
+the graph (physical, identity, learned contemporaneous, or learned multi-lag)
+and the \emph{consumption} of the graph (one static operator versus
+timestep-specific operators). Throughout, $\mathbf{A}$ denotes the binary
+adjacency consumed by the forecasting backbone, whereas $W$ denotes the
+continuous coefficient matrix estimated by the graph-structure-learning
+procedure; the two symbols are not interchangeable.
+
+\subsection{Forecasting Task and Model Baselines}\label{sec:task}
+
+Let $x(t)\in\mathbb{R}^{N}$ denote the traffic speeds observed at $N$ sensors
+at time step $t$, where one step corresponds to the sampling interval of the
+dataset (5\,min for Los-loop, 15\,min for SZ-Taxi; Sect.~\ref{sec:setup}).
+Given an input window of length
+\[
+T=12,
+\]
+the forecasting task is to map
+\[
+\underbrace{\bigl[x(t-11),\,\dots,\,x(t)\bigr]}_{\displaystyle X\in\mathbb{R}^{T\times N}}
+\qquad\longmapsto\qquad
+\underbrace{\bigl[x(t+1),\,\dots,\,x(t+\mathrm{PH})\bigr]}_{\displaystyle Y\in\mathbb{R}^{\mathrm{PH}\times N}},
+\]
+where the prediction horizon $\mathrm{PH}\in\{1,2,3,4\}$ is expressed in steps
+of the sampling interval. The $\mathrm{PH}$-dimensional target at every sensor
+is produced jointly in a single forward pass by a shared linear output layer;
+prediction is multi-step but \emph{not} autoregressive, and no predicted value
+is fed back into the model.
+
+The backbone adjacency is a binary matrix
+\[
+\mathbf{A}\in\{0,1\}^{N\times N}.
+\]
+It is produced from a continuous coefficient matrix
+\[
+W\in\mathbb{R}^{d\times d},
+\qquad
+d=\begin{cases}
+N & \text{(contemporaneous construction, Sect.~\ref{sec:gsl_contemp})},\\
+(L+1)N & \text{(multi-lag construction, Sect.~\ref{sec:gsl_multilag})}.
+\end{cases}
+\]
+$\mathbf{A}$ denotes the backbone adjacency, whereas $W$ denotes the continuous
+DAGMA coefficient matrix.
+
+Two reference configurations fix the ends of the graph-source spectrum:
+
+\begin{itemize}
+\item \textbf{Graph-free control.} $\mathbf{A}=\mathbf{I}_N$, the identity
+adjacency, named \emph{T-GCN-NoSpatial} and \emph{GCN-NoSpatial} in the two
+backbone families. The identity adjacency is passed through exactly the same
+graph-normalization pipeline as every other graph configuration
+(see ``Graph normalization'' below), so this control isolates the contribution of
+spatial structure rather than of the graph operator itself.
+\item \textbf{Physical baseline.} The dataset-provided road-network adjacency,
+named \emph{T-GCN} in the T-GCN family and \emph{GCN} in the GCN family.
+\end{itemize}
+
+The two backbones are deliberately lightweight. GCN applies graph convolution
+to the flattened input representation and produces the hidden state in a single
+step; T-GCN incorporates the same graph convolution into a GRU-based recurrent
+architecture that updates a hidden state at every input step. Generic
+derivations of both architectures are given in
+Sect.~2; here we only note the properties that matter for
+the experimental design: all graph configurations are consumed by
+architecturally identical backbones, differing only in the adjacency supplied.
+
+\paragraph{Graph normalization.}
+Every adjacency --- physical, identity, and all learned graphs --- is
+transformed by the same operator, following the GCN convention of
+\citet{kipf2017semi}. With $\tilde{\mathbf{A}}=\mathbf{A}+\mathbf{I}$ and
+$\tilde{\mathbf{D}}_{ii}=\sum_j \tilde{\mathbf{A}}_{ij}$, the operator is
+\begin{equation}\label{eq:norm}
+\hat{\mathbf{A}}
+=\tilde{\mathbf{D}}^{-1/2}\,\tilde{\mathbf{A}}^{\top}\,\tilde{\mathbf{D}}^{-1/2}.
+\end{equation}
+Self-loops are therefore added before normalization, the normalization is
+symmetric, and the transposed form in Eq.~\eqref{eq:norm} is the one actually
+implemented. Because $\tilde{\mathbf{A}}$ is symmetric whenever $\mathbf{A}$ is
+(as holds for the physical adjacency after symmetrization-free loading of its
+symmetric datasets, the identity, and the cGSL graphs), the operator coincides
+with the standard symmetrically-normalized adjacency in those cases; for the
+directed learned graphs it realizes the same row/column scaling on the
+transposed matrix. For the identity adjacency the operator reduces exactly to
+$\hat{\mathbf{A}}=\mathbf{I}$, confirming that the graph-free control differs
+from the other configurations only in the absence of off-diagonal structure.
+
+\subsection{Contemporaneous Graph Learning (GSL and cGSL)}\label{sec:gsl_contemp}
+
+The first learned construction estimates a single dependency graph among the
+$N$ sensors from \emph{simultaneous} observations. We use DAGMA
+\citep{Bello2024DAGMA}, which estimates a weighted adjacency $W\in\mathbb{R}^{N\times N}$
+by minimizing a linear structural-equation-model score --- an $\ell_2$ loss on
+the reconstructed observations --- augmented with an $\ell_1$ sparsity penalty
+$\lambda_1\lVert W\rVert_1$, subject to the DAGMA acyclicity characterization
+\[
+h(W) = -\log\det\!\bigl(d\mathbf{I} - W\circ W\bigr) + d \;\geq\; 0,
+\]
+which holds if and only if $W\circ W$ is an M-matrix, i.e., $W$ is acyclic;
+$h$ is enforced numerically during the constrained optimization.
+
+\paragraph{Exact construction.}
+The DAGMA input is the subsampled matrix of training-split snapshots
+\[
+\mathbf{X} = \mathrm{train\_norm}[\,0::\mathrm{PH}\,],
+\]
+that is, every $\mathrm{PH}$-th training row, so each row is one simultaneous
+observation of all $N$ sensors and columns correspond to sensors. There are
+$N$ variables and \emph{no} lag blocks. For Los-loop the inputs contain
+$1612$, $806$, $538$, and $403$ rows for $\mathrm{PH}=1,\dots,4$; for SZ-Taxi
+the corresponding counts are $2380$, $1190$, $794$, and $595$. The
+construction is therefore PH-dependent through its input subsampling, in
+contrast to the multi-lag construction of Sect.~\ref{sec:gsl_multilag}.
+
+The sparsity penalty is $\lambda_1=0.02$ for Los-loop and $\lambda_1=0.01$ for
+SZ-Taxi, and DAGMA's internal magnitude threshold is set to $0.3$: after the
+fit, coefficients with $|W_{ij}|<0.3$ are zeroed inside the estimation
+procedure. The binary support is then extracted with the absolute-magnitude
+rule
+\[
+\mathbf{A}_{\mathrm{GSL}} = \mathbf{1}\!\left(|W|>0\right),
+\]
+with the diagonal removed. Under this construction the support rule is
+equivalent to retaining exactly those coefficients whose magnitude reaches the
+internal threshold of $0.3$. This $0.3$-based regime is specific to the
+contemporaneous construction and must not be conflated with the $0.1$
+consumer threshold used by the multi-lag construction
+(Sect.~\ref{sec:gsl_multilag}). The graph is learned using training data only.
+
+The resulting directed off-diagonal edge counts are $28$ for Los-loop and $8$
+for SZ-Taxi, identical across $\mathrm{PH}=1,\dots,4$.
+
+\paragraph{cGSL.}
+The second learned configuration is not a separately learned graph: it is the
+symmetrized version of the very same GSL artifact,
+\[
+\mathbf{A}_{\mathrm{cGSL}}
+=\mathbf{1}\!\left(\mathbf{A}_{\mathrm{GSL}}+\mathbf{A}_{\mathrm{GSL}}^{\top}>0\right),
+\]
+with the diagonal removed. No second DAGMA fit and no second threshold are
+involved. The symmetrized graphs contain $56$ (Los-loop) and $16$ (SZ-Taxi)
+directed entries. The same graph artifacts are shared by the GCN and T-GCN
+counterparts, so both backbone families see identical adjacencies.
+
+\paragraph{Interpretation restriction.}
+The contemporaneous DAGMA graph is a statistical dependency structure
+estimated from simultaneous observations. It is \emph{not} a temporal graph:
+an entry $\mathbf{A}_{ij}=1$ does not mean that sensor $j$ at time $t$ predicts
+sensor $i$ at time $t+1$. Acyclicity is an optimization and fitting constraint
+of the estimator and is not treated as evidence of a causal structure.
+
+\subsection{Multi-Lag Graph Learning}\label{sec:gsl_multilag}
+
+The second learned construction estimates dependency structure between lagged
+and current observations. With lag depth
+\[
+L=3,
+\]
+the lag-stacked representation is
+\[
+Z=\bigl[\,x(t-3),\;x(t-2),\;x(t-1),\;x(t)\,\bigr],
+\]
+a matrix with $(L+1)N$ columns: $4\times 207=828$ variables for Los-loop and
+$4\times 156=624$ for SZ-Taxi. The canonical construction contains $1609$
+training windows for Los-loop and $2377$ for SZ-Taxi. DAGMA is fitted
+\emph{once} on the training split, and the learned artifact is shared across
+$\mathrm{PH}=1,\dots,4$:
+\begin{quote}
+The multi-lag graph is PH-independent: the same learned graph artifact is
+consumed for all four prediction horizons. Unlike the multi-lag construction,
+the contemporaneous graph is PH-dependent because its input is subsampled as
+$\mathrm{train\_norm}[0::\mathrm{PH}]$.
+\end{quote}
+
+\paragraph{Multi-lag optimization.}
+The $\ell_1$ coefficient is $\lambda_1=0.01$ for both datasets. In contrast to
+the contemporaneous construction, DAGMA's internal threshold is $0.0$: raw
+continuous weights are retained, and thresholding is deferred to the consumer.
+The two threshold regimes are kept explicit throughout:
+\begin{enumerate}
+\item \emph{Contemporaneous GSL:} internal DAGMA threshold $0.3$; the support
+is extracted after that internal threshold.
+\item \emph{Multi-lag:} internal DAGMA threshold $0.0$; raw weights retained;
+the consumer thresholds at $|W|>0.1$, with the diagonal removed.
+\end{enumerate}
+
+\paragraph{Block interpretation.}
+In the DAGMA convention $W_{ij}$ quantifies the estimated dependency of
+variable $j$ on variable $i$. The block
+$W[\,lN:(l{+}1)N,\;LN:(L{+}1)N\,]$ therefore collects, for each pair of
+sensors, the estimated dependency of the current snapshot on the snapshot
+$L-l$ steps earlier; after the consumer threshold this yields the lag-specific
+adjacency $\mathbf{A}_k$, $k\in\{1,2,3\}$, read as ``activity at $t-k$
+associated with activity at $t$''. The contemporaneous block
+($x(t)\rightarrow x(t)$) is present in the DAGMA fit but is \emph{not}
+consumed by any of the forecasting methods in this study.
+
+\paragraph{Edge counts.}
+After the consumer threshold, the per-lag off-diagonal edge counts are:
+
+\begin{itemize}
+\item \textbf{Los-loop:} lag-1: $12$; lag-2: $3$; lag-3: $15$; total lagged
+edge slots: $30$; union: $28$ distinct off-diagonal edges.
+\item \textbf{SZ-Taxi:} lag-1: $0$; lag-2: $0$; lag-3: $2$; total: $2$; union: $2$.
+\end{itemize}
+Edge \emph{slots} count entries per lag block and may repeat an edge across
+lags; the \emph{union} counts distinct sensor pairs after merging the three
+blocks.
+
+\paragraph{Interpretation restrictions.}
+The learned lag graphs are descriptive statistical dependency estimates. The
+lag-structured reading is consistent with their construction and with the
+consumption experiments below, but the graphs are not independently validated
+as causal or predictive structures, and DAGMA's acyclicity constraint is not
+causal evidence. The graphs are static: they are fitted once on the training
+split and never change across the input window or across evaluation samples;
+only the manner in which they are \emph{consumed} can vary with the input
+timestep, as described next.
+
+\subsection{Graph Consumption Mechanisms}\label{sec:consumption}
+
+Graph source and graph consumption are treated as separate design dimensions.
+A graph with a given edge set can be consumed in different ways, and the same
+consumption mechanism can be applied to different graphs. This subsection
+defines the four consumption mechanisms used in the study; the corresponding
+empirical comparison is presented in Sect.~5.
+
+\paragraph{Static graph mechanisms.}
+For the physical baseline, the graph-free control, and the two contemporaneous
+learned graphs (GSL and cGSL), one adjacency is used for all input steps of
+the window. Graph-side extra parameters: $0$.
+
+\paragraph{Fixed cyclic lag assignment (T-GCN-MultiGSL).}
+The three lag-specific graphs $\mathbf{A}_1,\mathbf{A}_2,\mathbf{A}_3$ are
+consumed separately, one per input step. At input step $t$, where $t=0$ denotes
+the most recent input step of the window, the graph index follows the rule
+\begin{equation}\label{eq:lagidx}
+\mathrm{graph\_idx} = (T-1-t) \bmod 3,
+\end{equation}
+so the most recent input step is convolved with the lag-1 graph, the preceding
+step with the lag-2 graph, and the oldest step of the window with the lag-3
+graph; the assignment cycles for the remaining steps of the 12-step window.
+Extra parameters: $0$.
+
+\paragraph{Global lag mixture (T-GCN-MultiGSL-Weighted).}
+Three learned scalar weights, one per lag graph, are passed through a softmax,
+and the resulting convex combination of the three normalized lag-graph
+operators is used for every input step. Extra parameters: $+3$. This variant
+is treated as a supplementary mechanism.
+
+\paragraph{Per-node, per-timestep gate (T-GCN-MultiGSL-Mix).}
+At each input step $t$ and each node, a small gate network takes the pair
+$[x_t;\,h_{t-1}]$ --- the current input and the recurrent hidden state --- and
+produces a softmax over the $K=3$ lag graphs. The gate output mixes the three
+normalized lag-graph operators into one operator for that node and step,
+which is then applied before the GRU-style update. Extra parameters: $+4{,}419$.
+Crucially, Mix varies \emph{how} the static lag-specific graphs are consumed;
+it does not relearn or modify the graph edge set at any timestep, and it is
+not an adaptive-graph method: the learned structure itself never changes.
+
+\paragraph{Static union in GCN (GCN-MultiGSL).}
+The GCN backbone consumes the whole input window in a single graph
+convolution, so per-timestep graph assignment is not applicable. GCN-MultiGSL
+therefore merges the three lag graphs into one static adjacency for the
+complete window,
+\[
+\mathbf{A}_{\cup} = \bigvee_{k=1}^{3} \mathbf{A}_k,
+\]
+the element-wise maximum for binary adjacency matrices, normalized identically
+to all other graphs. The same multi-lag graph artifacts are thus consumed by
+GCN-MultiGSL through a static union and by T-GCN-MultiGSL through
+lag-specific, per-timestep consumption. The comparison is designed to assess
+whether the utility of the same learned multi-lag structure depends on how it
+is consumed; because GCN and T-GCN also differ in backbone architecture, the
+comparison does not isolate consumption as the sole differing factor.
+
+\paragraph{Parameter counts.}
+All configurations within a backbone family share the same backbone capacity,
+and the graph source contributes no trainable parameters. Verified from the
+implementation, the trainable parameters (excluding the shared linear output
+layer) are $768$ for GCN and $12{,}672$ for T-GCN in every single-graph
+configuration; T-GCN-MultiGSL-Weighted adds $3$ and T-GCN-MultiGSL-Mix adds
+$4{,}419$ parameters relative to T-GCN-MultiGSL. The capacity implications of
+the Mix gate are examined separately in the experiments
+(Sect.~\ref{sec:setup}).
