@@ -1,0 +1,75 @@
+{
+  "stage": "41-addendum",
+  "generated": "2026-09-10T10:54:54",
+  "environment": {
+    "python": "3.10.14",
+    "torch": "2.3.1",
+    "cuda": false,
+    "note": "verification executed on CPU; no training, no DAGMA fitting"
+  },
+  "n_checks": 12,
+  "n_pass": 12,
+  "n_fail": 0,
+  "checks": [
+    {
+      "check": "V1 all 96 (dataset, ph, variant) adjacency constructions match logged n_edges",
+      "status": "PASS",
+      "detail": "mismatches: 0"
+    },
+    {
+      "check": "V2 union identity holds for all 8 cells",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "V3 source contains graph_idx = (T-1-t) % n_graphs",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "V3 expected mapping (t -> (11-t) mod 3): [(0, 2), (1, 1), (2, 0), (3, 2), (4, 1), (5, 0), (6, 2), (7, 1), (8, 0), (9, 2), (10, 1), (11, 0)]",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "V4 Fixed lap_i == Gated lap_stack[i] for all 3 lags",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "V5 cGSL == (A_gsl + A_gsl.T)>0, diag 0, for all 8 cells",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "V5 GCN-GSL and T-GCN-GSL share the same loader file (stage40_run_all.py)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "V6 n_edges matches in 480/480 files",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "check": "V6 n_params matches in 480/480 files",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "check": "V7 dataset/ph/seed/variant/display_name/status consistent in 480/480",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "check": "V8 same seed -> identical initial state_dict hash",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "V8 different seeds -> different initial state_dict hashes",
+      "status": "PASS",
+      "detail": "distinct: 5/5"
+    }
+  ]
+}
