@@ -1,0 +1,167 @@
+% ======================================================================
+% Section 4 — Experimental Setup (revised from submitted_version + Stage 40)
+% ======================================================================
+\section{Experimental Setup}\label{sec:setup}
+
+This section describes the datasets, protocol, model configurations, and
+evaluation used in our experiments. The implementation in PyTorch, together
+with data and configuration files, is available at
+\url{https://github.com/mamintoosi/TGCN-GSL-PyTorch}. A preliminary version
+of the GSL-for-traffic idea was presented in
+\cite{Amintoosi1403aimc55-GSL}.
+
+\subsection{Datasets}\label{sec:datasets}
+
+We use two widely used traffic benchmarks.
+
+\emph{SZ-Taxi} comprises taxi trajectory speeds in the Luohu District of
+Shenzhen, China (January 2015), from $156$ road sensors aggregated at
+$15$-minute intervals ($2976$ timesteps).
+
+\emph{Los-loop} comprises loop-detector speeds on Los Angeles County
+highways (March 1--7, 2012), from $207$ sensors aggregated every $5$
+minutes ($2016$ timesteps, seven days).
+
+Each dataset provides a feature matrix of speeds over time and a
+road-network adjacency used as the physical baseline
+(Section~\ref{sec:method}). The two benchmarks contrast urban taxi traffic
+with highway dynamics.
+
+\subsection{Data Split and Normalization}\label{sec:split}
+
+Each series is split chronologically into $80\%$ training and $20\%$ test
+segments, preserving temporal order: $1612$/$404$ timesteps for Los-loop
+and $2380$/$596$ for SZ-Taxi. Input windows and targets are generated
+separately within each segment, so no window crosses the train/test
+boundary.
+
+Features are normalized by dividing by the \emph{training-split} maximum
+only ($70.0$ on Los-loop; $86.4292$ on SZ-Taxi). The test split is not used
+for normalization or for graph learning.
+
+\subsection{Forecasting Protocol}\label{sec:protocol}
+
+The historical window is $T=12$ steps. Prediction horizons are
+$\mathrm{PH}\in\{1,2,3,4\}$ steps of the native sampling interval:
+$5$--$20$ minutes on Los-loop and $15$--$60$ minutes on SZ-Taxi. Targets are
+the multi-step speed vectors produced by a shared linear output layer
+(Section~\ref{sec:method}). Horizon indices are comparable within, not
+across, datasets because the sampling intervals differ.
+
+Following \cite{zhao2019t}, we focus the comparison on GCN and T-GCN as
+foundational backbones rather than an exhaustive set of recent
+architectures: the goal is to assess the effect of graph structure learning
+inside established frameworks that many later models build upon
+\citep{YU2020189,ZHOU2025110304}.
+
+\subsection{Model Configurations}\label{sec:methods}
+
+Within each backbone family we compare physical, graph-free, and learned
+adjacencies, and (for multi-lag graphs) different ways of using the learned
+structure (Section~\ref{sec:method}).
+
+\paragraph{T-GCN family.}
+T-GCN (physical graph); T-GCN-NoSpatial (identity, graph-free control);
+T-GCN-GSL and T-GCN-cGSL (contemporaneous learned graphs);
+T-GCN-MultiGSL, T-GCN-MultiGSL-Weighted, and T-GCN-MultiGSL-Mix (multi-lag
+graphs under fixed, global-mixture, and per-node gating).
+
+\paragraph{GCN family.}
+GCN (physical); GCN-NoSpatial; GCN-GSL; GCN-cGSL; and GCN-MultiGSL (static
+union of the multi-lag graphs).
+
+Architectures within a family are identical apart from the adjacency and,
+for the multi-lag T-GCN variants, the lag-graph use
+(Section~\ref{sec:consumption}). Contemporaneous and multi-lag DAGMA
+hyperparameters and thresholds are as specified in
+Sections~\ref{sec:gsl_contemp} and \ref{sec:gsl_multilag}. For the
+contemporaneous construction, the sparsity coefficient is
+$\lambda_1=0.01$ on SZ-Taxi and $\lambda_1=0.02$ on Los-loop, consistent
+with the original GSL protocol.
+
+\subsection{Training Protocol}\label{sec:training}
+
+All forecasting models are trained with Adam (learning rate $10^{-3}$,
+weight decay $10^{-4}$), batch size $128$, for $50$ epochs, hidden dimension
+$64$, and a shared linear output map from the hidden state to the
+$\mathrm{PH}$-dimensional target.
+
+The T-GCN family uses an $\ell_2$ loss with an $\ell_2$ penalty on weights
+($\lambda_{\mathrm{reg}}=1.5\times 10^{-3}$), matching the reference
+implementation; the GCN family uses mean squared error.
+
+Each configuration is trained under five seeds
+$\{42,43,44,45,46\}$. Learned graphs are fitted once and are deterministic
+(DAGMA-linear, seed $42$); the same graph artifacts are shared across
+forecasting seeds, so seed variability reflects model training only.
+Experiments were run in PyTorch on a workstation with an NVIDIA RTX 3090
+GPU.
+
+\subsection{Evaluation Metrics}\label{sec:metrics}
+
+We report root mean squared error (RMSE, primary) and mean absolute error
+(MAE), computed on the de-normalized speed scale over the full test set:
+\begin{align}
+\mathrm{RMSE}
+&=\sqrt{\frac{1}{n}\sum_{i=1}^{n}\bigl(Y_i-\widehat{Y}_i\bigr)^{2}},
+\\
+\mathrm{MAE}
+&=\frac{1}{n}\sum_{i=1}^{n}\bigl|Y_i-\widehat{Y}_i\bigr|.
+\end{align}
+Additional diagnostics used in the code base (relative accuracy and $R^2$)
+are not required for the comparisons below.
+
+\subsection{Statistical Reporting}\label{sec:stats}
+
+Main-text numbers are five-seed means with sample standard deviations
+($\mathrm{ddof}=1$). We also report paired per-seed win counts and paired
+$t$-tests for reference. With $n=5$, the exact Wilcoxon signed-rank test
+cannot fall below $p=0.0625$; we therefore avoid definitive significance
+claims.
+
+\subsection{Matched-Sparsity and Capacity Controls}\label{sec:controls}
+
+To address the concern that any gain from a learned graph might be due only
+to sparsity (or to extra parameters of a gated variant), we include two
+scope-labeled controls on Los-loop at $\mathrm{PH}=1$.
+
+\emph{Matched sparsity.} At a $30$-edge budget we compare RandTop30 (random
+directed edges, redrawn per seed), CorrTop30 (top-$30$ training Pearson
+correlations), and the DAGMA multi-lag graphs under fixed and gated use,
+with five seeds under the same training protocol. No sparsified physical
+graph and no full $\lambda$/threshold sweep were run.
+
+\emph{Capacity.} A T-GCN-NoSpatial model with hidden dimension $74$
+($16{,}872$ parameters) more closely matches the gated multi-lag model
+($17{,}091$) than standard T-GCN-NoSpatial at hidden $64$ ($12{,}672$). This
+check is single-seed and is labeled as such.
+
+\subsection{Ablation Studies}\label{sec:ablations}
+
+In addition to the main comparison of graph sources, we examine:
+
+\begin{itemize}
+\item \textbf{Physical vs.\ learned vs.\ graph-free.} The physical adjacency
+is compared with contemporaneous GSL/cGSL and with the identity control, so
+that learned structure is not credited solely for removing a dense
+proximity graph.
+\item \textbf{GSL vs.\ cGSL.} Directed versus symmetrized use of the
+\emph{same} contemporaneous artifact on each backbone.
+\item \textbf{Multi-lag structure and its use.} Fixed lag assignment,
+global weights, per-node gating, and static union consumption of the same
+multi-lag artifacts (Section~\ref{sec:consumption}).
+\item \textbf{Temporal resolution.} A $15$-minute resampling of Los-loop
+(Section~\ref{sec:variant15}).
+\end{itemize}
+
+\subsection{Temporal-Resolution Variant}\label{sec:variant15}
+
+Los-loop is additionally averaged over consecutive triplets of $5$-minute
+observations, yielding a $15$-minute series of length $T=672$ with an
+$80/20$ split. Horizons $\mathrm{PH}=1,\ldots,4$ then correspond to
+$15$--$60$ minutes ahead. This is a resolution variant of Los-loop, not a
+third dataset, and its PH indices are not equivalent to those of the
+$5$-minute series. A separate multi-lag DAGMA fit is used
+($\lambda_1=0.01$; consumer threshold $|W|>0.1$); T-GCN-NoSpatial,
+T-GCN-MultiGSL, and T-GCN-MultiGSL-Mix are trained with five seeds under
+the standard protocol.

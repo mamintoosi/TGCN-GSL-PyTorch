@@ -1,0 +1,124 @@
+% ======================================================================
+% Sections 6–8 — Discussion, Limitations, Conclusion
+% Revised from submitted analysis/conclusion + final Results framing
+% ======================================================================
+\section{Discussion}\label{sec:discussion}
+
+\subsection{Why the Physical Graph Can Be Harmful}\label{sec:disc-dense}
+
+The physical road-network graph is dense relative to the number of sensors
+(on the order of $10^3$ off-diagonal entries for $207$ Los-loop detectors).
+Under repeated neighborhood aggregation this density can oversmooth node
+representations, so that a graph-based forecaster is worse than the same
+backbone with identity adjacency. The consistent gap between Physical and
+NoSpatial on both benchmarks and both backbones is consistent with that
+reading. It also changes how GSL should be judged: improving on the
+physical graph is not sufficient evidence that learned structure is useful,
+because discarding the graph already helps.
+
+Learned contemporaneous graphs occupy an intermediate position --- less
+harmful than the physical graph, but not better than using no graph. What
+they appear to provide is a less harmful neighborhood, not enough
+additional signal to beat identity under these protocols.
+
+\subsection{When Learned Structure Helps}\label{sec:disc-help}
+
+The positive Los-loop result is specific: multi-lag DAGMA graphs consumed
+in a lag-aligned way inside T-GCN. Three observations support a
+structure-learning interpretation rather than a pure sparsity
+interpretation. First, at a matched $30$-edge budget, random and
+correlation-placed graphs are worse than no graph, while DAGMA-placed lag
+graphs are better (Los-loop PH1 only). Second, the multi-lag construction
+recovers substantially more lagged structure on Los-loop than on SZ-Taxi
+($30$ vs.\ $2$ slots). Third, the same multi-lag artifacts fail when merged
+into a static union for GCN, so estimation alone is not enough; the
+backbone must use the structure in a way that matches how it was organized
+(lag blocks).
+
+The GCN/T-GCN contrast for contemporaneous graphs (cGSL helps GCN more than
+T-GCN) is an aggregation-compatibility observation of this study. We do not
+interpret the contemporaneous DAG as a temporal graph
+(Section~\ref{sec:gsl_contemp}); temporal organization of learned structure
+is carried by the multi-lag construction only.
+
+\subsection{What the Learned Graph Represents}\label{sec:disc-interpretation}
+
+We treat the learned adjacencies as \emph{statistical dependency}
+estimates under a linear DAGMA fit. Acyclicity is an optimization
+constraint, not evidence of causal traffic mechanisms. The lag-structured
+reading of the multi-lag blocks is consistent with the input construction
+$Z=[x(t-3),\ldots,x(t)]$ and with the consumption experiments, but it is
+not independently validated against ground-truth propagation. The gated
+variant changes how static lag graphs are used per node and timestep; it
+does not produce a time-varying edge set.
+
+\subsection{Dataset Dependence}\label{sec:disc-dataset}
+
+SZ-Taxi and Los-loop differ in sampling interval, sensor count, and road
+environment. The $15$-minute Los-loop control (Section~\ref{sec:res-boundaries})
+shows that coarser sampling alone does not suppress the multi-lag gain.
+The more concrete difference in these experiments is how much structure the
+estimator recovers: a nearly empty multi-lag fit on SZ-Taxi is associated
+with results close to the graph-free baseline. This is a scope condition on
+GSL for traffic, not a failure of the general idea that adjacency can be
+estimated from data.
+
+\section{Limitations}\label{sec:limitations}
+
+\begin{itemize}
+\item \textbf{Statistical power.} Main results use five training seeds.
+Sample standard deviations and paired win counts are reported; with $n=5$
+the exact Wilcoxon test cannot fall below $p=0.0625$, so we avoid definitive
+significance claims.
+\item \textbf{Control scope.} Matched-sparsity and capacity controls exist
+only for Los-loop at PH1. There is no sparsified physical graph, no
+$\lambda$/threshold sweep, and no SZ-Taxi sparsity control.
+\item \textbf{Datasets and horizons.} Two benchmarks; $\mathrm{PH}\le 4$ at
+native sampling. The $15$-minute Los-loop study is a resolution control, not
+evidence for PH5--8 at $5$-minute sampling.
+\item \textbf{Estimator assumptions.} Linear DAGMA with $\ell_2$ score and
+acyclicity regularizer; nonlinear dependency and misspecified lag depth
+$L=3$ are not examined. Multi-lag fitting is expensive for large $N$.
+\item \textbf{Static graphs.} Learned adjacencies are fitted once. Mix
+varies \emph{use} of those graphs, not the edge set; time-varying structure
+learning remains future work.
+\item \textbf{Backbones.} Evaluation is limited to GCN and T-GCN. Larger
+attention or transformer traffic models are outside the present study.
+\end{itemize}
+
+\section{Conclusion and Future Works}\label{sec:conclusion}
+
+This paper revisits graph structure learning for traffic forecasting under
+a protocol that includes physical, graph-free, contemporaneous learned, and
+multi-lag learned adjacencies on two public benchmarks. The main findings
+are:
+
+\begin{enumerate}
+\item A dense physical road-network graph can be a poor default for GCN and
+T-GCN at short horizons; a graph-free identity control is a necessary
+reference when evaluating learned structure.
+\item A single contemporaneous DAGMA graph improves on the physical graph in
+many settings but does not beat the graph-free control on these datasets.
+\item Multi-lag learned graphs help on Los-loop when consumed in a
+lag-aligned way inside T-GCN; per-node gating (T-GCN-MultiGSL-Mix) is the
+strongest configuration ($14.5\%$ relative RMSE reduction vs.\ the
+graph-free baseline at PH1; up to $43.0\%$ vs.\ the physical baseline
+across horizons). Matched-budget controls show that sparsity alone does not
+explain this gain on the studied cell.
+\item The benefit is dataset-dependent. On SZ-Taxi, where the multi-lag fit
+is nearly empty, learned variants remain close to the graph-free baseline.
+A $15$-minute resampling of Los-loop retains a large relative gain, so
+coarser sampling alone does not explain the SZ-Taxi result.
+\item Learned graphs are interpreted as statistical dependency structure,
+not causal maps of traffic influence.
+\end{enumerate}
+
+Future work includes longer horizons at $5$-minute resolution, additional
+networks, sparsified-physical controls and $\lambda$/threshold sensitivity,
+other backbones, hybrid combinations with attention
+\citep{Sun2023Attention}, and genuinely time-varying graph estimation
+(e.g.\ incremental or sliding-window structure learning) rather than gated
+use of a fixed graph. Overall, learning the adjacency from traffic data can
+improve forecasting when the recovered structure is informative and is used
+in a manner consistent with how it was estimated; it is not a universal
+replacement for either the physical graph or a graph-free model.

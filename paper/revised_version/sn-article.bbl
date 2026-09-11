@@ -1,6 +1,6 @@
 %% BioMed_Central_Bib_Style_v1.01
 
-\begin{thebibliography}{36}
+\begin{thebibliography}{38}
 % BibTex style file: bmc-mathphys.bst (version 2.1), 2014-07-24
 \ifx \bisbn   \undefined \def \bisbn  #1{ISBN #1}\fi
 \ifx \binits  \undefined \def \binits#1{#1}\fi
@@ -619,6 +619,39 @@ pp. \bfpage{297}--\blpage{321}.
 \doiurl{10.1007/978-981-16-6054-2\_14} .
 \burl{https://doi.org/10.1007/978-981-16-6054-2\_14}
 \end{bbook}
+\endbibitem
+
+%%% 37
+\bibitem[\protect\citeauthoryear{Amintoosi}{2024}]{Amintoosi1403aimc55-GSL}
+\begin{bchapter}
+\bauthor{\bsnm{Amintoosi}, \binits{M.}}:
+\bctitle{Urban traffic prediction with learning based graph convolutional
+  networks}.
+In: \bbtitle{Proceedings of the $55^{th}$ Annual Iranian Mathematics
+  Conference},
+\bconflocation{Ferdowsi University of Mashhad},
+pp. \bfpage{145}--\blpage{148}
+(\byear{2024}).
+\bcomment{(In Persian)}.
+\burl{https://github.com/mamintoosi/TGCN-GSL-TF}
+\end{bchapter}
+\endbibitem
+
+%%% 38
+\bibitem[\protect\citeauthoryear{Yu et~al.}{2020}]{YU2020189}
+\begin{barticle}
+\bauthor{\bsnm{Yu}, \binits{B.}},
+\bauthor{\bsnm{Lee}, \binits{Y.}},
+\bauthor{\bsnm{Sohn}, \binits{K.}}:
+\batitle{Forecasting road traffic speeds by considering area-wide
+  spatio-temporal dependencies based on a graph convolutional neural network
+  (gcn)}.
+\bjtitle{Transportation Research Part C: Emerging Technologies}
+\bvolume{114},
+\bfpage{189}--\blpage{204}
+(\byear{2020})
+\doiurl{10.1016/j.trc.2020.02.013}
+\end{barticle}
 \endbibitem
 
 \end{thebibliography}
