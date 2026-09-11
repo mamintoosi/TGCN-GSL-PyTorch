@@ -1,0 +1,400 @@
+% ======================================================================
+% Revised manuscript (working flat draft)
+% Base identity: submitted_version "Graph Structure Learning for Traffic Prediction"
+% This stage updates Introduction and Background only.
+% Later sections are temporarily \input from stage files pending their
+% revision under the same framing.
+% Compile: pdflatex sn-article.tex; bibtex sn-article; pdflatex x2
+% ======================================================================
+\documentclass[pdflatex,sn-mathphys-num]{sn-jnl}
+
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage[title]{appendix}
+\usepackage{xcolor}
+\usepackage{textcomp}
+\usepackage{manyfoot}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{subcaption}
+
+\theoremstyle{thmstyleone}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{thmstyletwo}
+\newtheorem{example}{Example}
+\newtheorem{remark}{Remark}
+\theoremstyle{thmstylethree}
+\newtheorem{definition}{Definition}
+
+\raggedbottom
+\input{commands}
+
+\begin{document}
+
+\title[Graph Structure Learning for Traffic Prediction]{Graph Structure Learning for Traffic Prediction}
+
+\author*[1]{\fnm{Mahmood} \sur{Amintoosi}}\email{m.amintoosi@um.ac.ir}
+
+\affil*[1]{\orgdiv{Division of Computer Science, Department of Applied Mathematics, Faculty of Mathematical Sciences}, \orgname{Ferdowsi University of Mashhad}, \orgaddress{\street{Bahonar Av.}, \city{Mashhad}, \postcode{91775}, \state{Khorasan-e Razavi}, \country{IRAN}}, ORCID:0000-0001-9640-6475}
+
+% Title and abstract: author-final framing (gsl_master), not rewritten here.
+\abstract{Accurate traffic forecasting remains challenging due to complex
+spatial and temporal dependencies. Existing graph-based methods typically
+rely on predefined adjacency matrices constructed from physical
+proximity, although physical connections may not adequately represent
+functional dependencies in traffic data. To address this limitation, we
+investigate a Graph Structure Learning (GSL) framework in which the
+adjacency matrix is learned directly from traffic observations rather
+than predefined from physical connections. We consider both
+contemporaneous and multi-lag learned graph structures and evaluate them
+with spatial and spatiotemporal forecasting models on the real-world
+SZ-Taxi and Los-loop datasets. The results show that learned graph
+structures can improve traffic forecasting, with the largest and most
+consistent gains obtained when lag-specific structures are consumed
+according to their temporal alignment. On Los-loop, the best learned
+multi-lag configuration reduces RMSE by 14.5\% relative to the graph-free
+baseline at the first forecasting horizon and by up to 43.0\% relative to
+the physical-graph baseline across the evaluated horizons. On SZ-Taxi,
+the learned multi-lag structure provides only limited gains, reflecting
+the much sparser structure recovered from the data. Additional
+experiments with matched-sparsity graphs show that the observed gains on
+Los-loop cannot be explained by sparsity alone. Overall, the results
+indicate that learning the graph structure from traffic data can provide
+useful predictive information, although its effectiveness depends on the
+dataset and on how the learned structure is incorporated into the
+forecasting model. The learned graphs are interpreted as statistical
+dependencies rather than causal relationships. The paper code is
+available at \url{https://github.com/mamintoosi/TGCN-GSL-PyTorch}.}
+
+\keywords{
+Traffic Forecasting,
+Graph Knowledge Discovery,
+Graph Structure Learning,
+Graph Convolutional Networks,
+T-GCN,
+Multi-Lag Graph Learning
+}
+
+\maketitle
+
+% ======================================================================
+\section{Introduction}\label{sec:intro}
+
+Recent advances in graph knowledge discovery have opened new possibilities
+for understanding complex urban systems, particularly in transportation
+networks. This paper applies the principles of graph knowledge discovery to
+traffic prediction, and examines whether learning the graph structure from
+traffic data improves forecasting relative to graphs that are predefined
+from physical connectivity.
+In recent years, traffic prediction has garnered significant attention in
+smart urban transportation systems. In navigation, ride-hailing, and route
+planning, accurate traffic prediction plays a crucial role in reducing
+congestion and increasing the efficiency of transportation networks. Traffic
+prediction involves analyzing traffic conditions, including flow and speed,
+extracting traffic patterns, and forecasting traffic trends on urban roads.
+Due to the complex spatial and temporal dependencies involved, this problem
+remains challenging and is an active area of research.
+
+The spatial dependencies in this problem arise from the fact that traffic
+conditions on one road segment are statistically related to conditions on
+other segments through the topology of the urban road network and through
+shared demand patterns. Traffic volume also changes dynamically over time,
+affected by short-term and long-term patterns, which underscores the
+temporal dependencies in traffic data.
+
+These relationships motivate sophisticated models that can capture joint
+spatio-temporal structure. A critical limitation of many existing
+approaches, however, is their reliance on physical proximity or predefined
+road-network topology to construct the adjacency matrix. Physical
+connectivity need not coincide with functional co-movement in the data:
+distant roads can exhibit strong traffic correlations because of commuting
+patterns, while adjacent roads can have weak statistical dependence.
+Moreover, dense proximity graphs can degrade graph-convolutional models
+through oversmoothing, so that a graph-based forecaster can be worse than
+the same backbone without a graph. These observations raise a natural
+question: if the adjacency matrix is a modeling choice rather than a fixed
+physical fact, should it be estimated from the traffic data themselves?
+
+Multiple traffic prediction methods, including neural networks, statistical
+approaches, and Bayesian methods, model temporal evolution but neglect
+spatial dependencies \citep{akhtar2021review}. To describe spatial
+features, many studies use graph-based methods
+\citep{ye2020build,xie2020urban,Chen2023Dynamic,ZHOU2025110304}. In
+\cite{zhao2019t}, a Temporal Graph Convolutional Network (T-GCN) was
+proposed for traffic prediction. T-GCN combines a Graph Convolutional
+Network (GCN) with a Gated Recurrent Unit (GRU): the GCN captures spatial
+dependence and the GRU captures temporal dependence. The combined model
+achieves strong results on standard traffic benchmarks.
+
+Existing graph-based methods typically build the adjacency matrix from road
+proximity or distance \citep{zhao2019t}. While such graphs capture
+geographic connectivity, they need not represent the statistical dependency
+structure present in the observed speeds. Attention-based methods
+\citep{A3T-GCN,Sun2023Attention,Chen2026TASTGCN} reweight relationships
+between nodes over time, but they usually operate on an initial graph that
+is still defined by heuristics or physical proximity; they change how a
+given structure is used more than which structure is the right one.
+
+Our work studies \emph{graph structure learning} (GSL) for traffic
+forecasting: the adjacency matrix is inferred from the traffic series
+rather than taken as predefined. Continuous optimization methods for
+directed acyclic graphs, such as NOTEARS \citep{zheng2018dags} and DAGMA
+\citep{Bello2024DAGMA}, make such estimation practical. Relative to
+implicit reweighting over a fixed topology, GSL produces an explicit
+binary (or weighted) adjacency that can be inspected as a statistical
+dependency graph over sensors. We interpret that graph as descriptive
+statistical structure under the estimator's assumptions, not as a causal
+map of traffic influence.
+
+This paper evaluates that idea under a controlled experimental design on
+two public benchmarks, SZ-Taxi and Los-loop. In addition to the physical
+road-network graph, we include a \emph{graph-free} identity control, so
+that any contribution of learned structure can be measured against both a
+standard baseline and a model that uses no spatial graph. We consider a
+single contemporaneous learned graph (and its binary symmetrization, cGSL)
+as well as \emph{multi-lag} learned graphs in which lag-specific structures
+are estimated from an explicitly lag-stacked input. Because a learned
+adjacency can be applied as one static operator or aligned with input
+timesteps in a recurrent backbone, we further examine how the
+\emph{consumption} of multi-lag graphs affects forecasting accuracy.
+Finally, matched-sparsity controls address the methodological concern that
+any gain might be due only to the sparsity of the learned graph rather than
+to the placement of its edges.
+
+The experimental results confirm that learning graph structure from traffic
+data can improve forecasting, but they also qualify the claim. Relative to
+the physical graph, learned and even identity adjacencies often reduce
+error. Relative to the graph-free control, the largest and most consistent
+gains on Los-loop appear when lag-specific structures are consumed in a
+temporally aligned manner. On SZ-Taxi, where the recovered multi-lag
+structure is extremely sparse, learned variants remain close to the
+graph-free baseline. Thus, the usefulness of a learned graph depends on the
+dataset and on how the learned structure is incorporated into the
+forecasting model; it is not a universal replacement for either the
+physical graph or a graph-free model.
+
+The contributions of this paper are the following:
+\begin{enumerate}
+\item We investigate GSL for traffic forecasting with GCN and T-GCN
+backbones, replacing a predefined physical adjacency with an adjacency
+estimated from the traffic data.
+\item We compare learned graphs not only to the physical baseline but also
+to a graph-free control, and we evaluate both a contemporaneous
+construction and a multi-lag construction of the learned structure.
+\item We study how multi-lag graphs are consumed by the forecasting model
+(static union versus lag-aligned recurrent use, including a gated mixing
+variant), which separates the estimated structure from the mechanism that
+uses it.
+\item We report five-seed experiments on SZ-Taxi and Los-loop, together
+with matched-sparsity controls, showing that the benefit of learned
+structure is dataset-dependent and cannot be attributed to sparsity alone
+on the dataset where gains are clearest.
+\end{enumerate}
+
+In the following sections, we review background on traffic prediction and
+GCN/T-GCN models (Section~\ref{sec:bg}). We then present the GSL framework
+used to estimate the adjacency matrix and its integration with GCN and
+T-GCN (Section~\ref{sec:method}). Experimental settings are described in
+Section~\ref{sec:setup}, results in Section~\ref{sec:results}, and
+discussion in Section~\ref{sec:discussion}. Limitations are stated in
+Section~\ref{sec:limitations}, and conclusions in
+Section~\ref{sec:conclusion}.
+
+% ======================================================================
+\section{Background and Related Work}\label{sec:bg}
+
+The goal of traffic forecasting is to predict future traffic conditions
+from historical data. Traffic conditions can include metrics such as speed,
+flow, or density; in our experiments we focus on traffic speed without loss
+of generality.
+
+We model the road network as a graph $G=(V,E)$, where
+$V=\{v_1,\ldots,v_N\}$ represents $N$ road segments (sensors) as nodes,
+$E$ represents edges between connected roads, and
+$\mathbf{A}\in\{0,1\}^{N\times N}$ is the adjacency matrix encoding those
+connections (or, in learned variants, estimated statistical adjacency). The
+traffic data are represented by a feature matrix
+$X\in\mathbb{R}^{N\times P}$, where $P$ is the length of the historical
+series and $X_t\in\mathbb{R}^{N}$ is the vector of speeds at time $t$. The
+forecasting task is to learn a mapping
+\begin{equation}
+[X_{t+1},\ldots,X_{t+T}] = f\big(G;[X_{t-n},\ldots,X_t]\big),
+\end{equation}
+where $n$ is the number of historical steps used as input and $T$ is the
+prediction horizon.
+
+\subsection{Overview of Traffic Prediction Approaches}\label{sec:bg-overview}
+
+Traffic prediction methods can be broadly categorized as follows.
+
+\emph{Classical prediction methods} include ARIMA models
+\citep{Hamed1995Short,Fabian2003Modeling}, support vector regression
+\citep{Smola2004A}, seasonal ARIMA variants \citep{Lippi2013Short}, and
+Kalman filtering approaches \citep{Ojeda2013Adaptive}. These methods are
+effective for basic temporal patterns on individual series but often
+struggle with network-scale spatial dependence and strong nonlinearity.
+
+\emph{Classical deep learning methods} include feedforward networks
+\citep{Park2010Forecasting}, spatio-temporal residual networks
+\citep{Zhang2016Deep}, interactive temporal recurrent convolutional
+networks \citep{Cao2017Interactive}, and recurrent variants such as GRU and
+LSTM \citep{Fu2017Using,KHAN20253369}. They capture rich temporal
+structure and some spatial coupling, but their Euclidean assumptions limit
+the modeling of irregular network topology.
+
+\emph{Graph-based and temporal graph methods} explicitly model network
+topology. Representative models include GCNs \citep{kipf2017semi,Zuo2023},
+T-GCN \citep{zhao2019t}, attention-based temporal GCNs (A3T-GCN)
+\citep{A3T-GCN}, dynamic spatial--temporal attention networks
+\citep{Sun2023Attention}, and a range of recent spatio-temporal graph
+convolutional, recurrent, and transformer architectures
+\citep{WANG2024107299,XIA2024122381,REMMOUCHE2025128244,ZEB2025128073,Jia2025,Chen2026TASTGCN}.
+These methods model topology and time jointly, but they typically rely on
+a predefined graph that may not match the dependency structure in the data.
+
+Comprehensive reviews are available elsewhere
+\citep{REMMOUCHE2025128244,Liu2025review,Peng2024Overview}. Our focus is
+the role of the adjacency matrix itself. A bibliometric analysis of $784$
+traffic-forecasting articles ($2000$--$2025$) confirms the rise of
+graph-based methods and the continued dominance of heuristic graph
+construction (Appendix~\ref{sec:Bibliometric-Methodology}).
+
+Since this paper builds on GCN and T-GCN, we next summarize those two
+backbones concisely; fuller treatments appear in
+\citep{kipf2017semi,zhao2019t}.
+
+\subsection{Graph Convolutional Network}\label{sec:bg-gcn}
+
+Graph Convolutional Networks extend convolution to graph-structured data
+\citep{kipf2017semi,battaglia2018relational} and have been applied widely,
+including community detection
+\citep{LIU2023120748,doi:10.1080/09540091.2023.2291995}, semi-supervised
+learning \citep{kipf2017semi,GCN-JAC2021}, and recommendation
+\citep{Ying:2018}. Figure~\ref{fig:GCN} illustrates a graph-convolutional
+layer used for traffic prediction: the green node is the target sensor and
+orange nodes are its graph neighbors. Traditional pipelines take
+$\mathbf{A}$ from the physical road network; our proposed pipeline instead
+estimates node adjacencies from traffic data.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.55\linewidth]{gnn-layer-printed-cropped.pdf}
+\caption{A graph convolutional architecture with layers $l$ and $(l+1)$
+computing $\mathbf{H}^{(l+1)}$ as in \eqref{eq:gcn-layer}. Neighbors are
+defined by the adjacency matrix $\mathbf{A}$. In the standard setting
+$\mathbf{A}$ comes from the physical road network; in this work adjacency
+is also estimated from traffic data.}
+\label{fig:GCN}
+\end{figure}
+
+The layer-wise propagation rule is
+\citep{kipf2017semi}
+\begin{equation}
+\textstyle
+\mathbf{H}^{(l+1)}
+=\sigma\!\left(
+\tilde{\mathbf{D}}^{-\frac{1}{2}}
+\tilde{\mathbf{A}}
+\tilde{\mathbf{D}}^{-\frac{1}{2}}
+\mathbf{H}^{(l)}\mathbf{W}^{(l)}
+\right),
+\label{eq:gcn-layer}
+\end{equation}
+where $\tilde{\mathbf{A}}=\mathbf{A}+\mathbf{I}_N$ adds self-connections,
+$\tilde{D}_{ii}=\sum_j\tilde{A}_{ij}$, $\mathbf{W}^{(l)}$ is a trainable
+feature map, and $\sigma$ is a nonlinearity (typically ReLU). The
+normalized operator
+$\hat{A}=\tilde{\mathbf{D}}^{-1/2}\tilde{\mathbf{A}}\tilde{\mathbf{D}}^{-1/2}$
+aggregates neighborhood information while controlling scale; a two-layer
+GCN can be written as
+\begin{equation}
+\textstyle
+f(\mathbf{A},\mathbf{X})
+=\mathbf{H}^{(2)}
+=\sigma\!\left(\hat{A}\mathbf{H}^{(1)}\mathbf{W}^{(1)}\right).
+\label{eq:two-layer-gcn}
+\end{equation}
+In traffic applications, this aggregation encodes spatial dependence over
+the graph defined by $\mathbf{A}$; temporal dependence is added by the
+recurrent component described next.
+
+\subsection{Temporal Graph Convolutional Network}\label{sec:bg-tgcn}
+
+T-GCN \citep{zhao2019t} combines GCN with a GRU for traffic forecasting.
+At each time $t$, spatial features
+$\mathbf{Z}_t=f(\mathbf{A},\mathbf{X}_t)$ are obtained from
+\eqref{eq:two-layer-gcn}; the GRU then updates a hidden state
+$\mathbf{S}_t$ using update and reset gates
+($\mathbf{u}_t$, $\mathbf{r}_t$) and trainable matrices
+$\mathbf{W}_u,\mathbf{W}_r,\mathbf{W}_c$. Training minimizes the
+discrepancy between predicted speeds $\widehat{Y_t}$ and observed speeds
+$Y_t$, for example
+\begin{equation}
+loss=\lVert Y_t-\widehat{Y_t}\rVert+\lambda L_{reg},
+\end{equation}
+with $L_{reg}$ an $\ell_2$ penalty. T-GCN therefore models spatial
+dependence through graph convolution and temporal dependence through
+gating, and is the principal spatiotemporal backbone in our experiments.
+The non-recurrent GCN backbone applies graph convolution over the input
+window and is used as a spatial counterpart.
+
+\subsection{Graph Structure Learning}\label{sec:bg-gsl}
+
+Graph structure learning estimates $\mathbf{A}$ (or a weighted coefficient
+matrix $W$) from observed data rather than from a predefined map
+\citep{Chen2022}. In traffic, the motivation is that proximity is an
+imperfect proxy for functional co-movement, and that sparse data-driven
+graphs may avoid the oversmoothing induced by dense physical adjacencies.
+
+Score-based continuous DAG learners replace combinatorial search over
+graphs with smooth optimization on real matrices. NOTEARS
+\citep{zheng2018dags} introduces a differentiable acyclicity constraint;
+DAGMA \citep{Bello2024DAGMA} strengthens the approach with a
+log-determinant characterization suitable for efficient optimization. We
+use DAGMA with a linear structural-equation score and an $\ell_1$ sparsity
+penalty. After fitting, a binary adjacency is obtained by thresholding
+absolute coefficient magnitudes. Acyclicity here is an optimization
+device; we do not interpret the learned graph as a causal traffic model.
+The precise contemporaneous and multi-lag constructions, including
+thresholds and edge budgets, are specified in Section~\ref{sec:method}.
+
+Compared with attention mechanisms that reweight neighbors on a fixed
+topology, GSL changes the edge set itself. Compared with purely temporal
+models, it makes the spatial operator an object of estimation. In this
+paper we study that estimated operator both as a single contemporaneous
+graph and as lag-specific blocks, and we evaluate it against physical and
+graph-free references under the same forecasting protocol.
+
+\subsection{Position of this Work}\label{sec:bg-position}
+
+This work remains a study of GSL for traffic prediction. Relative to the
+standard GCN/T-GCN pipeline with a physical adjacency, we ask whether a
+learned adjacency is preferable, and under what conditions. Three
+extensions relative to a minimal GSL baseline are essential for answering
+that question honestly: (i) a graph-free control, without which learned
+graphs cannot be separated from the effect of removing a harmful default;
+(ii) an explicit multi-lag construction, so that temporal organization of
+the learned structure is defined by the estimator's input rather than
+asserted post hoc; and (iii) an analysis of how multi-lag graphs are
+consumed by recurrent versus non-recurrent backbones. These elements do
+not change the paper's identity as a graph-structure-learning study; they
+specify the conditions under which learned structure helps.
+
+% ======================================================================
+% Method: revised (this stage). Setup--Conclusion: interim stage drafts
+% pending the same submitted-paper framing pass.
+% ======================================================================
+\input{sections/method}
+\input{../gsl_stage46/sections/setup}
+\input{../gsl_stage47/sections/results}
+\input{../gsl_stage48/sections/discussion}
+\input{../gsl_stage49/sections/limitations_conclusion}
+
+\bibliography{MyReferences}
+
+\end{document}

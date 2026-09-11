@@ -1,0 +1,29 @@
+% ======================================================================
+% Abstract + keywords (sn-jnl \abstract environment)
+% ======================================================================
+\abstract{Graph-based traffic forecasters typically rely on an adjacency
+matrix --- physical or learned --- that is rarely tested against a
+graph-free control. We evaluate GCN and T-GCN backbones on Los-loop and
+SZ-Taxi under a single protocol spanning physical, identity-adjacency,
+learned contemporaneous, and learned multi-lag graphs with four consumption
+mechanisms, four horizons, five seeds, and matched-sparsity and capacity
+controls. Graph-free models outperform the physical graph and all single
+learned contemporaneous graphs on both benchmarks. The only configuration
+that improves over the graph-free control consumes \emph{lag-specific}
+multi-lag DAGMA graphs \emph{per timestep}: T-GCN-MultiGSL-Mix reduces RMSE
+by up to $14.5\%$ relative to the graph-free baseline on Los-loop at the
+first horizon ($5/5$ paired seeds) and by up to $43.0\%$ relative to the
+physical T-GCN baseline across horizons. Feeding the identical graphs as a
+static union is markedly worse, indicating that utility depends critically
+on how the graphs are consumed. On SZ-Taxi, where the learned multi-lag
+graphs retain only two edges, all learned variants remain within seed
+variability of the graph-free control; at a matched $30$-edge budget, random
+and correlation graphs do not reproduce the Los-loop gain. Learned multi-lag
+structure is therefore a conditional tool --- worthwhile where the fitted
+dependency structure is informative and consumed in a temporally aligned
+manner --- and is described throughout as statistical dependency, not
+causal influence.}
+
+\keywords{Traffic forecasting \and Graph structure learning \and
+Graph convolutional networks \and T-GCN \and Multi-lag graphs \and
+Graph consumption}

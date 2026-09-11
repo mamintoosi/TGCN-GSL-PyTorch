@@ -35,7 +35,7 @@ datasets.
 
 These results establish the graph-free control, not the physical graph, as
 the appropriate reference for evaluating learned structure at these operating
-points.
+points (structural contrast in Fig.~\ref{fig:graphstruct}).
 
 \subsection{A Single Learned Graph Does Not Close the Gap}\label{sec:res-single}
 
@@ -119,7 +119,8 @@ persists at PH2--PH4 (GCN-MultiGSL $10.05$--$10.27$ versus T-GCN-MultiGSL
 $5.45$--$6.26$).
 
 Because the union holds nearly the same edges as the three lag graphs, the
-edge set alone cannot account for the difference between the two outcomes.
+edge set alone cannot account for the difference between the two outcomes
+(Fig.~\ref{fig:dissociation}).
 At the same time, GCN and T-GCN also differ in backbone architecture, so
 this comparison provides evidence that \emph{how the multi-lag structure is
 consumed} is a major determinant of whether it is useful; it is not a fully
@@ -146,7 +147,7 @@ horizon, by $0.35$--$0.40$ RMSE on Los-loop (approximately $6$--$7\%$
 relative). Weighted remains within $0.01$ RMSE of Fixed at every Los-loop
 horizon and is treated as a null ablation.
 
-Figure~\ref{fig:perseed} (to be supplied) shows the per-seed distributions
+Figure~\ref{fig:perseed} shows the per-seed distributions
 for NoSpatial, MultiGSL, Weighted, and Mix on Los-loop PH1--PH4; the means
 match Table~\ref{tab:tgcn-main}.
 
@@ -298,11 +299,35 @@ Mix wins (of 5 seeds) & 5 & 5 & 5 & 5 \\
 \end{tabular}
 \end{table}
 
-% Placeholder floats for figures prepared in a later stage:
-% \begin{figure}[t] ... \caption{Consumption dissociation: GCN-MultiGSL (static
-% union) vs T-GCN-MultiGSL (per-timestep) on identical multi-lag graphs,
-% Los-loop PH1.} \label{fig:dissociation} \end{figure}
-% \begin{figure}[t] ... \caption{Per-seed RMSE distributions on Los-loop.}
-% \label{fig:perseed} \end{figure}
-% \begin{figure}[t] ... \caption{Physical adjacency vs multi-lag union.}
-% \label{fig:graphstruct} \end{figure}
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/fig1_dissociation.pdf}
+\caption{Los-loop PH1: the same multi-lag DAGMA artifacts under static-union
+consumption (GCN-MultiGSL) versus per-timestep consumption (T-GCN-MultiGSL),
+with physical and gated references. Bars are five-seed mean RMSE; whiskers
+are sample standard deviations (seeds 42--46). The union retains 28 of the
+30 lagged edge slots. Graphs are static statistical-dependency estimates;
+the figure does not encode causal influence.}
+\label{fig:dissociation}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/fig2_perseed.pdf}
+\caption{Los-loop per-seed test RMSE for the multi-lag consumption ladder
+(seeds 42--46). Diamonds mark five-seed means matching
+Table~\ref{tab:tgcn-main}. $n=5$; see Sect.~\ref{sec:stats}.}
+\label{fig:perseed}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/fig3_graphstruct.pdf}
+\caption{Los-loop graph structure: (a) physical road-network adjacency
+($2626$ off-diagonal edges; mean degree $12.69$); (b) union of the three
+multi-lag DAGMA graphs after consumer thresholding ($28$ edges; mean degree
+$0.14$); (c) and histogram of node degrees. Learned graphs describe
+statistical dependency structure, not causal traffic influence.}
+\label{fig:graphstruct}
+\end{figure}
+

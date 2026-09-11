@@ -1,0 +1,75 @@
+% ======================================================================
+% Sections 7–8 — Limitations and Conclusion
+% ======================================================================
+\section{Limitations}\label{sec:limitations}
+
+The study is a controlled evaluation on two public benchmarks, not a claim of
+universal benefit. Several limitations bound the evidence.
+
+\paragraph{Statistical power.}
+All main results aggregate five training seeds. Sample standard deviations
+and paired win counts are reported, and paired $t$-tests are given for
+reference, but with $n=5$ the exact Wilcoxon signed-rank test cannot fall
+below $p=0.0625$. We therefore avoid definitive significance claims and rely
+on effect size, seed consistency, and the matched controls.
+
+\paragraph{Scope of the controls.}
+The matched-sparsity and capacity controls are restricted to Los-loop at
+PH1. There is no matched-sparsity control on SZ-Taxi or at longer horizons,
+no sparsified variant of the physical graph, and no sensitivity sweep over
+DAGMA $\lambda_1$ or threshold parameters. The sparsity conclusion is
+explicitly scoped to that single cell.
+
+\paragraph{Datasets and horizons.}
+Only two datasets are used, with different sampling intervals
+($5$\,min and $15$\,min). Horizons are limited to $\mathrm{PH}\le 4$ at the
+native sampling rate of each series. The $15$-minute Los-loop experiment
+covers $15$--$60$ minutes ahead as a temporal-resolution variant; it is not
+evidence for PH5--8 at $5$-minute sampling, and PH indices are not
+comparable across sampling intervals.
+
+\paragraph{Graph-learning assumptions.}
+Graphs are estimated with linear DAGMA ($\ell_2$ score, acyclicity
+regularizer). Nonlinear dependency, measurement noise beyond the linear SEM
+assumption, and misspecification of the lag depth $L=3$ are not examined.
+Measured runtimes are non-negligible for the multi-lag fit (on the order of
+hours for the $828$-variable construction on Los-loop), which limits rapid
+replication at larger $N$.
+
+\paragraph{Static graphs; gated use.}
+The learned graphs are fitted once and remain static. The Mix mechanism
+varies how those static graphs are consumed per node and timestep; it does
+not produce time-varying edge sets. Genuinely time-varying learned graphs
+remain future work.
+
+\paragraph{Backbone scope.}
+Experiments cover the GCN and T-GCN family used here. Other spatio-temporal
+architectures (attention-based models, diffusion variants, large
+transformers) are outside the study.
+
+\section{Conclusion}\label{sec:conclusion}
+
+We asked when and how learned graph structure helps graph-based traffic
+forecasting, separating the \emph{source} of the graph from the
+\emph{mechanism that consumes it}. Across two public benchmarks, twelve
+configurations, four horizons, and five seeds, three conclusions follow.
+First, the dense physical road-network graph is not a sound default: a
+graph-free identity control outperforms it in every dataset--horizon cell,
+and single learned contemporaneous graphs improve on the physical graph but
+never on the graph-free control. Second, lag-specific multi-lag DAGMA
+graphs are useful on Los-loop only when consumed in a temporally aligned
+manner; feeding the identical graphs as a static union is markedly worse,
+so consumption is at least as important as learning, while a global lag
+mixture is insufficient and a per-node, per-timestep gate adds a further
+seed-consistent gain (up to $14.5\%$ relative RMSE reduction versus the
+graph-free baseline at PH1). Third, the benefit is conditional: on SZ-Taxi,
+where the learned multi-lag graphs retain almost no edges, all learned
+variants remain within seed variability of the graph-free baseline, and
+matched-budget controls show that sparsity alone does not explain the
+Los-loop gain.
+
+Future work includes longer horizons at $5$-minute resolution, additional
+networks, sparsified-physical controls, $\lambda$/threshold sensitivity,
+other backbones, and genuinely time-varying graph structure. Practically,
+we recommend that graph-based traffic forecasters report a graph-free
+control and state explicitly how any learned graph is consumed over time.
