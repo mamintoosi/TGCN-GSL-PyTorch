@@ -227,6 +227,43 @@ A per-seed distribution figure on Los-loop (NoSpatial, MultiGSL, Weighted, Mix) 
 
 ---
 
+### W7 — Results only up to prediction horizon 4
+
+**Response.** We thank the reviewer for this comment. Forecast horizons of four steps are also used in several standard traffic-forecasting evaluations, including T-GCN and A3T-GCN (Zhao et al., 2020). That convention is relevant context, but it does not replace a direct analysis of longer horizons. To address the concern, we added a temporal-resolution control on Los-loop and state the horizon scope of our claims explicitly.
+
+**Canonical horizons.** The main experiments use $\mathrm{PH}=1$–$4$ at each dataset’s native sampling interval (5–20 minutes on Los-loop; 15–60 minutes on SZ-Taxi). We did **not** run PH5–8 (or longer) on the native 5-minute Los-loop series.
+
+**Temporal-resolution control (15-minute Los-loop).** Los-loop was resampled to 15-minute steps by averaging consecutive triplets, and the multi-lag comparison was repeated under the same five-seed training protocol. In that variant, $\mathrm{PH}=1,2,3,4$ correspond to **15, 30, 45, and 60 minutes** ahead. In wall-clock terms these horizons match **PH3, PH6, PH9, and PH12** on the native 5-minute grid; they are not equivalent to directly evaluating those PH values on the original 5-minute data, because resampling averages away 5-minute detail. On the 15-minute series, Mix reduces RMSE versus NoSpatial by $27.4\%$, $21.4\%$, $19.8\%$, and $16.1\%$ at $15$–$60$ minutes, with $5/5$ seed wins at each step (Section 5.5; Table 5). This experiment reports **NoSpatial, MultiGSL, and Mix only**; it does **not** include separate GSL/cGSL rows.
+
+**Scope of the claims.** The paper studies the effect of graph structure and its use for short-horizon forecasting at PH1–4. Conclusions are limited to that range and are not generalized to all forecast horizons. The submitted GSL/cGSL comparison is likewise limited to PH1–4 on the native grids (Tables 2–3); we do not claim a GSL/cGSL gap analysis beyond PH4 at 5-minute sampling.
+
+**Balance of the revision.** Responses to the other comments (including W4 and W5) already required additional experiments, controls, and protocol clarification, together with condensation of some earlier sections. The 15-minute control was added as further evidence at longer wall-clock horizons without treating it as a full substitute for PH5–8 on the 5-minute series; that extension remains listed as future work in the Conclusion.
+
+**Location.** Section 4.10 (*Temporal-Resolution Variant*); Section 5.5 (*Dataset Dependence and Temporal Resolution*); Table 5; Limitations (horizon scope); Conclusion (future work).
+
+---
+
+### W8 — Section 5 repetitive; weak tie-back to the opening claims
+
+**Response.** We thank the reviewer. The Results section has been reorganized so that each subsection answers one question and closes with a short summary that maps onto the Introduction.
+
+**Less repetition, message-oriented structure.** The long, partly repetitive Results discussion of the submitted version is replaced by six subsections with explicit messages:
+
+1. Section 5.1 — physical graph versus graph-free control;  
+2. Section 5.2 — single contemporaneous learned graphs (GSL/cGSL);  
+3. Section 5.3 — whether the gain is only sparsity (controls);  
+4. Section 5.4 — multi-lag graphs and how they are used;  
+5. Section 5.5 — dataset dependence and the 15-minute resolution control;  
+6. Section 5.6 — summary of findings.
+
+We kept 5.1–5.3 as separate subsections rather than merging them, because each answers a distinct question (default graph, single learned graph, sparsity confound) and uses a different evidence block (main tables vs controls table). Repeating the same numeric table under three headings was avoided; 5.1 and 5.2 share Tables 2–3 without restating all cells.
+
+**Tie-back to the Introduction.** The opening frames physical proximity versus data-dependent association and asks whether the adjacency should be estimated from traffic data. Section 5.1 establishes that the dense physical graph is a poor default and that a graph-free control is required. Section 6.1 (*When the Physical Graph Is a Poor Default*) returns to that framing explicitly (proximity versus association; possible oversmoothing as a reading of the physical-versus-identity gap). The old “spatial graph versus temporal dependency graph” resolution section from the submitted manuscript is not retained; that role is now played by the contemporaneous-versus-multi-lag distinction in Method and by the Discussion, without the temporal-DAG claim (see W4).
+
+**Location.** Sections 5.1–5.6 (Results); Section 6.1 (Discussion); Introduction (framing).
+
+---
+
 | ID | Status |
 |----|--------|
 | W1 bibliometrics underused | **Addressed** — stronger Intro sentence + full Appendix A (3 figures) |
@@ -235,8 +272,8 @@ A per-seed distribution figure on Los-loop (NoSpatial, MultiGSL, Weighted, Mix) 
 | W4 temporal interpretation of DAG | **Addressed** — contemporaneous vs multi-lag separated; temporal-DAG claim retired; **major experimental redesign** |
 | W5 sparsity / oversmoothing / controls | **Addressed** — NoSpatial, matched sparsity, capacity, structure stats (Fig. 5; §3.4–3.5; §5.3); HPO/sweep deferred to Limitations |
 | W6 seeds / variance / significance | **Addressed** — see W6 below |
-| W7 horizons > 4 | In progress |
-| W8 repetitive Results / tie-back | In progress |
+| W7 horizons > 4 | **Partially addressed** — 15-min Los-loop control to 60 min wall-clock; PH5–8 at 5-min not run (Limitations / future work) |
+| W8 repetitive Results / tie-back | **Addressed** — message-oriented §5.1–5.6; §5.6 summary; Discussion §6.1 ties to Intro framing |
 | W9 limitations | In progress |
 | W10 metric definitions | In progress |
 | W11 dense convergence plots | In progress |
