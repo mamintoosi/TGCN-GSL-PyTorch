@@ -111,11 +111,17 @@ road-network topology to construct the adjacency matrix. Physical
 connectivity need not coincide with functional co-movement in the data:
 distant roads can exhibit strong traffic correlations because of commuting
 patterns, while adjacent roads can have weak statistical dependence.
-Moreover, dense proximity graphs can degrade graph-convolutional models
-through oversmoothing, so that a graph-based forecaster can be worse than
-the same backbone without a graph. These observations raise a natural
-question: if the adjacency matrix is a modeling choice rather than a fixed
-physical fact, should it be estimated from the traffic data themselves?
+Moreover, dense or otherwise mismatched proximity graphs may degrade
+graph-based forecasting, for example by inducing excessive neighborhood
+mixing or an unsuitable inductive bias, so that a graph-based forecaster
+can be worse than the same backbone without a graph. A bibliometric
+analysis of $784$ traffic-forecasting articles ($2000$--$2025$) shows that
+graph-based methods have become a dominant recent focus while many systems
+still construct the adjacency heuristically from road topology
+(Appendix~\ref{sec:Bibliometric-Methodology}). These observations raise a
+natural question: if the adjacency matrix is a modeling choice rather than
+a fixed physical fact, should it be estimated from the traffic data
+themselves?
 
 Multiple traffic prediction methods, including neural networks, statistical
 approaches, and Bayesian methods, model temporal evolution but neglect
@@ -123,19 +129,30 @@ spatial dependencies \citep{akhtar2021review}. To describe spatial
 features, many studies use graph-based methods
 \citep{ye2020build,xie2020urban,Chen2023Dynamic,ZHOU2025110304}. In
 \cite{zhao2019t}, a Temporal Graph Convolutional Network (T-GCN) was
-proposed for traffic prediction. T-GCN combines a Graph Convolutional
-Network (GCN) with a Gated Recurrent Unit (GRU): the GCN captures spatial
-dependence and the GRU captures temporal dependence. The combined model
-achieves strong results on standard traffic benchmarks.
+proposed for traffic prediction. T-GCN integrates graph-based spatial
+aggregation into a recurrent gated architecture and achieves strong
+results on standard traffic benchmarks. In the implementation used in this
+study, graph convolution is incorporated into the gate computations of a
+T-GCN cell (the formulation in the public T-GCN code lineage), rather than
+as a standalone GCN followed by an independent vanilla
+GRU.
 
 Existing graph-based methods typically build the adjacency matrix from road
 proximity or distance \citep{zhao2019t}. While such graphs capture
 geographic connectivity, they need not represent the statistical dependency
-structure present in the observed speeds. Attention-based methods
-\citep{A3T-GCN,Sun2023Attention,Chen2026TASTGCN} reweight relationships
-between nodes over time, but they usually operate on an initial graph that
-is still defined by heuristics or physical proximity; they change how a
-given structure is used more than which structure is the right one.
+structure present in the observed speeds.
+
+Attention-based methods
+\citep{A3T-GCN,Sun2023Attention,Chen2026TASTGCN} attempt to address this by
+dynamically adjusting relationship weights between nodes. However, these
+approaches operate on a fundamental distinction: they learn \emph{implicit
+relationship weights} rather than discovering the \emph{explicit graph
+structure} itself. Attention can indicate that node $j$ is important to
+node $i$ at a given time step, but it does not by itself reveal a
+persistent statistical association independent of the initial topology.
+These methods therefore still depend on an initial (often suboptimal) graph
+defined by heuristics or physical proximity, and may miss non-local
+traffic associations that lack explicit spatial connections.
 
 Our work studies \emph{graph structure learning} (GSL) for traffic
 forecasting: the adjacency matrix is inferred from the traffic series
@@ -143,10 +160,13 @@ rather than taken as predefined. Continuous optimization methods for
 directed acyclic graphs, such as NOTEARS \citep{zheng2018dags} and DAGMA
 \citep{Bello2024DAGMA}, make such estimation practical. Relative to
 implicit reweighting over a fixed topology, GSL produces an explicit
-binary (or weighted) adjacency that can be inspected as a statistical
-dependency graph over sensors. We interpret that graph as descriptive
-statistical structure under the estimator's assumptions, not as a causal
-map of traffic influence.
+binary (or weighted) adjacency that can be inspected as a thresholded,
+estimator-dependent representation of statistical associations among
+sensors. Whether that estimated structure improves forecasting is not
+automatic: we test it against physical and graph-free references under a
+common protocol, and we interpret the learned graph as descriptive
+structure under the estimator's assumptions, not as a causal map of
+traffic influence.
 
 This paper evaluates that idea under a controlled experimental design on
 two public benchmarks, SZ-Taxi and Los-loop. In addition to the physical
@@ -157,18 +177,19 @@ single contemporaneous learned graph (and its binary symmetrization, cGSL)
 as well as \emph{multi-lag} learned graphs in which lag-specific structures
 are estimated from an explicitly lag-stacked input. Because a learned
 adjacency can be applied as one static operator or aligned with input
-timesteps in a recurrent backbone, we further examine how the
-\emph{consumption} of multi-lag graphs affects forecasting accuracy.
+timesteps in a recurrent backbone, we further examine how the learned
+multi-lag structure is incorporated into the forecasting backbone.
 Finally, matched-sparsity controls address the methodological concern that
 any gain might be due only to the sparsity of the learned graph rather than
 to the placement of its edges.
 
-The experimental results confirm that learning graph structure from traffic
-data can improve forecasting, but they also qualify the claim. Relative to
+The experimental results show that learning graph structure from traffic
+data can be beneficial in some settings, while also revealing important
+dataset- and integration-dependent limitations. Relative to
 the physical graph, learned and even identity adjacencies often reduce
 error. Relative to the graph-free control, the largest and most consistent
-gains on Los-loop appear when lag-specific structures are consumed in a
-temporally aligned manner. On SZ-Taxi, where the recovered multi-lag
+gains on Los-loop appear when lag-specific structures are used in a
+lag-aligned manner. On SZ-Taxi, where the recovered multi-lag
 structure is extremely sparse, learned variants remain close to the
 graph-free baseline. Thus, the usefulness of a learned graph depends on the
 dataset and on how the learned structure is incorporated into the
@@ -183,10 +204,10 @@ estimated from the traffic data.
 \item We compare learned graphs not only to the physical baseline but also
 to a graph-free control, and we evaluate both a contemporaneous
 construction and a multi-lag construction of the learned structure.
-\item We study how multi-lag graphs are consumed by the forecasting model
-(static union versus lag-aligned recurrent use, including a gated mixing
-variant), which separates the estimated structure from the mechanism that
-uses it.
+\item We study how multi-lag graphs are incorporated into the forecasting
+backbone (static union versus lag-aligned recurrent use, including a gated
+mixing variant), which distinguishes the estimated structure from the
+mechanism that uses it.
 \item We report five-seed experiments on SZ-Taxi and Los-loop, together
 with matched-sparsity controls, showing that the benefit of learned
 structure is dataset-dependent and cannot be attributed to sparsity alone
@@ -256,27 +277,20 @@ a predefined graph that may not match the dependency structure in the data.
 
 Comprehensive reviews are available elsewhere
 \citep{REMMOUCHE2025128244,Liu2025review,Peng2024Overview}. Our focus is
-the role of the adjacency matrix itself. A bibliometric analysis of $784$
-traffic-forecasting articles ($2000$--$2025$) confirms the rise of
-graph-based methods and the continued dominance of heuristic graph
-construction (Appendix~\ref{sec:Bibliometric-Methodology}).
-
-Since this paper builds on GCN and T-GCN, we next summarize those two
-backbones concisely; fuller treatments appear in
+the role of the adjacency matrix itself (motivated in the Introduction and
+Appendix~\ref{sec:Bibliometric-Methodology}). Since this paper builds on
+GCN and T-GCN, we summarize those backbones only as far as needed for the
+experiments; fuller treatments appear in
 \citep{kipf2017semi,zhao2019t}.
 
 \subsection{Graph Convolutional Network}\label{sec:bg-gcn}
 
 Graph Convolutional Networks extend convolution to graph-structured data
-\citep{kipf2017semi,battaglia2018relational} and have been applied widely,
-including community detection
-\citep{LIU2023120748,doi:10.1080/09540091.2023.2291995}, semi-supervised
-learning \citep{kipf2017semi,GCN-JAC2021}, and recommendation
-\citep{Ying:2018}. Figure~\ref{fig:GCN} illustrates a graph-convolutional
-layer used for traffic prediction: the green node is the target sensor and
-orange nodes are its graph neighbors. Traditional pipelines take
-$\mathbf{A}$ from the physical road network; our proposed pipeline instead
-estimates node adjacencies from traffic data.
+\citep{kipf2017semi,battaglia2018relational}. Figure~\ref{fig:GCN}
+illustrates a graph-convolutional layer for traffic prediction: the green
+node is the target sensor and orange nodes are its graph neighbors.
+Traditional pipelines take $\mathbf{A}$ from the physical road network;
+our pipeline instead estimates node adjacencies from traffic data.
 
 \begin{figure}[t]
 \centering
@@ -318,27 +332,26 @@ f(\mathbf{A},\mathbf{X})
 \end{equation}
 In traffic applications, this aggregation encodes spatial dependence over
 the graph defined by $\mathbf{A}$; temporal dependence is added by the
-recurrent component described next.
+recurrent component described next. Equations~\eqref{eq:gcn-layer}
+and~\eqref{eq:two-layer-gcn} summarize the standard GCN operator. The
+specific non-recurrent forecasting backbone used in our experiments
+applies a single such graph convolution to the flattened input window
+(features = time steps) and then a shared linear output head; it is
+described in Section~\ref{sec:method}, not as a multi-layer Kipf network.
 
 \subsection{Temporal Graph Convolutional Network}\label{sec:bg-tgcn}
 
-T-GCN \citep{zhao2019t} combines GCN with a GRU for traffic forecasting.
-At each time $t$, spatial features
-$\mathbf{Z}_t=f(\mathbf{A},\mathbf{X}_t)$ are obtained from
-\eqref{eq:two-layer-gcn}; the GRU then updates a hidden state
-$\mathbf{S}_t$ using update and reset gates
-($\mathbf{u}_t$, $\mathbf{r}_t$) and trainable matrices
-$\mathbf{W}_u,\mathbf{W}_r,\mathbf{W}_c$. Training minimizes the
-discrepancy between predicted speeds $\widehat{Y_t}$ and observed speeds
-$Y_t$, for example
-\begin{equation}
-loss=\lVert Y_t-\widehat{Y_t}\rVert+\lambda L_{reg},
-\end{equation}
-with $L_{reg}$ an $\ell_2$ penalty. T-GCN therefore models spatial
-dependence through graph convolution and temporal dependence through
-gating, and is the principal spatiotemporal backbone in our experiments.
-The non-recurrent GCN backbone applies graph convolution over the input
-window and is used as a spatial counterpart.
+T-GCN \citep{zhao2019t} integrates graph-based spatial aggregation into a
+recurrent gated architecture for traffic forecasting. Conceptually, graph
+convolution extracts spatial features at each time and a GRU tracks
+temporal evolution; training minimizes the discrepancy between predicted
+and observed speeds with an $\ell_2$ weight penalty. In the public T-GCN
+code lineage --- and in the implementation used here --- graph convolution
+is applied to the concatenated current input and previous hidden state
+inside the T-GCN cell (gate and candidate computations), rather than as a
+standalone GCN followed by an independent vanilla GRU. T-GCN is the
+principal spatiotemporal backbone in our experiments. The non-recurrent
+GCN backbone is used as a spatial counterpart.
 
 \subsection{Graph Structure Learning}\label{sec:bg-gsl}
 
@@ -369,18 +382,11 @@ graph-free references under the same forecasting protocol.
 
 \subsection{Position of this Work}\label{sec:bg-position}
 
-This work remains a study of GSL for traffic prediction. Relative to the
-standard GCN/T-GCN pipeline with a physical adjacency, we ask whether a
-learned adjacency is preferable, and under what conditions. Three
-extensions relative to a minimal GSL baseline are essential for answering
-that question honestly: (i) a graph-free control, without which learned
-graphs cannot be separated from the effect of removing a harmful default;
-(ii) an explicit multi-lag construction, so that temporal organization of
-the learned structure is defined by the estimator's input rather than
-asserted post hoc; and (iii) an analysis of how multi-lag graphs are
-consumed by recurrent versus non-recurrent backbones. These elements do
-not change the paper's identity as a graph-structure-learning study; they
-specify the conditions under which learned structure helps.
+This work remains a study of GSL for traffic prediction: we ask whether a
+learned adjacency is preferable to a physical one, and under what
+conditions. A graph-free control, an explicit multi-lag construction, and
+an analysis of how that structure is used in the backbone specify those
+conditions without changing the paper's identity.
 
 % ======================================================================
 % Method: revised (this stage). Setup--Conclusion: interim stage drafts
@@ -428,8 +434,9 @@ to Figure~\ref{fig:GCN}. Three points motivate data-driven adjacency:
 this need not hold for every pair; (ii) associations between distant nodes
 may occur at longer lags; (iii) some physically adjacent links may carry
 little predictive information for the target sensor. By learning
-$\mathbf{A}$ from traffic observations, the model can place edges according
-to estimated dependency rather than geographic distance alone.
+$\mathbf{A}$ from traffic observations, the procedure estimates edges from
+the observed data under its modeling assumptions rather than only from
+geographic distance.
 
 Throughout this section, $\mathbf{A}\in\{0,1\}^{N\times N}$ denotes the
 binary adjacency supplied to the forecasting backbone
@@ -457,8 +464,14 @@ the same GCN-style operator
 \end{equation}
 For the identity adjacency this reduces to $\hat{\mathbf{A}}=\mathbf{I}$, so
 the graph-free control differs only in the absence of off-diagonal structure.
-\item \textbf{Forecasting backbone.} GCN or T-GCN consumes the normalized
-operator. The learned graph is \emph{static} after estimation: it is fitted
+\item \textbf{Forecasting backbone.} GCN or T-GCN uses the normalized
+operator. The non-recurrent GCN applies a single graph convolution to the
+flattened input window (time steps as node features) and a shared linear
+output head. The T-GCN implementation follows the graph-convolutional
+gated-cell formulation used in the public T-GCN code lineage: graph
+convolution is incorporated into the gate computations of the recurrent
+cell, not as a standalone GCN followed by an independent vanilla GRU. The
+learned graph is \emph{static} after estimation: it is fitted
 once on the training split. Temporal variation in the forecast is modeled by
 the recurrent backbone (and, in one variant, by a gate that selects among
 fixed lag-specific graphs); the edge set itself does not change over time.
@@ -778,16 +791,26 @@ We report root mean squared error (RMSE, primary) and mean absolute error
 \mathrm{MAE}
 &=\frac{1}{n}\sum_{i=1}^{n}\bigl|Y_i-\widehat{Y}_i\bigr|.
 \end{align}
-Additional diagnostics used in the code base (relative accuracy and $R^2$)
-are not required for the comparisons below.
+Here $n$ is the total number of evaluated scalar predictions, including
+all test windows, sensors, and output steps for the selected prediction
+horizon. For each PH-specific model, all PH target steps are pooled when
+computing the reported RMSE and MAE (they are not computed separately for
+the final horizon alone). Additional diagnostics used in the code base
+(relative accuracy and $R^2$) are not required for the comparisons below.
 
 \subsection{Statistical Reporting}\label{sec:stats}
 
 Main-text numbers are five-seed means with sample standard deviations
-($\mathrm{ddof}=1$). We also report paired per-seed win counts and paired
-$t$-tests for reference. With $n=5$, the exact Wilcoxon signed-rank test
-cannot fall below $p=0.0625$; we therefore avoid definitive significance
-claims.
+($\mathrm{ddof}=1$) over forecasting seeds $\{42,43,44,45,46\}$. DAGMA
+graphs are deterministic and shared across these seeds, so seed variability
+reflects training of the forecasting models, not re-estimation of the
+graph. We report paired per-seed win counts as descriptive evidence of
+seed consistency. Paired $t$-tests are also computed for reference where
+comparisons are discussed; they are not treated as definitive significance
+tests. With $n=5$, the exact Wilcoxon signed-rank test cannot fall below
+$p=0.0625$, so we do not claim formal statistical significance. Conclusions
+rely on effect sizes, five-seed means and spreads, paired consistency, and
+the stated experimental scope.
 
 \subsection{Matched-Sparsity and Capacity Controls}\label{sec:controls}
 
@@ -926,21 +949,25 @@ Relative to the graph-free control, Mix reduces RMSE by $14.5\%$, $11.9\%$,
 $9.2\%$, and $10.9\%$ at PH1--PH4 on Los-loop (Table~\ref{tab:tgcn-main};
 $5/5$ paired seeds at every horizon). Relative to the physical T-GCN
 baseline, the reductions are $43.0\%$, $37.6\%$, $33.7\%$, and $32.3\%$.
-Figure~\ref{fig:perseed} shows the per-seed distributions: Mix is the
-strongest Los-loop configuration at every horizon. The global-weight
+For reference, paired $t$-tests on the per-seed RMSE differences give
+$p\approx 0.0015$, $0.0015$, $0.0008$, and $<10^{-4}$ for Mix vs NoSpatial
+at PH1--PH4 (descriptive only; see Section~\ref{sec:stats}).
+Figure~\ref{fig:perseed} shows the per-seed distributions: Mix has the
+lowest mean RMSE among the evaluated configurations on Los-loop at all
+four horizons. The global-weight
 variant (Weighted) is essentially tied with the fixed assignment
 (differences $\le 0.01$ RMSE).\label{sec:res-mix}
 
 When the \emph{same} multi-lag artifacts are merged into one static union
-and consumed by non-recurrent GCN (GCN-MultiGSL), error is $9.78\pm 0.14$
+and used by non-recurrent GCN (GCN-MultiGSL), error is $9.78\pm 0.14$
 on Los-loop PH1 --- worse than the physical GCN and more than twice the
 T-GCN-MultiGSL error on the same graphs (Figure~\ref{fig:dissociation}).
-The union retains $28$ of the $30$ lagged edge slots. Hence the edge set
-alone does not determine usefulness: how the learned multi-lag structure is
-used inside the backbone is a major factor. Because GCN and T-GCN also
-differ architecturally, this is not a fully isolated test of consumption,
-but it shows that learned multi-lag graphs are not automatically beneficial
-once estimated.
+The union retains $28$ of the $30$ lagged edge slots. These results
+suggest that the usefulness of the learned edge set depends strongly on
+how it is incorporated into the backbone; because GCN and T-GCN also
+differ architecturally, the comparison does not isolate incorporation
+strategy independently of the backbone. Learned multi-lag graphs are
+therefore not automatically beneficial once estimated.
 \label{sec:res-dissociation}
 
 \subsection{Dataset Dependence and Temporal Resolution}\label{sec:res-boundaries}
@@ -961,8 +988,8 @@ we resampled Los-loop to $15$-minute steps by averaging consecutive triplets
 (Section~\ref{sec:variant15}) and reran the multi-lag comparison on that
 series.
 
-At $15$ minutes ahead, NoSpatial obtains $8.600\pm 0.249$,
-MultiGSL $7.246\pm 0.298$, and Mix $6.240\pm 0.187$ --- a $27.4\%$ relative
+At $15$ minutes ahead, NoSpatial obtains $8.600\pm 0.279$,
+MultiGSL $7.246\pm 0.333$, and Mix $6.240\pm 0.209$ --- a $27.4\%$ relative
 reduction vs.\ NoSpatial with $5/5$ seed wins, \emph{larger} than the
 $14.5\%$ obtained at $5$-minute sampling. Relative reductions remain
 $21.4\%$, $19.8\%$, and $16.1\%$ at $30$, $45$, and $60$ minutes
@@ -987,7 +1014,8 @@ contribution of spatial structure.
 \item A single contemporaneous learned graph does not beat the graph-free
 control on these benchmarks.
 \item Multi-lag learned graphs help on Los-loop when used in a lag-aligned
-way in T-GCN; gated mixing is the strongest configuration. Sparsity alone
+way in T-GCN; gated mixing has the lowest mean RMSE on Los-loop among the
+evaluated multi-lag variants. Sparsity alone
 does not explain this gain on the matched-budget cell.
 \item The benefit is dataset-dependent: SZ-Taxi shows little separation
 from the graph-free baseline, consistent with a nearly empty multi-lag fit.
@@ -1003,7 +1031,9 @@ from the graph-free baseline, consistent with a nearly empty multi-lag fit.
 parentheses) over five seeds. Physical: road-network graph.
 NoSpatial: identity adjacency. GSL/cGSL: contemporaneous learned graphs.
 MultiGSL family: multi-lag graphs under fixed, weighted, and gated use.
-Best (lowest) mean RMSE in each dataset block is in bold.}
+PH1--PH4 correspond to $5$--$20$\,min (Los-loop) and $15$--$60$\,min
+(SZ-Taxi). Best (lowest) mean RMSE in each dataset block is in bold;
+bold does not imply statistical significance.}
 \label{tab:tgcn-main}
 \small
 \begin{tabular}{lcccc}
@@ -1035,8 +1065,10 @@ T-GCN-MultiGSL-Mix & \textbf{4.12 (0.02)} & \textbf{4.15 (0.01)} & \textbf{4.18 
 \centering
 \caption{GCN family: test RMSE (mean, sample standard deviation in
 parentheses) over five seeds. GCN-MultiGSL consumes the union of the three
-multi-lag graphs as one static adjacency. Best (lowest) mean RMSE in each
-dataset block is in bold.}
+multi-lag graphs as one static adjacency. PH1--PH4 correspond to
+$5$--$20$\,min (Los-loop) and $15$--$60$\,min (SZ-Taxi). Best (lowest) mean
+RMSE in each dataset block is in bold; bold does not imply statistical
+significance.}
 \label{tab:gcn-main}
 \small
 \begin{tabular}{lcccc}
@@ -1087,16 +1119,18 @@ Mix (seed 42) & 4.46 & $17{,}091$ params & $-13.3\%$ \\
 \centering
 \caption{Los-loop temporal-resolution variant at $15$-minute sampling.
 PH $k$ denotes $15k$ minutes ahead and is not comparable to PH $k$ of the
-$5$-minute series. Five seeds.}
+$5$-minute series. Five seeds; parentheses are sample standard deviations
+(ddof$=1$). Bold marks the numerically lowest mean, not statistical
+significance.}
 \label{tab:los15}
 \small
 \begin{tabular}{lcccc}
 \toprule
 Method & PH1 (15\,min) & PH2 (30\,min) & PH3 (45\,min) & PH4 (60\,min) \\
 \midrule
-T-GCN-NoSpatial & 8.600 (0.249) & 9.311 (0.197) & 10.048 (0.074) & 10.460 (0.196) \\
-T-GCN-MultiGSL & 7.246 (0.298) & 8.571 (0.327) & 9.112 (0.077) & 9.756 (0.210) \\
-T-GCN-MultiGSL-Mix & \textbf{6.240 (0.187)} & \textbf{7.322 (0.338)} & \textbf{8.063 (0.203)} & \textbf{8.777 (0.326)} \\
+T-GCN-NoSpatial & 8.600 (0.279) & 9.311 (0.220) & 10.048 (0.083) & 10.460 (0.220) \\
+T-GCN-MultiGSL & 7.246 (0.333) & 8.571 (0.365) & 9.112 (0.087) & 9.756 (0.234) \\
+T-GCN-MultiGSL-Mix & \textbf{6.240 (0.209)} & \textbf{7.322 (0.378)} & \textbf{8.063 (0.227)} & \textbf{8.777 (0.364)} \\
 \midrule
 Mix vs NoSpatial & $-27.4\%$ & $-21.4\%$ & $-19.8\%$ & $-16.1\%$ \\
 Mix wins (of 5) & 5 & 5 & 5 & 5 \\
@@ -1144,15 +1178,15 @@ graphs after consumer thresholding ($28$ edges; mean degree $0.14$);
 % ======================================================================
 \section{Discussion}\label{sec:discussion}
 
-\subsection{Why the Physical Graph Can Be Harmful}\label{sec:disc-dense}
+\subsection{When the Physical Graph Is a Poor Default}\label{sec:disc-dense}
 
 The physical road-network graph is dense relative to the number of sensors
 (on the order of $10^3$ off-diagonal entries for $207$ Los-loop detectors).
-Under repeated neighborhood aggregation this density can oversmooth node
-representations, so that a graph-based forecaster is worse than the same
-backbone with identity adjacency. The consistent gap between Physical and
-NoSpatial on both benchmarks and both backbones is consistent with that
-reading. It also changes how GSL should be judged: improving on the
+The observed degradation relative to the graph-free control is
+\emph{consistent with} excessive neighborhood mixing (oversmoothing) or
+another unsuitable inductive bias under repeated aggregation; we do not
+measure oversmoothing directly. It also changes how GSL should be judged:
+improving on the
 physical graph is not sufficient evidence that learned structure is useful,
 because discarding the graph already helps.
 
@@ -1224,6 +1258,10 @@ varies \emph{use} of those graphs, not the edge set; time-varying structure
 learning remains future work.
 \item \textbf{Backbones.} Evaluation is limited to GCN and T-GCN. Larger
 attention or transformer traffic models are outside the present study.
+The comparison between static-union GCN and lag-specific T-GCN provides
+evidence about the interaction between learned-graph use and backbone
+architecture, but it does not isolate incorporation strategy independently
+of the backbone.
 \end{itemize}
 
 \section{Conclusion and Future Works}\label{sec:conclusion}
@@ -1239,9 +1277,10 @@ T-GCN at short horizons; a graph-free identity control is a necessary
 reference when evaluating learned structure.
 \item A single contemporaneous DAGMA graph improves on the physical graph in
 many settings but does not beat the graph-free control on these datasets.
-\item Multi-lag learned graphs help on Los-loop when consumed in a
-lag-aligned way inside T-GCN; per-node gating (T-GCN-MultiGSL-Mix) is the
-strongest configuration ($14.5\%$ relative RMSE reduction vs.\ the
+\item Multi-lag learned graphs help on Los-loop when used in a
+lag-aligned way inside T-GCN; per-node gating (T-GCN-MultiGSL-Mix) has the
+lowest mean RMSE on Los-loop among the evaluated configurations
+($14.5\%$ relative RMSE reduction vs.\ the
 graph-free baseline at PH1; up to $43.0\%$ vs.\ the physical baseline
 across horizons). Matched-budget controls show that sparsity alone does not
 explain this gain on the studied cell.
@@ -1266,38 +1305,42 @@ replacement for either the physical graph or a graph-free model.
 \begin{appendices}
 \section{Bibliometric Analysis Methodology}\label{sec:Bibliometric-Methodology}
 
-To justify the focus on graph-based approaches in traffic forecasting and to
-trace the evolution of the field, we conducted a systematic bibliometric
-analysis. This appendix supports the single motivating observation used in
-the Introduction; it is not part of the forecasting experiments.
+To support the motivating observation in the Introduction (the rise of
+graph-based traffic forecasting alongside continued reliance on heuristic
+graph construction), we conducted a systematic bibliometric analysis. This
+appendix is independent of the forecasting experiments.
 
-\subsection{Data Collection and Initial Filtering}
+\subsection{Data Collection and Filtering}
 
-A broad search in Scopus with the keyword ``traffic forecast*'' retrieved
-approximately $60{,}000$ documents. Filtering for peer-reviewed English
+A broad Scopus search with the keyword ``traffic forecast*'' retrieved on
+the order of $60{,}000$ documents. Restricting to peer-reviewed English
 articles in Engineering or Computer Science yielded a core collection of
 $784$ articles published between $2000$ and $2025$.
 
 \subsection{Keyword Processing and Semantic Clustering}
 
-The raw data contained $6{,}343$ unique keywords. After removing terms with
-fewer than $10$ occurrences, $217$ keywords remained. An initial VOSviewer
-network (Figure~\ref{fig:scopus-all}) showed near-duplicate terms
-(``graph neural network'', ``GNN'', ``graph convolution network'') as
-separate nodes.
+The raw export contained $6{,}343$ unique author and index keywords. After
+removing terms that appear fewer than $10$ times, $217$ keywords remained.
+An initial VOSviewer co-occurrence network (Figure~\ref{fig:scopus-all})
+showed near-duplicate labels (e.g.\ ``graph neural network'', ``GNN'',
+``graph convolution network'') as separate nodes, which obscured broader
+patterns.
+
+To reduce this fragmentation we applied a cleaning pipeline implemented in
+the project repository: (i) preprocessing (case folding, removal of special
+characters and stop words); (ii) expansion of $30$ common abbreviations to
+their full forms; and (iii) semantic grouping with Sentence-BERT
+embeddings. The process condensed the $217$ terms into $66$ concept
+groups, each labeled by a representative term. Figure~\ref{fig:word-clouds}
+shows word clouds for three illustrative clusters.
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=1\linewidth]{scopus-all.png}
 \caption{Initial keyword co-occurrence network ($217$ keywords) before
-semantic grouping.}
+semantic grouping. Near-duplicate terms appear as separate nodes.}
 \label{fig:scopus-all}
 \end{figure}
-
-A cleaning pipeline in the project repository (preprocessing, expansion of
-$30$ common abbreviations, and Sentence-BERT semantic clustering) condensed
-these terms into $66$ concept groups. Figure~\ref{fig:word-clouds} shows
-word clouds for three representative clusters.
 
 \begin{figure}[t]
     \centering
@@ -1315,23 +1358,27 @@ word clouds for three representative clusters.
         \includegraphics[width=\linewidth]{8-graph networks.png}
         \caption{Graph networks}
     \end{subfigure}
-    \caption{Word clouds for three bibliometric clusters.}
+    \caption{Word clouds for three representative bibliometric clusters.
+    Node size reflects frequency within the cluster.}
     \label{fig:word-clouds}
 \end{figure}
 
 \subsection{Key Findings}
 
-The refined network (Figure~\ref{fig:clustered_keywords}) shows that
-graph-based methods are the most recent methodological focus in this
-literature, while many such methods still rely on predefined graph
-structures. That observation motivates studying graph structure learning
-for traffic forecasting.
+The refined co-occurrence network (Figure~\ref{fig:clustered_keywords})
+shows that graph-based methods are among the most recent methodological
+foci in this literature (nodes colored by average publication year), while
+many such studies still construct the adjacency from road topology or other
+heuristics. This pattern motivates studying graph structure learning for
+traffic forecasting; it does not by itself evaluate any forecasting method.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=.9\linewidth]{scopus-clustered.png}
 \caption{Clustered keyword co-occurrence network from $784$ traffic
-forecasting articles ($2000$--$2025$), colored by average publication year.}
+forecasting articles ($2000$--$2025$), generated with semantic similarity
+grouping. Nodes represent keyword clusters (minimum $10$ occurrences),
+colored by average publication year.}
 \label{fig:clustered_keywords}
 \end{figure}
 

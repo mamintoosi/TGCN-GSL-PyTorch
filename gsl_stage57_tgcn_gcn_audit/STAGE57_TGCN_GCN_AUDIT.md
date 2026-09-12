@@ -178,30 +178,77 @@ Isolate **loss** while holding data, seed, optimizer settings, and graphs fixed:
 | E | GRU (no graph) | — | **mse** (optional control) |
 
 Smoke: 1 dataset, PH1, seed 42, few epochs.  
-Full: both datasets, PH1–4, seeds 42–46 — **for the user to run**.
+Full: both datasets, PH1–4, seeds 42–46 — **completed** (`results/stage57_tgcn_gcn_audit/full.csv`, 320 rows, 50 epochs).
 
 Scripts:
 
 - `gsl_stage57_tgcn_gcn_audit/audit_tgcn_gcn.py`
+- `gsl_stage57_tgcn_gcn_audit/analyze_full.py`
 - `run_tgcn_gcn_audit.sh`
 
 ---
 
-## 11. What should NOT be changed yet
+## 11. Full-run results (Mode=full)
 
-- No GSL / DAGMA changes.
-- No architecture rewrite of T-GCN toward a different paper variant.
-- No hyperparameter search.
-- No replacement of Stage 40 numbers in the manuscript until this audit experiment is run and interpreted.
-- Do not assume “T-GCN is broken”; assume **protocol asymmetry until arm C/D refute or confirm it**.
+**Protocol:** 50 epochs, batch 128, Adam lr 1e-3, wd 1e-4, hidden 64, seq_len 12; arms A–D × {identity, physical} × {losloop, shenzhen} × PH1–4 × seeds 42–46.
+
+**Reproduction of Stage 40:**  
+T-GCN+reg (arm B) matches Stage 40 NoSpatial/Physical almost exactly (e.g. Los identity PH1 **5.251** vs Stage 40 **5.25**; Los physical PH1 **7.883** vs **7.88**). GCN+mse (arm A) matches GCN Stage 40 (Los identity PH1 **4.965** vs **4.88** — small gap; physical **8.145** exact).
+
+### Identity (NoSpatial) — mean RMSE
+
+| Dataset | PH | A GCN+mse | D GCN+reg | B T-GCN+reg | C T-GCN+mse |
+|---------|----|-----------|-----------|-------------|-------------|
+| Los | 1 | **4.97** | 4.90 | 5.25 | 5.42 |
+| Los | 2 | **5.60** | 5.63 | 5.76 | 5.90 |
+| Los | 3 | **6.02** | 6.04 | 6.11 | 6.23 |
+| Los | 4 | **6.26** | 6.27 | 6.58 | 6.67 |
+| SZ | 1–4 | **best or tied** | ≈A | slightly worse | slightly worse than B |
+
+**GCN+mse beats T-GCN+mse in 8/8 identity cells.**
+
+### Physical — mean RMSE
+
+| Dataset | Pattern |
+|---------|---------|
+| Los | **T-GCN (B/C) beats GCN (A/D)** in 4/4 PHs (e.g. PH1: 7.88 vs 8.15) |
+| SZ | **T-GCN+reg (B) much better** than T-GCN+mse (C) and GCN (PH1: **5.45** vs 5.79 vs 5.96) |
+
+### Loss isolation
+
+| Comparison | Identity | Physical |
+|------------|----------|----------|
+| C − B (drop T-GCN loss L2) | **+0.07 to +0.17** (C **worse**) | ≈0 on Los; **+0.2 to +0.34 on SZ** (C **worse**) |
+| D − A (add GCN loss L2) | ≈0 after 50 epochs (slightly better at Los PH1) | ≈0 |
+| A − C (GCN vs T-GCN, both mse) | **GCN better** | **T-GCN better** |
+
+**Conclusion on loss:** the Stage 40 loss asymmetry does **not** explain GCN-NoSpatial ≻ T-GCN-NoSpatial. After 50 epochs, removing T-GCN’s loss-level L2 does **not** help T-GCN (often slightly hurts). On SZ+physical, the regularizer **helps** T-GCN.
+
+### Architecture interpretation
+
+1. **Identity + GCN** ≈ per-node linear map on the 12-step window → strong short-horizon baseline.  
+2. **Identity + T-GCN** ≡ **GRU** → recurrent model, slightly worse at PH≤4 under this protocol.  
+3. **Physical + T-GCN** ≻ **Physical + GCN** → when a (dense) graph is used, the recurrent T-GCN cell uses it better than the one-shot GCN.  
+4. Stage 40’s “GCN-NoSpatial is competitive” is therefore an **architecture/inductive-bias** result, not a broken T-GCN implementation.
 
 ---
 
-## 12. Conclusion (verdict)
+## 12. What should NOT be changed yet
 
-**Verdict: C — An important experimental confound was found.**
+- No GSL / DAGMA changes based on this audit alone.
+- No forced “T-GCN must beat GCN everywhere” claim.
+- Optional later: document in the paper that NoSpatial GCN is a linear-window baseline and NoSpatial T-GCN is a GRU (identity Laplacian).
+- Do not discard Stage 40 numbers — they reproduce arm B.
 
-- T-GCN implementation is **consistent with the official T-GCN code lineage** (graph conv in the recurrent cell); it is **not** an obvious coding bug versus `lehaifeng/T-GCN`.
-- The **GCN vs T-GCN comparison is not loss-fair**: different reduction and extra L2 on T-GCN can systematically disadvantage T-GCN, including on NoSpatial where GCN is only a linear per-node map.
-- Therefore **GCN-NoSpatial ≻ T-GCN-NoSpatial in Stage 40 does not yet prove that the T-GCN architecture is inferior** under a matched protocol.
-- **Action:** run `run_tgcn_gcn_audit.sh` (user) and compare arms A–D before any new GSL work or manuscript claim changes about GCN vs T-GCN baselines.
+---
+
+## 13. Conclusion (verdict — updated after Mode=full)
+
+**Verdict: C (refined) — Confound identified and largely ruled out as the cause of GCN ≻ T-GCN on NoSpatial.**
+
+- T-GCN implementation matches the official code lineage; Stage 40 numbers reproduce (arm B).  
+- **Loss asymmetry is real but not the driver** of GCN-NoSpatial ≻ T-GCN-NoSpatial (C ≈ B or worse; A still beats C on identity).  
+- **The main explanation is architectural:** identity-graph GCN is a linear window model; identity-graph T-GCN is a GRU. On the **physical** graph, T-GCN **beats** GCN on both datasets — the recurrent+graph design is working.  
+- **GSL is not implicated** by this audit; multi-lag / Mix results are unaffected.  
+- **Manuscript implication:** keep NoSpatial as a graph-free control; avoid implying that T-GCN is a weaker backbone in general — it is weaker than linear GCN only when **no graph** is used, and stronger when the physical graph is used.
+
