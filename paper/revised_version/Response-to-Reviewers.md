@@ -264,6 +264,46 @@ We kept 5.1–5.3 as separate subsections rather than merging them, because each
 
 ---
 
+### W9 — No explicit limitations (scalability, $\lambda$ sensitivity, only two backbones)
+
+**Response.** We thank the reviewer. A dedicated Limitations section was added and covers the three issues raised, together with other scope conditions of the study.
+
+**DAGMA scalability and cost.** Graph estimation with DAGMA is the heavier offline stage compared with ordinary forecasting-model training on these data. Measured costs in our runs are on the order of **tens of minutes per horizon** for a contemporaneous fit with $O(10^2)$ sensors (e.g.\ the $156$-node SZ-Taxi construction) and on the order of **hours** for the $828$-variable multi-lag fit on Los-loop (CPU). The main computational consideration is therefore the **offline graph-estimation stage rather than repeated forecasting inference**: for a fixed dataset and construction, the graph is estimated **once** and reused for every forecasting seed, epoch, and test sample. This makes the cost manageable in offline model development; scalability to substantially larger road networks remains an open question and is stated as such.
+
+**Meaning of $\lambda$.** The reviewer’s $\lambda$ refers to the **DAGMA sparsity regularization coefficient $\lambda_1$** used when fitting the weighted adjacency in the original method (not the forecasting-loss weight regularizer, and not the later support thresholds). In the revision, $\lambda_1$ keeps that role: **$0.02$ (Los-loop) and $0.01$ (SZ-Taxi)** for the contemporaneous construction, and **$0.01$ (both datasets)** for the multi-lag construction, consistent with the original protocol. Support thresholds (internal $0.3$ for contemporaneous; consumer $|W|>0.1$ for multi-lag) are separate. A **systematic sensitivity analysis of $\lambda_1$ was not included** and is listed as future work, as a scope limitation of this revision rather than as a claim that the estimator is insensitive.
+
+**Backbone coverage.** The study uses **GCN and T-GCN** as relatively established spatial and spatiotemporal backbones. This choice provides a **controlled setting** for comparing graph construction and how the graph is used. The results should not be generalized automatically to all newer attention-based, adaptive-graph, or transformer-style models; evaluating the same constructions on those architectures is a natural extension. We retain the methodological caveat that the GCN-union versus T-GCN comparison does **not** isolate consumption strategy independently of the backbone.
+
+**Other limitations (concise).** Two datasets; PH $\le 4$ at native sampling (the 15-minute Los-loop study is a resolution control, not PH5–8 on 5-minute data); matched-sparsity/capacity controls only on Los-loop PH1; static learned graphs (Mix changes use, not the edge set); five forecasting seeds ($n=5$).
+
+**Location.** Section 7 (*Limitations*); Section 8 (future work: $\lambda_1$/threshold sensitivity, longer 5-minute horizons, other backbones).
+
+---
+
+### W10 — Metric definitions (Eqs. 4.1–4.4) too long / unnecessary
+
+**Response.** We shortened the metrics subsection to **RMSE (primary) and MAE only**, with compact formulas and a one-line definition of the evaluation set size $n$ (all test windows, sensors, and pooled target steps for the chosen PH). Accuracy and $R^{2}$ are no longer expanded in the main text (they remain in the code base only). Full MAE tables are in **Appendix B**.
+
+**Location.** Section 4.6 (*Evaluation Metrics*); Appendix B (*Additional MAE Results*).
+
+---
+
+### W11 — Dense per-epoch convergence grids (Figs. 5–8)
+
+**Response.** The multi-panel per-epoch training-curve grids have been **removed from the main text**. The paper now relies on **final RMSE with error bars** (Tables 2–3) and compact structure/per-seed figures. That frees space for the multi-seed variance reporting requested in W6. Dense convergence diagnostics are not used as primary evidence and are not required to interpret the main comparisons.
+
+**Location.** Results (tables and Figs. 3–5); no 16-panel convergence grids in the main text.
+
+---
+
+### W12 — Citation style inconsistency (bare “[number]” vs author–year style)
+
+**Response.** Citations in the revised manuscript are standardized to the journal’s numbered author–date commands (`\citep` / `\citet`) throughout Background, Method, Setup, and Discussion, consistent with the `sn-mathphys-num` bibliography style used for compilation.
+
+**Location.** Global pass in `sn-article-flat.tex`; bibliography `MyReferences.bib`.
+
+---
+
 | ID | Status |
 |----|--------|
 | W1 bibliometrics underused | **Addressed** — stronger Intro sentence + full Appendix A (3 figures) |
@@ -274,10 +314,10 @@ We kept 5.1–5.3 as separate subsections rather than merging them, because each
 | W6 seeds / variance / significance | **Addressed** — see W6 below |
 | W7 horizons > 4 | **Partially addressed** — 15-min Los-loop control to 60 min wall-clock; PH5–8 at 5-min not run (Limitations / future work) |
 | W8 repetitive Results / tie-back | **Addressed** — message-oriented §5.1–5.6; §5.6 summary; Discussion §6.1 ties to Intro framing |
-| W9 limitations | In progress |
-| W10 metric definitions | In progress |
-| W11 dense convergence plots | In progress |
-| W12 citation style | In progress |
+| W9 limitations | **Addressed** — §7 rewritten: offline DAGMA cost (measured orders of magnitude), $\lambda_1$ vs thresholds/loss, GCN/T-GCN as controlled established backbones |
+| W10 metric definitions | **Addressed** — §4.6 RMSE/MAE only; MAE in Appendix B |
+| W11 dense convergence plots | **Addressed** — removed from main text |
+| W12 citation style | **Addressed** — `\citep`/`\citet` standardized |
 | Q1 graph visualization | In progress |
 | Q2 predicted vs actual | In progress |
 | Q3 time-varying graphs | In progress |

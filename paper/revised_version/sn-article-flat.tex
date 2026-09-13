@@ -128,7 +128,7 @@ approaches, and Bayesian methods, model temporal evolution but neglect
 spatial dependencies \citep{akhtar2021review}. To describe spatial
 features, many studies use graph-based methods
 \citep{ye2020build,xie2020urban,Chen2023Dynamic,ZHOU2025110304}. In
-\cite{zhao2019t}, a Temporal Graph Convolutional Network (T-GCN) was
+\citep{zhao2019t}, a Temporal Graph Convolutional Network (T-GCN) was
 proposed for traffic prediction. T-GCN integrates graph-based spatial
 aggregation into a recurrent gated architecture and achieves strong
 results on standard traffic benchmarks. In the implementation used in this
@@ -691,7 +691,7 @@ evaluation used in our experiments. The implementation in PyTorch, together
 with data and configuration files, is available at
 \url{https://github.com/mamintoosi/TGCN-GSL-PyTorch}. A preliminary version
 of the GSL-for-traffic idea was presented in
-\cite{Amintoosi1403aimc55-GSL}.
+\citep{Amintoosi1403aimc55-GSL}.
 
 \subsection{Datasets}\label{sec:datasets}
 
@@ -731,7 +731,7 @@ the multi-step speed vectors produced by a shared linear output layer
 (Section~\ref{sec:method}). Horizon indices are comparable within, not
 across, datasets because the sampling intervals differ.
 
-Following \cite{zhao2019t}, we focus the comparison on GCN and T-GCN as
+Following \citep{zhao2019t}, we focus the comparison on GCN and T-GCN as
 foundational backbones rather than an exhaustive set of recent
 architectures: the goal is to assess the effect of graph structure learning
 inside established frameworks that many later models build upon
@@ -1245,23 +1245,39 @@ Sample standard deviations and paired win counts are reported; with $n=5$
 the exact Wilcoxon test cannot fall below $p=0.0625$, so we avoid definitive
 significance claims.
 \item \textbf{Control scope.} Matched-sparsity and capacity controls exist
-only for Los-loop at PH1. There is no sparsified physical graph, no
-$\lambda$/threshold sweep, and no SZ-Taxi sparsity control.
+only for Los-loop at PH1. There is no sparsified physical graph, and no
+systematic sensitivity sweep over the DAGMA sparsity coefficient
+$\lambda_1$ or over support thresholds was performed. In the contemporaneous
+construction $\lambda_1$ is $0.02$ (Los-loop) and $0.01$ (SZ-Taxi); in the
+multi-lag construction it is $0.01$ on both datasets. These values follow
+the original GSL protocol and are distinct from the internal and consumer
+thresholds and from the forecasting-loss regularization. A systematic
+study of $\lambda_1$ remains future work.
 \item \textbf{Datasets and horizons.} Two benchmarks; $\mathrm{PH}\le 4$ at
 native sampling. The $15$-minute Los-loop study is a resolution control, not
 evidence for PH5--8 at $5$-minute sampling.
+\item \textbf{Graph-estimation cost.} The main computational consideration
+is the offline DAGMA graph-estimation stage rather than repeated
+forecasting inference. In our runs, a contemporaneous fit on the order of
+$10^2$ sensors is on the order of tens of minutes per horizon, while the
+$828$-variable multi-lag fit is on the order of hours on CPU. The learned
+graph is estimated once per dataset/construction and reused for all
+forecasting seeds, epochs, and test evaluation, so this cost is not
+repeated inside the forecasting loop. Scalability to substantially larger
+road networks remains an open question.
 \item \textbf{Estimator assumptions.} Linear DAGMA with $\ell_2$ score and
 acyclicity regularizer; nonlinear dependency and misspecified lag depth
-$L=3$ are not examined. Multi-lag fitting is expensive for large $N$.
+$L=3$ are not examined.
 \item \textbf{Static graphs.} Learned adjacencies are fitted once. Mix
 varies \emph{use} of those graphs, not the edge set; time-varying structure
 learning remains future work.
-\item \textbf{Backbones.} Evaluation is limited to GCN and T-GCN. Larger
-attention or transformer traffic models are outside the present study.
-The comparison between static-union GCN and lag-specific T-GCN provides
-evidence about the interaction between learned-graph use and backbone
-architecture, but it does not isolate incorporation strategy independently
-of the backbone.
+\item \textbf{Backbones.} Evaluation uses GCN and T-GCN as relatively
+established, representative spatial and spatiotemporal backbones. This
+choice provides a controlled setting for comparing graph construction and
+graph use; transfer to newer attention-based, adaptive-graph, or
+transformer-style architectures is an open empirical question. The
+comparison between static-union GCN and lag-specific T-GCN does not isolate
+incorporation strategy independently of the backbone.
 \end{itemize}
 
 \section{Conclusion and Future Works}\label{sec:conclusion}
