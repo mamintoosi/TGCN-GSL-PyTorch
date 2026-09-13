@@ -13,7 +13,8 @@ OUT = ROOT / "paper" / "revised_version" / "figures"
 CKPT = ROOT / "results" / "stage26_checkpoint"
 
 COL_NS = "#2196F3"  # used only if Physical preds missing
-COL_PHYS = "#F44336"
+# Lighter than Mix (#E91E63) so the two series are easy to separate
+COL_PHYS = "#FF8A80"
 COL_MIX = "#E91E63"
 
 
@@ -33,15 +34,30 @@ def plot_pair(nograph_dir, mix_dir, nodes, title, stem, compare_label="Physical"
     yt = squeeze_ph1(nograph_dir / "y_true.npy")
     yp_n = squeeze_ph1(nograph_dir / "y_pred.npy")
     yp_m = squeeze_ph1(mix_dir / "y_pred.npy")
+    # Dashed comparison series; solid for Actual and Mix
+    col_cmp = COL_PHYS if "Physical" in compare_label else COL_NS
     T = min(100, yt.shape[0])
     t = np.arange(T)
     fig, axes = plt.subplots(3, 1, figsize=(9, 7.2), sharex=True)
     for ax, node in zip(axes, nodes):
         ax.plot(t, yt[:T, node], color="black", lw=1.4, label="Actual", zorder=3)
-        ax.plot(t, yp_n[:T, node], color=COL_PHYS, lw=1.2, alpha=0.9,
-                label=compare_label)
-        ax.plot(t, yp_m[:T, node], color=COL_MIX, lw=1.2, alpha=0.9,
-                label="T-GCN-MultiGSL-Mix")
+        ax.plot(
+            t,
+            yp_n[:T, node],
+            color=col_cmp,
+            lw=1.2,
+            ls="--",
+            alpha=0.95,
+            label=compare_label,
+        )
+        ax.plot(
+            t,
+            yp_m[:T, node],
+            color=COL_MIX,
+            lw=1.2,
+            alpha=0.95,
+            label="T-GCN-MultiGSL-Mix",
+        )
         ax.set_ylabel(f"Node {node}\n(norm.)", fontsize=9)
         ax.legend(loc="lower right", fontsize=7.5, ncol=3, framealpha=0.92)
         ax.grid(True, ls=":", alpha=0.35)
@@ -53,7 +69,7 @@ def plot_pair(nograph_dir, mix_dir, nodes, title, stem, compare_label="Physical"
     fig.savefig(OUT / f"{stem}.pdf", bbox_inches="tight")
     fig.savefig(OUT / f"{stem}.png", bbox_inches="tight")
     plt.close(fig)
-    print("Wrote", stem, "nodes", nodes)
+    print("Wrote", stem, "nodes", nodes, "compare", compare_label)
 
 
 def main():
