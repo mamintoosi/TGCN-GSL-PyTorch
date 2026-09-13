@@ -102,60 +102,64 @@ def load_los_ph1():
     return rows
 
 
-def fig_rmse_comparison():
-    """Two panels: T-GCN family and GCN family (Los-loop PH1, five-seed)."""
+def _bar_family(order, title, out_stem, ns_vid):
     rows = load_los_ph1()
-    panels = [
-        (
-            "(a) T-GCN family",
-            ["physical", "no_spatial", "gsl", "cgsl", "multi_gsl", "multi_gsl_weighted", "multi_gsl_mix"],
-        ),
-        (
-            "(b) GCN family",
-            ["gcn_physical", "gcn_no_spatial", "gcn_gsl", "gcn_cgsl", "gcn_multigsl"],
-        ),
-    ]
-    fig, axes = plt.subplots(1, 2, figsize=(12.5, 5.0))
-    for ax, (title, order) in zip(axes, panels):
-        labels, means, stds, colors = [], [], [], []
-        for vid in order:
-            r = rows[vid]
-            name = VID[vid]
-            labels.append(SHORT[name])
-            means.append(float(r["rmse_mean"]))
-            stds.append(float(r["rmse_std"]))
-            colors.append(COLORS[name])
-        x = np.arange(len(labels))
-        ax.bar(
-            x,
-            means,
-            yerr=stds,
-            capsize=3.5,
-            width=0.7,
-            color=colors,
-            edgecolor="black",
-            linewidth=0.5,
-            error_kw=dict(elinewidth=1.0, ecolor="#333333"),
-        )
-        for xi, m in zip(x, means):
-            ax.text(xi, m + 0.18, f"{m:.2f}", ha="center", va="bottom", fontsize=8)
-        ns_vid = "no_spatial" if "no_spatial" in order else "gcn_no_spatial"
-        ns = float(rows[ns_vid]["rmse_mean"])
-        ns_name = VID[ns_vid]
-        ax.axhline(ns, color=COLORS[ns_name], ls="--", lw=1.1, alpha=0.85)
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels, fontsize=8)
-        ax.set_title(title)
-        ax.set_ylim(0, max(means) * 1.25)
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-    axes[0].set_ylabel("Test RMSE (km/h)")
-    fig.suptitle("Los-loop PH1: five-seed mean RMSE by family (whiskers: sample SD)", y=1.02)
+    labels, means, stds, colors = [], [], [], []
+    for vid in order:
+        r = rows[vid]
+        name = VID[vid]
+        labels.append(SHORT[name])
+        means.append(float(r["rmse_mean"]))
+        stds.append(float(r["rmse_std"]))
+        colors.append(COLORS[name])
+    fig, ax = plt.subplots(figsize=(8.2, 4.8))
+    x = np.arange(len(labels))
+    ax.bar(
+        x, means, yerr=stds, capsize=3.5, width=0.7,
+        color=colors, edgecolor="black", linewidth=0.5,
+        error_kw=dict(elinewidth=1.0, ecolor="#333333"),
+    )
+    for xi, m in zip(x, means):
+        ax.text(xi, m + 0.18, f"{m:.2f}", ha="center", va="bottom", fontsize=9)
+    ns = float(rows[ns_vid]["rmse_mean"])
+    ns_name = VID[ns_vid]
+    ax.axhline(ns, color=COLORS[ns_name], ls="--", lw=1.1, alpha=0.85)
+    ax.text(len(labels) - 0.35, ns + 0.08, ns_name, color=COLORS[ns_name],
+            fontsize=8, ha="right")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, fontsize=8.5)
+    ax.set_ylabel("Test RMSE (km/h)")
+    ax.set_title(title)
+    ax.set_ylim(0, max(means) * 1.25)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
     fig.tight_layout()
-    fig.savefig(OUT / "rmse_comparison_los_ph1.pdf", bbox_inches="tight")
-    fig.savefig(OUT / "rmse_comparison_los_ph1.png", bbox_inches="tight")
+    fig.savefig(OUT / f"{out_stem}.pdf", bbox_inches="tight")
+    fig.savefig(OUT / f"{out_stem}.png", bbox_inches="tight")
     plt.close(fig)
-    print("Wrote rmse_comparison_los_ph1 (T-GCN | GCN panels)")
+    print("Wrote", out_stem)
+
+
+def fig_rmse_comparison():
+    """Separate figures for T-GCN family and GCN family."""
+    _bar_family(
+        ["physical", "no_spatial", "gsl", "cgsl", "multi_gsl", "multi_gsl_weighted", "multi_gsl_mix"],
+        "Los-loop PH1: T-GCN family (five-seed mean RMSE ± sample SD)",
+        "rmse_comparison_tgcn_los_ph1",
+        "no_spatial",
+    )
+    _bar_family(
+        ["gcn_physical", "gcn_no_spatial", "gcn_gsl", "gcn_cgsl", "gcn_multigsl"],
+        "Los-loop PH1: GCN family (five-seed mean RMSE ± sample SD)",
+        "rmse_comparison_gcn_los_ph1",
+        "gcn_no_spatial",
+    )
+    # remove old combined file if present
+    for ext in (".pdf", ".png"):
+        old = OUT / f"rmse_comparison_los_ph1{ext}"
+        if old.exists():
+            old.unlink()
+            print("Removed", old.name)
 
 
 def fig_sparsity_controls():
