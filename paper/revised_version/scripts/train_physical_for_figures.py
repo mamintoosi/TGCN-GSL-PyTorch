@@ -49,15 +49,19 @@ def train_physical(ds, feat_path, adj_path, out_name):
     )
     opt = task.configure_optimizer()
     t0 = time.time()
+    train_losses = []
     for e in range(50):
         task.model.train()
         if task.regressor is not None:
             task.regressor.train()
+        ep_losses = []
         for xb, yb in loader:
             opt.zero_grad()
             loss = task.training_step((xb, yb))
             loss.backward()
             opt.step()
+            ep_losses.append(float(loss.item()))
+        train_losses.append(float(np.mean(ep_losses)))
         if e % 10 == 0:
             print("epoch", e, "t", round(time.time() - t0, 1), flush=True)
     task.model.eval()
@@ -77,7 +81,19 @@ def train_physical(ds, feat_path, adj_path, out_name):
     out.mkdir(parents=True, exist_ok=True)
     np.save(out / "y_true.npy", teY)
     np.save(out / "y_pred.npy", yp)
-    print("saved", out, teY.shape, yp.shape, flush=True)
+    # checkpoint-style histories for training-loss figure
+    hist = {
+        "train_losses": train_losses,
+        "best_epoch": int(np.argmin(train_losses)),
+        "best_loss": float(min(train_losses)),
+        "train_time_s": round(time.time() - t0, 1),
+        "max_epochs": 50,
+        "seed": 42,
+    }
+    import json
+
+    (out / "train_loss_history.json").write_text(json.dumps(hist), encoding="utf-8")
+    print("saved", out, teY.shape, yp.shape, "losses", len(train_losses), flush=True)
 
 
 if __name__ == "__main__":

@@ -496,11 +496,20 @@ def fig_lag_ablation():
 
 
 def fig_train_loss():
-    methods = [
-        ("los_ph1_seed42_nograph", "T-GCN-NoSpatial", COLORS["T-GCN-NoSpatial"]),
-        ("los_ph1_seed42_multi_graph_fixed", "T-GCN-MultiGSL", COLORS["T-GCN-MultiGSL"]),
-        ("los_ph1_seed42_gated_multi", "T-GCN-MultiGSL-Mix", COLORS["T-GCN-MultiGSL-Mix"]),
-    ]
+    """Training-loss: Physical vs winning Mix (fallback: MultiGSL if Physical missing)."""
+    phys = CKPT / "los_ph1_seed42_physical" / "train_loss_history.json"
+    mix = ("los_ph1_seed42_gated_multi", "T-GCN-MultiGSL-Mix", COLORS["T-GCN-MultiGSL-Mix"])
+    if phys.exists():
+        methods = [
+            ("los_ph1_seed42_physical", "T-GCN (Physical)", COLORS["T-GCN"]),
+            mix,
+        ]
+    else:
+        print("WARN: Physical train_loss_history missing; using MultiGSL+Mix")
+        methods = [
+            ("los_ph1_seed42_multi_graph_fixed", "T-GCN-MultiGSL", COLORS["T-GCN-MultiGSL"]),
+            mix,
+        ]
     fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.0))
     for folder, name, col in methods:
         hist = json.load(open(CKPT / folder / "train_loss_history.json"))

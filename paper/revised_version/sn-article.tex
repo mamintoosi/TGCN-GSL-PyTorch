@@ -1384,18 +1384,19 @@ The dashed line is T-GCN-NoSpatial. Single seed; see Section~\ref{sec:app-lag}.}
 \subsection{Training curves (illustrative)}\label{sec:app-conv}
 
 Figure~\ref{fig:convergence} shows compact training-loss histories from
-checkpoint runs (Los-loop PH1, seed $42$). They are included for
-reproducibility context only; main comparisons use final test RMSE with
-five-seed statistics (Section~\ref{sec:stats}), not per-epoch training
-curves.
+checkpoint runs (Los-loop PH1, seed $42$), comparing the physical
+road-network model (T-GCN) with the proposed gated multi-lag model
+(T-GCN-MultiGSL-Mix). They are included for reproducibility context only;
+main comparisons use final test RMSE with five-seed statistics
+(Section~\ref{sec:stats}), not per-epoch training curves.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.95\linewidth]{figures/train_loss_curves_los_ph1.pdf}
-\caption{Compact training-loss histories for T-GCN-NoSpatial,
-T-GCN-MultiGSL, and T-GCN-MultiGSL-Mix (Los-loop PH1, seed $42$). Left:
-raw loss; right: log-scale. Replaces dense multi-panel convergence grids;
-not primary evidence for method ranking.}
+\caption{Compact training-loss histories for T-GCN (Physical) and
+T-GCN-MultiGSL-Mix (Los-loop PH1, seed $42$). Left: raw loss; right:
+log-scale. Replaces dense multi-panel convergence grids; not primary
+evidence for method ranking.}
 \label{fig:convergence}
 \end{figure}
 
