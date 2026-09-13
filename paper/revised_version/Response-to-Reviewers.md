@@ -349,7 +349,7 @@ Empirically, the **same multi-lag artifacts** used per timestep in T-GCN and uni
 | W2 GCN/T-GCN background length | **Addressed** — condensed; Eqs. (2.2)–(2.3) kept; backbones pointed to Method |
 | W3 A→W notation | **Addressed** — main-text convention in Method Section 3.1 |
 | W4 temporal interpretation of DAG | **Addressed** — contemporaneous vs multi-lag separated; temporal-DAG claim retired; **major experimental redesign** |
-| W5 sparsity / oversmoothing / controls | **Addressed** — NoSpatial, matched sparsity, capacity, structure stats (Fig. 7; §3.4–3.5; §5.3); HPO/sweep deferred to Limitations |
+| W5 sparsity / oversmoothing / controls | **Addressed** — NoSpatial, matched sparsity (Fig. 5), capacity, structure (Fig. 4); HPO/sweep in Limitations |
 | W6 seeds / variance / significance | **Addressed** — see W6 below |
 | W7 horizons > 4 | **Partially addressed** — 15-min Los-loop control to 60 min wall-clock; PH5–8 at 5-min not run (Limitations / future work) |
 | W8 repetitive Results / tie-back | **Addressed** — message-oriented §5.1–5.6; §5.6 summary; Discussion §6.1 ties to Intro framing |
@@ -357,8 +357,8 @@ Empirically, the **same multi-lag artifacts** used per timestep in T-GCN and uni
 | W10 metric definitions | **Addressed** — §4.6 RMSE/MAE only; MAE in Appendix B |
 | W11 dense convergence plots | **Addressed** — removed from main text; compact train-loss panel in Appendix A |
 | W12 citation style | **Addressed** — `\citep`/`\citet` standardized |
-| Q1 graph visualization | **Addressed** — Figure 7 (physical vs multi-lag union + degrees) |
-| Q2 predicted vs actual | **Addressed** — Figure 6 (Los PH1 seed 42, 3 nodes, NoSpatial vs Mix) |
+| Q1 graph visualization | **Addressed** — Figure 4 (physical vs multi-lag union + degrees) |
+| Q2 predicted vs actual | **Addressed** — Figure 7 (Los PH1 seed 42, 3 nodes, Actual+NoSpatial+Mix) |
 | Q3 time-varying graphs | **Addressed** — static graphs; Mix = use only; sliding-window DAGMA as future work |
 | Q4 contemporaneous vs lagged evidence | **Addressed** — two constructions in Method 3.4–3.5; not inferred from GSL/cGSL split |
 
@@ -366,7 +366,53 @@ Empirically, the **same multi-lag artifacts** used per timestep in T-GCN and uni
 
 # Reviewer 2
 
-*(To be filled stage by stage.)*
+### R2-1 — Abstract number mix-up (21.6% / 24.7%)
+
+**Response.** We thank the reviewer. The submitted abstract’s “21.6% and 24.7%” figures were inconsistent with the results tables and are **removed**. The revised abstract reports only five-seed canonical quantities with explicit references: a **14.5% relative RMSE reduction versus the graph-free baseline on Los-loop PH1** (T-GCN-MultiGSL-Mix) and up to a **43.0% relative reduction versus the physical T-GCN baseline** across the evaluated Los-loop horizons. The SZ-Taxi boundary is stated in the same abstract. No unmatched percentage appears in the abstract.
+
+**Location.** Abstract; Results Section 5.4.
+
+---
+
+### R2-2 — “Hidden causal structure” / lack of learned-graph visualization
+
+**Response.** We agree that causal wording was not supported by the experiments. **All causal claims are removed** from Introduction, Method, Discussion, and Conclusion. Learned graphs are described as **thresholded, estimator-dependent statistical associations** under linear DAGMA; acyclicity is an optimization regularizer, not causal evidence.
+
+For visualization, Figure 4 shows the **physical adjacency versus the multi-lag union** on Los-loop together with degree distributions. We do **not** claim that the learned graph recovers known traffic corridors or causal pathways; the figure supports the proximity-versus-association motivation without causal interpretation.
+
+**Location.** Global claim policy; Figure 4 (`graph_structure_los`); Method (interpretation limits); Discussion.
+
+---
+
+### R2-3 — Static graph vs “adapts to changing traffic” inconsistency
+
+**Response.** The reviewer is correct: the graph is fitted **once** and does not change over time. The contradictory “adapts to changing traffic” wording is **removed**. The revised Method states that learned adjacencies are static; the Mix gate changes **how** those fixed lag graphs are used per node and timestep, not the edge set.
+
+**Location.** Method (static graphs; Mix); Limitations; Conclusion (time-varying graphs as future work).
+
+---
+
+### R2-4 — cGSL formula defined too late
+
+**Response.** cGSL is now defined in **Method Section 3.4** (*Contemporaneous Graph Learning*), immediately after GSL, as a binary symmetrization of the **same** stored artifact (Eq. 3.5). The definition appears **before** any Results evaluation of cGSL.
+
+**Location.** Method Section 3.4; Eq. (3.5).
+
+---
+
+### R2-5 — Convergence plots (Figs. 5–8) unreadable
+
+**Response.** The dense multi-panel per-epoch grids are **removed from the main text**. Appendix A retains a **compact two-panel training-loss figure** (linear and log scale; three methods; Los-loop PH1 seed 42) for reproducibility context only. Primary evidence is final RMSE with sample standard deviations (Tables 2–3).
+
+**Location.** Appendix A (`fig:convergence`); R1-W11 in this letter.
+
+---
+
+### R2-6 — Typo “avergae” (Section 4.4)
+
+**Response.** The typo no longer appears in the rewritten Results/Setup text.
+
+**Location.** Revised Results and Setup.
 
 ---
 
