@@ -183,3 +183,4 @@ tmp/
 /paper/previous_revision
 /paper/submitted_version
 /paper/gsl_master
+*.out
