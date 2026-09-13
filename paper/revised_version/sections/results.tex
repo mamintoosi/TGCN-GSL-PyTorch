@@ -165,6 +165,57 @@ placement of the learned edges (and how they are used) matters. A
 capacity-matched graph-free model (hidden $74$; single seed) stays near
 $5.14$ RMSE, so the gate's extra parameters do not explain Mix's gain.
 
+\begin{table}[t]
+\centering
+\caption{Edge-budget sweep on Los-loop PH1 (five-seed mean $\pm$ sample SD,
+RMSE). RandTopK and CorrTopK are T-GCN with $K$ random or top-correlation
+directed edges. Graph-free baseline and Stage~40 MultiGSL/Mix at $K=30$
+are shown for reference.}
+\label{tab:sparsity-sweep}
+\small
+\begin{tabular}{lcc}
+\toprule
+Configuration & RMSE & vs graph-free \\
+\midrule
+Graph-free baseline & $5.23\pm 0.10$ & --- \\
+CorrTop10 & $5.27\pm 0.10$ & $+0.3\%$ \\
+CorrTop20 & $5.29\pm 0.10$ & $+1.1\%$ \\
+CorrTop30 & $5.39\pm 0.10$ & $+3.0\%$ \\
+CorrTop50 & $5.52\pm 0.10$ & $+5.4\%$ \\
+CorrTop80 & $5.64\pm 0.09$ & $+7.7\%$ \\
+RandTop10 & $5.37\pm 0.17$ & $+2.6\%$ \\
+RandTop20 & $5.80\pm 0.13$ & $+10.8\%$ \\
+RandTop30 & $6.10\pm 0.12$ & $+16.5\%$ \\
+RandTop50 & $6.50\pm 0.10$ & $+24.3\%$ \\
+RandTop80 & $7.03\pm 0.15$ & $+34.4\%$ \\
+\midrule
+T-GCN-MultiGSL ($K{=}30$, Stage~40) & $4.84\pm 0.11$ & $-7.5\%$ \\
+T-GCN-MultiGSL-Mix ($K{=}30$, Stage~40) & $4.49\pm 0.14$ & $-14.2\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/sparsity_sweep_los_ph1.pdf}
+\caption{Edge-budget sweep on Los-loop PH1 (five-seed mean $\pm$ sample SD).
+As $K$ increases, random graphs degrade rapidly and correlation graphs
+degrade more slowly; neither family reaches the Stage~40 MultiGSL/Mix
+reference lines at the same $30$-edge budget.}
+\label{fig:sparsity-sweep}
+\end{figure}
+
+Extending the control across budgets (Table~\ref{tab:sparsity-sweep};
+Figure~\ref{fig:sparsity-sweep}) strengthens this conclusion: for every
+$K\in\{10,20,30,50,80\}$, both RandTopK and CorrTopK remain **at or above**
+the graph-free baseline. Random graphs worsen monotonically with $K$
+($5.37\to 7.03$); correlation graphs are closest to the baseline at small
+$K$ and also worsen as more edges are added ($5.27\to 5.64$). In contrast,
+at the same $30$-edge budget the DAGMA multi-lag graphs with lag-aligned
+use reach $4.84$ (MultiGSL) and $4.49$ (Mix). **Increasing edge count alone
+does not recover the multi-lag gain**; learned placement and lag-aligned
+use do.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.95\linewidth]{figures/sparsity_controls_los_ph1.pdf}

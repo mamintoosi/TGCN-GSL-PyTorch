@@ -9,16 +9,16 @@
 
 ## General response (summary)
 
-Thank you for the constructive reviews. The revision keeps the paper’s identity as a study of **graph structure learning for traffic forecasting**, while incorporating a graph-free control, an explicit multi-lag construction, repeated evaluation over **five forecasting seeds for the main experiments**, and matched-sparsity controls. Causal language has been removed.
+Thank you for the constructive reviews. The revision keeps the paper's identity as a study of **graph structure learning for traffic forecasting**, with a stronger focus on **whether learned sparse graphs help because of sparsity alone or because of where edges are placed**.
 
-**Two comments, in particular, motivated substantial clarification and additional controls** in the revision:
+Throughout this letter we refer to the identity-adjacency control as the **graph-free baseline** (manuscript names: *T-GCN-NoSpatial* / *GCN-NoSpatial*). That control is used to judge learned structure fairly; it is not proposed as a forecasting method.
 
-- **W4 (temporal interpretation of the learned DAG):** We clarified that the contemporaneous DAGMA fit is based on simultaneous sensor snapshots and should not be interpreted as a temporal graph. We therefore introduced an explicit multi-lag construction, audited the relevant experimental protocol, and revised the Method and Results sections accordingly.
-- **W5 (sparsity, oversmoothing, and fair controls):** We added a graph-free identity control and matched-sparsity and capacity controls. These experiments allow the roles of graph structure, graph density, and model capacity to be examined explicitly rather than attributing improvements to learned structure without appropriate controls (with the sparsity control scoped to Los-loop at PH1).
+**Two comments drove substantial experimental redesign:**
 
-We are grateful for these comments: they led to a **more comprehensive and better-controlled evaluation** than that presented in the submitted version.
+- **W4 (temporal interpretation of the learned DAG):** We separated contemporaneous vs explicit multi-lag DAGMA constructions and removed the temporal-DAG claim.
+- **W5 (sparsity / oversmoothing / fair controls):** We added the graph-free baseline, **matched-edge-budget sparsity controls**, structure figures, and capacity checks, so that gains cannot be attributed only to removing a dense physical graph or to having fewer edges.
 
-This letter is filled in **stage by stage** as each comment is mapped onto the revised text.
+These changes produced a **more comprehensive and better-controlled evaluation** than the submitted version.
 
 ---
 
@@ -147,52 +147,49 @@ $W$ is then used in the continuous-optimization subsection (NOTEARS/DAGMA) and i
 
 ### W5 — No hyperparameter optimization; learned graphs much sparser than physical; possible gains from sparsity/oversmoothing rather than structure
 
-**Response.** We thank the reviewer for this comment. Together with W4, it led to a **major redesign of the evaluation** (graph-free baseline, multi-seed protocol, structure figures, matched-budget controls) rather than only an editorial fix. We address the three parts as follows.
+**Response.** We thank the reviewer. Together with W4, this comment led to a **major redesign of the evaluation**, with the main question framed as: *does a learned sparse graph help because it is sparse, or because of how its edges are placed and used?*
 
-#### (a) Density / degree of learned vs physical graphs
+#### (a) Density of physical vs learned graphs
 
 We report the structural contrast explicitly:
 
-- **Physical Los-loop:** $2626$ off-diagonal edges; **mean degree $\approx 12.69$**.
-- **Learned multi-lag union (Los-loop):** $28$ edges after consumer thresholding; **mean degree $\approx 0.14$**.
+- **Physical Los-loop:** $2626$ off-diagonal edges; mean degree $\approx 12.69$.
+- **Learned multi-lag union (Los-loop):** $28$ edges after consumer thresholding; mean degree $\approx 0.14$.
 - **Contemporaneous GSL:** $28$ (Los-loop) and $8$ (SZ-Taxi) directed edges at every PH.
 
-These statistics appear in **Figure 5** (*Los-loop graph structure*: physical adjacency, multi-lag union, and degree histogram) and in Method (edge budgets).
+These statistics appear in **Figure 4** (physical adjacency, multi-lag union, degree histogram) and in Method (edge budgets).
 
-**Location.**  
-- **Figure 5** (Los-loop graph structure): physical $2626$ off-diagonal edges, mean degree $12.69$; multi-lag union $28$ edges, mean degree $0.14$.  
-- **Section 3.4** (*Contemporaneous Graph Learning (GSL and cGSL)*): contemporaneous edge counts $28$ (Los-loop) and $8$ (SZ-Taxi) at every PH.  
-- **Section 3.5** (*Multi-Lag Graph Learning*): lag-slot counts $12/3/15$ (sum $30$; union $28$) on Los-loop and $0/0/2$ (union $2$) on SZ-Taxi.
+**Location.** Figure 4; Method Sections 3.4–3.5.
 
-#### (b) Are gains only reduced oversmoothing / sparsity?
+#### (b) Sparsity alone does not explain the multi-lag gain (Los-loop PH1)
 
-We no longer credit a learned graph solely for beating the physical graph. The evaluation includes:
+We no longer credit a learned graph solely for beating the physical graph. The evaluation now centers on **matched edge budgets** and a **graph-free baseline**:
 
-1. **Graph-free identity control (T-GCN-NoSpatial / GCN-NoSpatial).**  
-   Removing the graph entirely often **reduces** error relative to the dense physical graph on both datasets. Therefore a learned graph that merely improves on Physical is **not** sufficient evidence; it must be compared with NoSpatial. Single contemporaneous GSL/cGSL **do not** beat NoSpatial on these benchmarks.
+1. **Graph-free baseline** (identity adjacency).  
+   Removing the graph entirely often **reduces** error relative to the dense physical graph. A learned graph that only improves on Physical is therefore **not** sufficient evidence. Single contemporaneous GSL/cGSL **do not** beat the graph-free baseline on these benchmarks.
 
-2. **Matched-sparsity controls (Los-loop PH1 only, labeled as such).**  
-   At a common budget of $30$ directed edges:
-   - RandTop30 (random): **worse** than NoSpatial;
-   - CorrTop30 (top training correlations): **worse** than NoSpatial;
-   - DAGMA multi-lag edges with lag-aligned use: **better** than NoSpatial.  
-   Thus, on that cell, **sparsity alone does not explain** the multi-lag gain; **where edges are placed** (and how they are used) matters. We do **not** claim this for all datasets or horizons.
+2. **Matched-sparsity controls at a common $30$-edge budget (Los-loop PH1 only).**  
+   - RandTop30 (random): **worse** than the graph-free baseline;  
+   - CorrTop30 (top training correlations): **worse** than the graph-free baseline;  
+   - DAGMA multi-lag edges with lag-aligned use (MultiGSL / Mix): **better** than the graph-free baseline.  
+   Thus **sparsity alone does not explain** the multi-lag result on this cell; **edge placement and use** matter. We do not claim this for all datasets or horizons.
+
+   **Edge-budget sweep (new).** We extended this control across $K\in\{10,20,30,50,80\}$ directed edges on Los-loop PH1 (five seeds). For every $K$, both RandTopK and CorrTopK remain **at or above** the graph-free baseline (CorrTop10 $\approx 5.27$ vs baseline $\approx 5.23$; RandTop80 $\approx 7.03$). At the same $30$-edge budget, Stage 40 MultiGSL ($4.84$) and Mix ($4.49$) remain well below both heuristic families. Adding more random or correlation edges **does not** recover the multi-lag gain.
 
 3. **Capacity control (single seed, labeled).**  
-   A hidden-74 NoSpatial model matching Mix’s parameter count stays near the hidden-64 NoSpatial error, so the gate’s extra parameters do not by themselves explain the Los-loop multi-lag result.
+   A hidden-$74$ graph-free model matching Mix’s parameter count stays near the hidden-$64$ graph-free error, so the gate’s extra parameters do not by themselves explain the Los-loop multi-lag result.
 
 4. **Oversmoothing language.**  
-   We describe dense-graph degradation as **consistent with** excessive neighborhood mixing or an unsuitable inductive bias; we do **not** claim we measured oversmoothing directly.
+   Dense-graph degradation is described as **consistent with** excessive neighborhood mixing or an unsuitable inductive bias; we do not claim we measured oversmoothing directly.
 
 **Location.**  
-- **Section 4** (*Experimental Setup*), *Matched-Sparsity and Capacity Controls* subsection.  
-- **Section 5.3** (*Is the Gain Only Sparsity?*) and the controls table.  
-- **Discussion** (why the physical graph can be a poor default).  
-- **Limitations** (control scope: Los-loop PH1 only; no sparsified physical graph; no $\lambda$/threshold sweep).
+- Section 4 (*Experimental Setup*), *Matched-Sparsity and Capacity Controls*.  
+- **Section 5.3** (*Is the Gain Only Sparsity?*), controls table, and **Figure 5**.  
+- Discussion; Limitations (control scope).
 
 #### (c) Hyperparameter optimization / fairer baseline
 
-We **did not** run a full hyperparameter search, a sparsified **physical** graph, or a $\lambda$/threshold sweep. Those remain **explicit limitations and future work**, so the paper does not overclaim that the physical graph was optimally tuned. What we **did** add is the identity baseline and budget-matched controls, which are the minimal fair checks the reviewer’s concern requires under a five-seed protocol.
+We **did not** run a full hyperparameter search, a sparsified **physical** graph, or a $\lambda$/threshold sweep. Those remain **explicit limitations and future work**. What we **did** add is the graph-free baseline and budget-matched controls --- the minimal fair checks required under a five-seed protocol.
 
 **Location.** Limitations; Conclusion (future work).
 
@@ -200,10 +197,10 @@ We **did not** run a full hyperparameter search, a sparsified **physical** graph
 
 | Reviewer concern | How addressed |
 |------------------|---------------|
-| Learned graphs much sparser | Quantified in **Figure 7** and **Sections 3.4–3.5** |
-| Gains may be oversmoothing only | Graph-free control; no credit vs Physical alone |
-| Gains may be sparsity only | Matched 30-edge controls in **Section 5.3** (Los PH1) |
-| Fairer baseline / HPO | Identity baseline + capacity check; full sweep **not** claimed (Limitations) |
+| Learned graphs much sparser | Quantified (edges, mean degree) in **Figure 4** and Method |
+| Gains may be oversmoothing only | Graph-free baseline; no credit vs Physical alone |
+| Gains may be sparsity only | **Matched 30-edge** Rand/Corr vs DAGMA (Los PH1; table + **Figure 5**) |
+| Fairer baseline / HPO | Graph-free baseline + capacity check; full sweep **not** claimed |
 
 ---
 
@@ -215,13 +212,13 @@ We **did not** run a full hyperparameter search, a sparsified **physical** graph
 
 **Variance in the tables.** The main T-GCN and GCN results tables report **mean RMSE with sample standard deviations** ($\mathrm{ddof}=1$) over the five seeds. Captions note that bold marks the lowest mean, not a claim of statistical significance.
 
-**How multi-seed evidence is interpreted.** Primary weight is placed on **effect size** (mean gaps and relative RMSE reductions), **five-seed means and spreads**, and **paired per-seed consistency**. For example, on Los-loop, Mix beats NoSpatial in $5/5$ seeds at every PH1–PH4, and NoSpatial beats Physical in $5/5$ seeds in all eight dataset$\times$horizon cells. On SZ-Taxi, Mix and NoSpatial are within seed spread.
+**How multi-seed evidence is interpreted.** Primary weight is placed on **effect size** (mean gaps and relative RMSE reductions), **five-seed means and spreads**, and **paired per-seed consistency**. For example, on Los-loop, Mix beats the graph-free baseline in $5/5$ seeds at every PH1–PH4, and the graph-free baseline beats Physical in $5/5$ seeds in all eight dataset$\times$horizon cells. On SZ-Taxi, Mix and the graph-free baseline are within seed spread.
 
-**Paired $t$-tests.** Where the Mix vs NoSpatial comparison is discussed on Los-loop, we also report paired $t$-tests on per-seed RMSE differences **for reference** (Section 5.4). These are exploratory: we do not present them as formal proof of superiority, and they are not repeated in the tables.
+**Paired $t$-tests.** Where the Mix vs graph-free-baseline comparison is discussed on Los-loop, we also report paired $t$-tests on per-seed RMSE differences **for reference** (Section 5.4). These are exploratory: we do not present them as formal proof of superiority, and they are not repeated in the tables.
 
 **Significance language.** With $n=5$, the exact two-sided Wilcoxon signed-rank test cannot attain $p<0.0625$. We therefore avoid definitive “statistically significant” claims and state this limitation once in the statistical-reporting policy and again under Limitations. Conclusions are scoped to the experiments and rely on consistency and effect size rather than on $p$-values alone.
 
-A per-seed distribution figure on Los-loop (NoSpatial, MultiGSL, Weighted, Mix) complements the tables; its means match the main results table.
+A per-seed distribution figure on Los-loop (graph-free baseline, MultiGSL, Weighted, Mix) complements the tables; its means match the main results table.
 
 **Location.** Section 4.7 (*Statistical Reporting*); Tables 2–3 (T-GCN and GCN families); Section 5.1 (*Baselines: Physical Graph versus Graph-Free Control*); Section 5.4 (*Multi-Lag Learned Graphs*); Figure 4 (per-seed Los-loop); Limitations (statistical power).
 
@@ -233,7 +230,7 @@ A per-seed distribution figure on Los-loop (NoSpatial, MultiGSL, Weighted, Mix) 
 
 **Canonical horizons.** The main experiments use $\mathrm{PH}=1$–$4$ at each dataset’s native sampling interval (5–20 minutes on Los-loop; 15–60 minutes on SZ-Taxi). We did **not** run PH5–8 (or longer) on the native 5-minute Los-loop series.
 
-**Temporal-resolution control (15-minute Los-loop).** Los-loop was resampled to 15-minute steps by averaging consecutive triplets, and the multi-lag comparison was repeated under the same five-seed training protocol. In that variant, $\mathrm{PH}=1,2,3,4$ correspond to **15, 30, 45, and 60 minutes** ahead. In wall-clock terms these horizons match **PH3, PH6, PH9, and PH12** on the native 5-minute grid; they are not equivalent to directly evaluating those PH values on the original 5-minute data, because resampling averages away 5-minute detail. On the 15-minute series, Mix reduces RMSE versus NoSpatial by $27.4\%$, $21.4\%$, $19.8\%$, and $16.1\%$ at $15$–$60$ minutes, with $5/5$ seed wins at each step (Section 5.5; Table 5). This experiment reports **NoSpatial, MultiGSL, and Mix only**; it does **not** include separate GSL/cGSL rows.
+**Temporal-resolution control (15-minute Los-loop).** Los-loop was resampled to 15-minute steps by averaging consecutive triplets, and the multi-lag comparison was repeated under the same five-seed training protocol. In that variant, $\mathrm{PH}=1,2,3,4$ correspond to **15, 30, 45, and 60 minutes** ahead. In wall-clock terms these horizons match **PH3, PH6, PH9, and PH12** on the native 5-minute grid; they are not equivalent to directly evaluating those PH values on the original 5-minute data, because resampling averages away 5-minute detail. On the 15-minute series, Mix reduces RMSE versus the graph-free baseline by $27.4\%$, $21.4\%$, $19.8\%$, and $16.1\%$ at $15$–$60$ minutes, with $5/5$ seed wins at each step (Section 5.5; Table 5). This experiment reports the **graph-free baseline, MultiGSL, and Mix only**; it does **not** include separate GSL/cGSL rows.
 
 **Scope of the claims.** The paper studies the effect of graph structure and its use for short-horizon forecasting at PH1–4. Conclusions are limited to that range and are not generalized to all forecast horizons. The submitted GSL/cGSL comparison is likewise limited to PH1–4 on the native grids (Tables 2–3); we do not claim a GSL/cGSL gap analysis beyond PH4 at 5-minute sampling.
 
@@ -258,7 +255,7 @@ A per-seed distribution figure on Los-loop (NoSpatial, MultiGSL, Weighted, Mix) 
 
 We kept 5.1–5.3 as separate subsections rather than merging them, because each answers a distinct question (default graph, single learned graph, sparsity confound) and uses a different evidence block (main tables vs controls table). Repeating the same numeric table under three headings was avoided; 5.1 and 5.2 share Tables 2–3 without restating all cells.
 
-**Tie-back to the Introduction.** The opening frames physical proximity versus data-dependent association and asks whether the adjacency should be estimated from traffic data. Section 5.1 establishes that the dense physical graph is a poor default and that a graph-free control is required. Section 6.1 (*When the Physical Graph Is a Poor Default*) returns to that framing explicitly (proximity versus association; possible oversmoothing as a reading of the physical-versus-identity gap). The old “spatial graph versus temporal dependency graph” resolution section from the submitted manuscript is not retained; that role is now played by the contemporaneous-versus-multi-lag distinction in Method and by the Discussion, without the temporal-DAG claim (see W4).
+**Tie-back to the Introduction.** The opening frames physical proximity versus data-dependent association and asks whether the adjacency should be estimated from traffic data. Section 5.1 establishes that the dense physical graph is a poor default and that a graph-free control is required. Section 6.1 (*When the Physical Graph Is a Poor Default*) returns to that framing explicitly (proximity versus association; possible oversmoothing as a reading of the physical-versus-graph-free gap). The old “spatial graph versus temporal dependency graph” resolution section from the submitted manuscript is not retained; that role is now played by the contemporaneous-versus-multi-lag distinction in Method and by the Discussion, without the temporal-DAG claim (see W4).
 
 **Location.** Sections 5.1–5.6 (Results); Section 6.1 (Discussion); Introduction (framing).
 
@@ -308,15 +305,15 @@ We kept 5.1–5.3 as separate subsections rather than merging them, because each
 
 **Response.** We include a structure figure that contrasts the **physical road-network adjacency** with the **learned multi-lag union** on Los-loop, together with node-degree distributions (Figure 5). Panel (a) shows the dense physical graph (thousands of off-diagonal entries; mean degree $\approx 12.7$); panel (b) shows the thresholded multi-lag union ($28$ edges; mean degree $\approx 0.14$); panel (c) compares degree histograms. Captions describe these as **statistical dependency estimates**, not causal maps. This makes “proximity $\neq$ data-driven association” concrete without implying causal influence.
 
-**Location.** Figure 7 (`fig:graphstruct`); referenced in Results (physical vs graph-free baselines).
+**Location.** Figure 4 (`graph_structure_los`); referenced in Results (physical vs graph-free baselines).
 
 ---
 
 ### Q2 — Predicted vs actual time series for individual nodes
 
-**Response.** We added a qualitative figure of **predicted versus actual speeds** on Los-loop (PH1, seed $42$) for **three high-variance test nodes** over 100 consecutive test steps, comparing **T-GCN-NoSpatial** and **T-GCN-MultiGSL-Mix** (Figure 5). On some segments Mix follows sharp drops more closely; both models smooth fine-scale noise. The figure is explicitly **illustrative** and does not replace aggregate RMSE/MAE; it is intended to give a sense of node-level behavior, including where the learned multi-lag model is not uniformly better (e.g.\ the noisiest node).
+**Response.** We added a qualitative figure of **predicted versus actual speeds** on Los-loop (PH1, seed $42$) for **three high-variance test nodes** over 100 consecutive test steps, comparing the **graph-free baseline** and **T-GCN-MultiGSL-Mix** (Figure 7). On some segments Mix follows sharp drops more closely; both models smooth fine-scale noise. The figure is explicitly **illustrative** and does not replace aggregate RMSE/MAE; it is intended to give a sense of node-level behavior, including where the learned multi-lag model is not uniformly better (e.g.\ the noisiest node).
 
-**Location.** Figure 6 (`fig:predvsact`); referenced in Section 5.4 (Multi-Lag Learned Graphs).
+**Location.** Figure 7 (`pred_vs_actual_los_ph1`); referenced in Section 5.4 (Multi-Lag Learned Graphs).
 
 ---
 
@@ -349,7 +346,7 @@ Empirically, the **same multi-lag artifacts** used per timestep in T-GCN and uni
 | W2 GCN/T-GCN background length | **Addressed** — condensed; Eqs. (2.2)–(2.3) kept; backbones pointed to Method |
 | W3 A→W notation | **Addressed** — main-text convention in Method Section 3.1 |
 | W4 temporal interpretation of DAG | **Addressed** — contemporaneous vs multi-lag separated; temporal-DAG claim retired; **major experimental redesign** |
-| W5 sparsity / oversmoothing / controls | **Addressed** — NoSpatial, matched sparsity (Fig. 5), capacity, structure (Fig. 4); HPO/sweep in Limitations |
+| W5 sparsity / oversmoothing / controls | **Addressed** — graph-free baseline, matched 30-edge controls (Fig. 5 + table), capacity check; HPO/sweep in Limitations |
 | W6 seeds / variance / significance | **Addressed** — see W6 below |
 | W7 horizons > 4 | **Partially addressed** — 15-min Los-loop control to 60 min wall-clock; PH5–8 at 5-min not run (Limitations / future work) |
 | W8 repetitive Results / tie-back | **Addressed** — message-oriented §5.1–5.6; §5.6 summary; Discussion §6.1 ties to Intro framing |
@@ -358,7 +355,7 @@ Empirically, the **same multi-lag artifacts** used per timestep in T-GCN and uni
 | W11 dense convergence plots | **Addressed** — removed from main text; compact train-loss panel in Appendix A |
 | W12 citation style | **Addressed** — `\citep`/`\citet` standardized |
 | Q1 graph visualization | **Addressed** — Figure 4 (physical vs multi-lag union + degrees) |
-| Q2 predicted vs actual | **Addressed** — Figure 7 (Los PH1 seed 42, 3 nodes, Actual+NoSpatial+Mix) |
+| Q2 predicted vs actual | **Addressed** — Figure 7 (Los PH1 seed 42, 3 nodes, Actual + graph-free + Mix) |
 | Q3 time-varying graphs | **Addressed** — static graphs; Mix = use only; sliding-window DAGMA as future work |
 | Q4 contemporaneous vs lagged evidence | **Addressed** — two constructions in Method 3.4–3.5; not inferred from GSL/cGSL split |
 
