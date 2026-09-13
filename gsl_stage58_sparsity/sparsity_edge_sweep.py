@@ -113,11 +113,15 @@ def train_eval(adj, train_xy, test_xy, feat_max, ph, seed, args, device):
             loss.backward()
             opt.step()
     metrics = task.validation_epoch(test_loader, device)
+    nn = adj.shape[0]
+    n_offdiag = int((np.abs(adj) > 0).sum())
+    if np.allclose(adj, np.eye(nn), atol=1e-6):
+        n_offdiag = 0  # identity / NoSpatial
     return {
         "RMSE": round(float(metrics["RMSE"]), 4),
         "MAE": round(float(metrics["MAE"]), 4),
         "train_seconds": round(time.time() - t0, 1),
-        "n_edges": int((np.abs(adj) > 0).sum() - N) if adj.shape[0] == N else int((np.abs(adj) > 0).sum()),
+        "n_edges": n_offdiag,
     }
 
 
