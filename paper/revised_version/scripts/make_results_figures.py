@@ -40,7 +40,7 @@ COLORS = {
     "GCN-cGSL": "#CDDC39",
     "T-GCN-MultiGSL": "#009688",
     "T-GCN-MultiGSL-Weighted": "#00BCD4",
-    "T-GCN-MultiGSL-Mix": "#E91E63",
+    "T-GCN-MultiGSL-Mix": "#7B1FA2",  # purple
     "GCN-MultiGSL": "#795548",
     "RandTop30": "#FF9800",
     "CorrTop30": "#FFB74D",

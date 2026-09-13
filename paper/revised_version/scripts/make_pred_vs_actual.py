@@ -13,9 +13,9 @@ OUT = ROOT / "paper" / "revised_version" / "figures"
 CKPT = ROOT / "results" / "stage26_checkpoint"
 
 COL_NS = "#2196F3"  # used only if Physical preds missing
-# Lighter than Mix (#E91E63) so the two series are easy to separate
+# Lighter than Mix so the two series are easy to separate
 COL_PHYS = "#FF8A80"
-COL_MIX = "#E91E63"
+COL_MIX = "#7B1FA2"  # purple: distinct from Physical red / dashed light red
 
 
 def squeeze_ph1(a):
