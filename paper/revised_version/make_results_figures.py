@@ -80,8 +80,8 @@ VID = {
 SHORT = {
     "T-GCN": "T-GCN\n(Physical)",
     "GCN": "GCN\n(Physical)",
-    "T-GCN-NoSpatial": "T-GCN-\nNoSpatial",
-    "GCN-NoSpatial": "GCN-\nNoSpatial",
+    "T-GCN-NoSpatial": "Graph-free\nbaseline",
+    "GCN-NoSpatial": "Graph-free\nbaseline",
     "T-GCN-GSL": "T-GCN-GSL",
     "T-GCN-cGSL": "T-GCN-cGSL",
     "GCN-GSL": "GCN-GSL",
@@ -124,7 +124,7 @@ def _bar_family(order, title, out_stem, ns_vid):
     ns = float(rows[ns_vid]["rmse_mean"])
     ns_name = VID[ns_vid]
     ax.axhline(ns, color=COLORS[ns_name], ls="--", lw=1.1, alpha=0.85)
-    ax.text(len(labels) - 0.35, ns + 0.08, ns_name, color=COLORS[ns_name],
+    ax.text(len(labels) - 0.35, ns + 0.08, "Graph-free baseline", color=COLORS[ns_name],
             fontsize=8, ha="right")
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=8.5)
@@ -143,13 +143,13 @@ def _bar_family(order, title, out_stem, ns_vid):
 def fig_rmse_comparison():
     """Separate figures for T-GCN family and GCN family."""
     _bar_family(
-        ["physical", "no_spatial", "gsl", "cgsl", "multi_gsl", "multi_gsl_weighted", "multi_gsl_mix"],
+        ["physical", "gsl", "cgsl", "multi_gsl", "multi_gsl_weighted", "multi_gsl_mix"],
         "Los-loop PH1: T-GCN family (five-seed mean RMSE ± sample SD)",
         "rmse_comparison_tgcn_los_ph1",
         "no_spatial",
     )
     _bar_family(
-        ["gcn_physical", "gcn_no_spatial", "gcn_gsl", "gcn_cgsl", "gcn_multigsl"],
+        ["gcn_physical", "gcn_gsl", "gcn_cgsl", "gcn_multigsl"],
         "Los-loop PH1: GCN family (five-seed mean RMSE ± sample SD)",
         "rmse_comparison_gcn_los_ph1",
         "gcn_no_spatial",
