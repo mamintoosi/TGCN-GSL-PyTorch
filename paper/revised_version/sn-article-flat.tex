@@ -893,7 +893,8 @@ These baselines matter for evaluating GSL: an improvement over the physical
 graph alone does not establish that learned structure is useful, because
 removing the graph already reduces error substantially. Figure~\ref{fig:graphstruct}
 contrasts the dense physical adjacency with the much sparser multi-lag
-learned union on Los-loop.
+learned union on Los-loop. Figure~\ref{fig:rmsebars} summarizes five-seed
+mean RMSE for key Los-loop PH1 configurations.
 
 \subsection{Contemporaneous Learned Graphs (GSL and cGSL)}\label{sec:res-single}
 
@@ -956,7 +957,11 @@ Figure~\ref{fig:perseed} shows the per-seed distributions: Mix has the
 lowest mean RMSE among the evaluated configurations on Los-loop at all
 four horizons. The global-weight
 variant (Weighted) is essentially tied with the fixed assignment
-(differences $\le 0.01$ RMSE).\label{sec:res-mix}
+(differences $\le 0.01$ RMSE). Figure~\ref{fig:predvsact} shows example
+predicted versus actual series on three high-variance Los-loop nodes:
+Mix tracks some sharp speed drops more closely than NoSpatial on these
+illustrative segments, while both models smooth high-frequency
+fluctuations.\label{sec:res-mix}
 
 When the \emph{same} multi-lag artifacts are merged into one static union
 and used by non-recurrent GCN (GCN-MultiGSL), error is $9.78\pm 0.14$
@@ -1155,10 +1160,31 @@ slots. Graphs are statistical dependency estimates, not causal maps.}
 
 \begin{figure}[t]
 \centering
+\includegraphics[width=0.98\linewidth]{figures/fig2_rmse_bars_stage40.pdf}
+\caption{Los-loop PH1: five-seed mean test RMSE (whiskers: sample standard
+deviation) for key configurations from the canonical Stage~40 matrix.
+Annotations show mean RMSE and the learned-edge count ($e$) where relevant.
+The dashed line is T-GCN-NoSpatial.}
+\label{fig:rmsebars}
+\end{figure}
+
+\begin{figure}[t]
+\centering
 \includegraphics[width=0.98\linewidth]{figures/fig2_perseed.pdf}
 \caption{Los-loop per-seed test RMSE for the multi-lag use ladder (seeds
 42--46). Diamonds mark five-seed means matching Table~\ref{tab:tgcn-main}.}
 \label{fig:perseed}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/fig9_predicted_vs_actual.pdf}
+\caption{Qualitative predicted versus actual speed on Los-loop (PH1, seed
+$42$) for three high-variance test nodes (100 consecutive test steps).
+Left: T-GCN-NoSpatial; right: T-GCN-MultiGSL-Mix. Speeds are on the
+normalized training scale. Curves are illustrative complements to the
+aggregate RMSE/MAE tables, not a separate evaluation protocol.}
+\label{fig:predvsact}
 \end{figure}
 
 \begin{figure}[t]
@@ -1319,6 +1345,48 @@ in a manner consistent with how it was estimated; it is not a universal
 replacement for either the physical graph or a graph-free model.
 
 \begin{appendices}
+
+\section{Additional Experimental Results}\label{sec:app-add}
+
+\subsection{Lag ablation (supplementary, single seed)}\label{sec:app-lag}
+
+Figure~\ref{fig:lagablation} summarizes which lag-specific multi-lag graphs
+are used when only a subset of lags is retained (Los-loop PH1, seed $42$,
+same training protocol as the main experiments but a single seed and outside
+the five-seed main matrix). Each individual lag improves on T-GCN-NoSpatial
+by about $10\%$ relative RMSE; the full three-lag set is best in this
+ablation (about $13.3\%$ relative). These numbers are supplementary
+diagnostics for lag complementarity and are not a substitute for the
+five-seed results in Tables~\ref{tab:tgcn-main} and~\ref{tab:gcn-main}.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\linewidth]{figures/fig5_lag_ablation.pdf}
+\caption{Supplementary lag ablation (Los-loop PH1, seed $42$). Bars are
+test RMSE for subsets of the three multi-lag graphs under the gated
+mechanism (T-GCN-MultiGSL-Mix family), with edge counts in parentheses.
+The dashed line is T-GCN-NoSpatial. Single seed; see Section~\ref{sec:app-lag}.}
+\label{fig:lagablation}
+\end{figure}
+
+\subsection{Training curves (illustrative)}\label{sec:app-conv}
+
+Figure~\ref{fig:convergence} shows compact training-loss histories from
+checkpoint runs (Los-loop PH1, seed $42$). They are included for
+reproducibility context only; main comparisons use final test RMSE with
+five-seed statistics (Section~\ref{sec:stats}), not per-epoch training
+curves.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/fig8_train_loss.pdf}
+\caption{Compact training-loss histories for T-GCN-NoSpatial,
+T-GCN-MultiGSL, and T-GCN-MultiGSL-Mix (Los-loop PH1, seed $42$). Left:
+raw loss; right: log-scale. Replaces dense multi-panel convergence grids;
+not primary evidence for method ranking.}
+\label{fig:convergence}
+\end{figure}
+
 \section{Bibliometric Analysis Methodology}\label{sec:Bibliometric-Methodology}
 
 To support the motivating observation in the Introduction (the rise of
