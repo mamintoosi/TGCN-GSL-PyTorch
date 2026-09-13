@@ -174,7 +174,7 @@ We no longer credit a learned graph solely for beating the physical graph. The e
    - DAGMA multi-lag edges with lag-aligned use (MultiGSL / Mix): **better** than the graph-free baseline.  
    Thus **sparsity alone does not explain** the multi-lag result on this cell; **edge placement and use** matter. We do not claim this for all datasets or horizons.
 
-   **Edge-budget sweep (new).** We extended this control across $K\in\{10,20,30,50,80\}$ directed edges on Los-loop PH1 (five seeds). For every $K$, both RandTopK and CorrTopK remain **at or above** the graph-free baseline (CorrTop10 $\approx 5.27$ vs baseline $\approx 5.23$; RandTop80 $\approx 7.03$). At the same $30$-edge budget, Stage 40 MultiGSL ($4.84$) and Mix ($4.49$) remain well below both heuristic families. Adding more random or correlation edges **does not** recover the multi-lag gain.
+   **Edge-budget sweep (new).** We extended this control across $K\in\{10,20,30,50,80\}$ directed edges on Los-loop PH1 (five seeds). For every $K$, both RandTopK and CorrTopK remain **at or above** the graph-free baseline (CorrTop10 $\approx 5.27$ vs baseline $\approx 5.23$; RandTop80 $\approx 7.03$). At the same $30$-edge budget, the main MultiGSL ($4.84$) and Mix ($4.49$) remain well below both heuristic families. Adding more random or correlation edges **does not** recover the multi-lag gain.
 
 3. **Capacity control (single seed, labeled).**  
    A hidden-$74$ graph-free model matching Mix’s parameter count stays near the hidden-$64$ graph-free error, so the gate’s extra parameters do not by themselves explain the Los-loop multi-lag result.

@@ -22,8 +22,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[2]
-OUT = Path(__file__).resolve().parent / "figures"
+ROOT = Path(__file__).resolve().parents[3]
+OUT = Path(__file__).resolve().parent.parent / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 S41 = ROOT / "gsl_stage41" / "stage41_summary.csv"
 CKPT = ROOT / "results" / "stage26_checkpoint"

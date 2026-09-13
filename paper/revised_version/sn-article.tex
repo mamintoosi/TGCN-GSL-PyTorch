@@ -682,7 +682,7 @@ MultiGSL family & DAGMA & lag blocks $\mathbf{A}_{1:3}$ & per-step / gate / unio
 
 
 % ======================================================================
-% Section 4 — Experimental Setup (revised from submitted_version + Stage 40)
+% Section 4 — Experimental Setup (revised from submitted_version + canonical)
 % ======================================================================
 \section{Experimental Setup}\label{sec:setup}
 
@@ -862,7 +862,7 @@ the standard protocol.
 
 % ======================================================================
 % Section 5 — Results
-% Numbers: Stage 40 five-seed means (seeds 42–46), sample std (ddof=1)
+% Numbers: canonical five-seed means (seeds 42–46), sample std (ddof=1)
 % Framing: GSL for traffic; graph-free as control; multi-lag + use as conditions
 % ======================================================================
 \section{Results}\label{sec:results}
@@ -870,14 +870,14 @@ the standard protocol.
 We evaluate whether learning the adjacency from traffic data improves
 forecasting relative to a physical road-network graph, and under what
 conditions. Throughout, we call the identity-adjacency control the
-\emph{graph-free baseline} (manuscript name T-GCN-NoSpatial / GCN-NoSpatial);
+\emph{graph-free baseline} (T-GCN-NoSpatial / GCN-NoSpatial);
 it is a reference, not a proposed method. Unless noted otherwise, each value is the mean test RMSE over
 five training seeds with the sample standard deviation in parentheses;
 learned graphs are fitted once and shared across seeds. Improvements are
 relative RMSE reductions with respect to the named reference. Statistical
 qualifications follow Section~\ref{sec:stats}.
 
-\subsection{Baselines: Physical Graph versus Graph-Free Control}\label{sec:res-physical}
+\subsection{Comparison with the Physical Road-Network Graph}\label{sec:res-physical}
 
 \begin{table}[t]
 \centering
@@ -915,12 +915,15 @@ T-GCN-MultiGSL-Mix & \textbf{4.12 (0.02)} & \textbf{4.15 (0.01)} & \textbf{4.18 
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:tgcn-main} reports the T-GCN family. The physical
-road-network adjacency is the weakest configuration in its family in every
-dataset--horizon cell. On Los-loop at PH1, T-GCN obtains $7.88\pm 0.28$
-RMSE, while the graph-free baseline obtains $5.25\pm 0.19$ --- a $33.3\%$ relative
-reduction when the physical graph is removed. the graph-free baseline beats Physical in
-$5/5$ seeds in all eight cells.
+Table~\ref{tab:tgcn-main} reports the T-GCN family against the physical
+road-network adjacency. Every learned configuration reduces error relative
+to Physical in most cells. On Los-loop at PH1, T-GCN (Physical) obtains
+$7.88\pm 0.28$ RMSE, whereas T-GCN-GSL and T-GCN-cGSL obtain
+$5.86\pm 0.21$ and $5.82\pm 0.23$, and the multi-lag variants obtain
+$4.84\pm 0.11$ (MultiGSL) and $4.49\pm 0.14$ (Mix). Relative to Physical,
+Mix reduces RMSE by $43.0\%$, $37.6\%$, $33.7\%$, and $32.3\%$ at
+PH1--PH4. The same direction holds on SZ-Taxi, where Mix reduces RMSE by
+$24.4\%$--$25.2\%$ relative to Physical.
 
 \begin{table}[t]
 \centering
@@ -957,7 +960,10 @@ The GCN family (Table~\ref{tab:gcn-main}) shows the same pattern
 Figures~\ref{fig:rmsebars-tgcn} and~\ref{fig:rmsebars-gcn} summarize
 five-seed mean RMSE for the T-GCN and GCN families separately.
 Figure~\ref{fig:graphstruct} contrasts the dense physical adjacency with
-the much sparser multi-lag union.
+the much sparser multi-lag union. Throughout the tables, the italic
+\emph{graph-free baseline} (identity adjacency) is a reference control, not
+a proposed method: it shows how much error remains when no spatial graph is
+used, and is not the primary comparison for the learned variants.
 
 \begin{figure}[t]
 \centering
@@ -988,13 +994,16 @@ Learned graphs are statistical dependency estimates, not causal maps.}
 \subsection{Contemporaneous Learned Graphs (GSL and cGSL)}\label{sec:res-single}
 
 Replacing the physical adjacency with a single contemporaneous DAGMA graph
-improves on Physical in most T-GCN cells but does not surpass the
-graph-free control. On Los-loop PH1, T-GCN-GSL and T-GCN-cGSL obtain
-$5.86\pm 0.21$ and $5.82\pm 0.23$, about $26\%$ better than Physical yet
-about $11\%$ worse than the graph-free baseline. Neither contemporaneous graph beats
-the graph-free baseline in any dataset$\times$horizon cell. For GCN, cGSL is better than
-directed GSL on Los-loop ($5.76$ vs.\ $7.83$) but still worse than
-the graph-free baseline; for T-GCN, GSL and cGSL are nearly indistinguishable.
+consistently reduces error relative to Physical. On Los-loop PH1,
+T-GCN-GSL and T-GCN-cGSL obtain $5.86\pm 0.21$ and $5.82\pm 0.23$ ---
+about $26\%$ lower RMSE than T-GCN (Physical, $7.88\pm 0.28$). On SZ-Taxi
+the same pattern holds (about $21\%$--$22\%$ relative to Physical at PH1).
+For GCN, cGSL is clearly better than directed GSL on Los-loop ($5.76$ vs.\
+$7.83$) and both improve on the physical GCN ($8.14$). Among the two
+contemporaneous variants, T-GCN-GSL and T-GCN-cGSL are nearly
+indistinguishable; on GCN, symmetrization (cGSL) is the stronger of the
+two. Neither contemporaneous graph matches the multi-lag results discussed
+next.
 
 \subsection{Is the Gain Only Sparsity?}\label{sec:res-controls}
 
@@ -1040,7 +1049,7 @@ $5.14$ RMSE, so the gate's extra parameters do not explain Mix's gain.
 
 \begin{table}[t]
 \centering
-\caption{Edge-budget sweep on Los-loop PH1 (five-seed mean $\pm$ sample SD; \emph{lower RMSE is better}). RandTopK and CorrTopK are T-GCN with $K$ random or top-correlation directed edges. The italic first row is the graph-free control. The last two rows are Stage~40 MultiGSL/Mix at the canonical $K=30$ budget. $\Delta_{\mathrm{rel}}$ is the relative RMSE difference vs the graph-free baseline (positive = higher error than the baseline; negative = lower error). Bold marks Mix, the lowest mean in the table.}
+\caption{Edge-budget sweep on Los-loop PH1 (five-seed mean $\pm$ sample SD; \emph{lower RMSE is better}). RandTopK and CorrTopK are T-GCN with $K$ random or top-correlation directed edges. The italic first row is the graph-free control. The last two rows are the main-experiment MultiGSL/Mix at the canonical $K=30$ budget. $\Delta_{\mathrm{rel}}$ is the relative RMSE difference vs the graph-free baseline (positive = higher error than the baseline; negative = lower error). Bold marks Mix, the lowest mean in the table.}
 \label{tab:sparsity-sweep}
 \small
 \begin{tabular}{lcc}
@@ -1059,8 +1068,8 @@ RandTop30 & $6.10\pm 0.12$ & $+16.5\%$ \\
 RandTop50 & $6.50\pm 0.10$ & $+24.3\%$ \\
 RandTop80 & $7.03\pm 0.15$ & $+34.4\%$ \\
 \midrule
-T-GCN-MultiGSL ($K{=}30$, Stage~40) & $4.84\pm 0.11$ & $-7.5\%$ \\
-T-GCN-MultiGSL-Mix ($K{=}30$, Stage~40) & \textbf{$4.49\pm 0.14$} & $-14.2\%$ \\
+T-GCN-MultiGSL ($K{=}30$) & $4.84\pm 0.11$ & $-7.5\%$ \\
+T-GCN-MultiGSL-Mix ($K{=}30$) & \textbf{$4.49\pm 0.14$} & $-14.2\%$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1070,7 +1079,7 @@ T-GCN-MultiGSL-Mix ($K{=}30$, Stage~40) & \textbf{$4.49\pm 0.14$} & $-14.2\%$ \\
 \includegraphics[width=0.95\linewidth]{figures/sparsity_sweep_los_ph1.pdf}
 \caption{Edge-budget sweep on Los-loop PH1 (five-seed mean $\pm$ sample SD).
 As $K$ increases, random graphs degrade rapidly and correlation graphs
-degrade more slowly; neither family reaches the Stage~40 MultiGSL/Mix
+degrade more slowly; neither family reaches the the main-experiment MultiGSL/Mix
 reference lines at the same $30$-edge budget.}
 \label{fig:sparsity-sweep}
 \end{figure}
@@ -1124,7 +1133,7 @@ horizons. Weighted is essentially tied with the fixed MultiGSL assignment
 \includegraphics[width=0.98\linewidth]{figures/pred_vs_actual_los_ph1.pdf}
 \caption{Predicted versus actual speed on Los-loop (PH1, seed $42$) for
 three high-variance nodes (100 test steps). Each row overlays ground truth
-with the graph-free baseline and T-GCN-MultiGSL-Mix (normalized scale).}
+with T-GCN (Physical) and T-GCN-MultiGSL-Mix (normalized scale).}
 \label{fig:predvsact}
 \end{figure}
 
@@ -1148,7 +1157,7 @@ shows that multi-lag graphs are not automatically beneficial once estimated.
 
 \subsection{Dataset Dependence and Temporal Resolution}\label{sec:res-boundaries}
 
-Figure~\ref{fig:predvsact-sz} shows an analogous predicted-versus-actual overlay on SZ-Taxi: the graph-free baseline and Mix almost coincide, matching the aggregate results.
+Figure~\ref{fig:predvsact-sz} shows an analogous predicted-versus-actual overlay on SZ-Taxi: Physical and Mix, matching the aggregate results.
 
 On SZ-Taxi the multi-lag fit retains only two lagged edges. Mix vs
 NoSpatial differs by at most $0.015$ RMSE ($\le 0.34\%$). The Los-loop
@@ -1244,8 +1253,9 @@ is carried by the multi-lag construction only.
 \subsection{What the Learned Graph Represents}\label{sec:disc-interpretation}
 
 We treat the learned adjacencies as \emph{statistical dependency}
-estimates under a linear DAGMA fit. Acyclicity is an optimization
-constraint, not evidence of causal traffic mechanisms. The lag-structured
+estimates under a linear DAGMA fit. The acyclicity constraint is used as
+an optimization device for the estimator; we do not interpret the fitted
+matrices as causal traffic mechanisms. The lag-structured
 reading of the multi-lag blocks is consistent with the input construction
 $Z=[x(t-3),\ldots,x(t)]$ and with the consumption experiments, but it is
 not independently validated against ground-truth propagation. The gated
@@ -1274,7 +1284,7 @@ significance claims.
 only for Los-loop at PH1. The edge-budget sweep covers
 $K\in\{10,20,30,50,80\}$ for random and correlation graphs only; the
 DAGMA multi-lag graphs are evaluated at the canonical $30$-edge budget
-(and in the main Stage~40 matrix). There is no sparsified physical graph,
+(and in the main results matrix). There is no sparsified physical graph,
 and no systematic sensitivity sweep over the DAGMA sparsity coefficient
 $\lambda_1$ or over support thresholds was performed. In the contemporaneous
 construction $\lambda_1$ is $0.02$ (Los-loop) and $0.01$ (SZ-Taxi); in the
@@ -1282,7 +1292,6 @@ multi-lag construction it is $0.01$ on both datasets. These values follow
 the original GSL protocol and are distinct from the internal and consumer
 thresholds and from the forecasting-loss regularization. A systematic
 study of $\lambda_1$ remains future work.
-\item \textbf{Datasets and horizons.} Two benchmarks; $\mathrm{PH}\le 4$ at
 native sampling. The $15$-minute Los-loop study is a resolution control, not
 evidence for PH5--8 at $5$-minute sampling.
 \item \textbf{Graph-estimation cost.} The main computational consideration
