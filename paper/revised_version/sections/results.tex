@@ -135,13 +135,12 @@ The physical graph is dense (order $10^3$ off-diagonal edges on Los-loop),
 while single contemporaneous GSL uses $28$ edges and the multi-lag
 construction uses $30$ lag slots (union $28$). To test whether any gain
 from a learned sparse graph is only an edge-count effect, we compare
-graphs at a **matched $30$-edge budget** on Los-loop PH1
+graphs at a matched $30$-edge budget on Los-loop PH1
 (Table~\ref{tab:controls}; Figure~\ref{fig:sparsity}).
 
 \begin{table}[t]
 \centering
-\caption{Matched-sparsity and capacity controls on Los-loop at PH1 only.
-Five seeds for graph rows; capacity rows are single-seed (seed 42).}
+\caption{Matched-sparsity and capacity controls on Los-loop at PH1. Upper block: graphs at a common $30$-edge budget (or identity for the graph-free control), five seeds; lower block: capacity check on the graph-free model vs Mix, single seed (seed 42). Lower RMSE is better; bold marks the lowest mean among the $30$-edge DAGMA variants in the upper block (Mix). Positive percentages in the last column mean worse than the graph-free baseline; negative mean better.}
 \label{tab:controls}
 \small
 \begin{tabular}{lccc}
@@ -152,7 +151,7 @@ RandTop30 & 6.10 (0.12) & 30 random edges & $+16.1\%$ \\
 CorrTop30 & 5.39 (0.10) & 30 top-$|$Pearson$|$ & $+2.6\%$ \\
 Graph-free baseline (NoSpatial) & 5.25 (0.19) & identity & --- \\
 T-GCN-MultiGSL & 4.84 (0.11) & 30 DAGMA lag slots & $-7.8\%$ \\
-T-GCN-MultiGSL-Mix & 4.49 (0.14) & same graphs, gated & $-14.5\%$ \\
+T-GCN-MultiGSL-Mix & \textbf{4.49 (0.14)} & same graphs, gated & $-14.5\%$ \\
 \midrule
 Graph-free $h{=}64$ (seed 42) & 5.14 & $12{,}672$ params & --- \\
 Graph-free $h{=}74$ (seed 42) & 5.14 & $16{,}872$ params & $\approx 0\%$ \\
@@ -161,12 +160,12 @@ Mix (seed 42) & 4.46 & $17{,}091$ params & $-13.3\%$ \\
 \end{tabular}
 \end{table}
 
-At this matched budget, a random $30$-edge graph is **worse** than using
+At this matched budget, a random $30$-edge graph is worse than using
 no graph (RandTop30 $6.10\pm 0.12$ vs.\ graph-free baseline $5.25\pm 0.19$), and a
 top-correlation $30$-edge graph is only slightly better than random but
-still **worse** than the graph-free baseline (CorrTop30 $5.39\pm 0.10$). The DAGMA
+still worse than the graph-free baseline (CorrTop30 $5.39\pm 0.10$). The DAGMA
 multi-lag graphs with the same $30$-edge budget, when used with
-lag-aligned T-GCN (MultiGSL) or gating (Mix), **beat** NoSpatial. Sparsity
+lag-aligned T-GCN (MultiGSL) or gating (Mix), beat NoSpatial. Sparsity
 alone therefore does not explain the multi-lag result on this cell; the
 placement of the learned edges (and how they are used) matters. A
 capacity-matched graph-free model (hidden $74$; single seed) stays near
@@ -174,17 +173,14 @@ $5.14$ RMSE, so the gate's extra parameters do not explain Mix's gain.
 
 \begin{table}[t]
 \centering
-\caption{Edge-budget sweep on Los-loop PH1 (five-seed mean $\pm$ sample SD,
-RMSE). RandTopK and CorrTopK are T-GCN with $K$ random or top-correlation
-directed edges. Graph-free baseline and Stage~40 MultiGSL/Mix at $K=30$
-are shown for reference.}
+\caption{Edge-budget sweep on Los-loop PH1 (five-seed mean $\pm$ sample SD; \emph{lower RMSE is better}). RandTopK and CorrTopK are T-GCN with $K$ random or top-correlation directed edges. The italic first row is the graph-free control. The last two rows are Stage~40 MultiGSL/Mix at the canonical $K=30$ budget. $\Delta_{\mathrm{rel}}$ is the relative RMSE difference vs the graph-free baseline (positive = higher error than the baseline; negative = lower error). Bold marks Mix, the lowest mean in the table.}
 \label{tab:sparsity-sweep}
 \small
 \begin{tabular}{lcc}
 \toprule
-Configuration & RMSE & vs graph-free \\
+Configuration & RMSE & $\Delta_{\mathrm{rel}}$ vs graph-free \\
 \midrule
-Graph-free baseline & $5.23\pm 0.10$ & --- \\
+\textit{Graph-free baseline} & \textit{$5.23\pm 0.10$} & --- \\
 CorrTop10 & $5.27\pm 0.10$ & $+0.3\%$ \\
 CorrTop20 & $5.29\pm 0.10$ & $+1.1\%$ \\
 CorrTop30 & $5.39\pm 0.10$ & $+3.0\%$ \\
@@ -197,7 +193,7 @@ RandTop50 & $6.50\pm 0.10$ & $+24.3\%$ \\
 RandTop80 & $7.03\pm 0.15$ & $+34.4\%$ \\
 \midrule
 T-GCN-MultiGSL ($K{=}30$, Stage~40) & $4.84\pm 0.11$ & $-7.5\%$ \\
-T-GCN-MultiGSL-Mix ($K{=}30$, Stage~40) & $4.49\pm 0.14$ & $-14.2\%$ \\
+T-GCN-MultiGSL-Mix ($K{=}30$, Stage~40) & \textbf{$4.49\pm 0.14$} & $-14.2\%$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -214,13 +210,13 @@ reference lines at the same $30$-edge budget.}
 
 Extending the control across budgets (Table~\ref{tab:sparsity-sweep};
 Figure~\ref{fig:sparsity-sweep}) strengthens this conclusion: for every
-$K\in\{10,20,30,50,80\}$, both RandTopK and CorrTopK remain **at or above**
+$K\in\{10,20,30,50,80\}$, both RandTopK and CorrTopK remain at or above
 the graph-free baseline. Random graphs worsen monotonically with $K$
 ($5.37\to 7.03$); correlation graphs are closest to the baseline at small
 $K$ and also worsen as more edges are added ($5.27\to 5.64$). In contrast,
 at the same $30$-edge budget the DAGMA multi-lag graphs with lag-aligned
-use reach $4.84$ (MultiGSL) and $4.49$ (Mix). **Increasing edge count alone
-does not recover the multi-lag gain**; learned placement and lag-aligned
+use reach $4.84$ (MultiGSL) and $4.49$ (Mix). Increasing edge count alone
+does not recover the multi-lag gain; learned placement and lag-aligned
 use do.
 
 \begin{figure}[t]
@@ -265,6 +261,17 @@ with the graph-free baseline and T-GCN-MultiGSL-Mix (normalized scale).}
 \label{fig:predvsact}
 \end{figure}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/pred_vs_actual_sz_ph1.pdf}
+\caption{Predicted versus actual speed on SZ-Taxi (PH1, seed $42$) for
+three high-variance nodes (100 test steps). Layout as in
+Figure~\ref{fig:predvsact}. Predictions of the graph-free baseline and Mix
+nearly overlap, consistent with the aggregate RMSE separation on this
+dataset.}
+\label{fig:predvsact-sz}
+\end{figure}
+
 When the same multi-lag artifacts are merged into one static union for
 GCN-MultiGSL, error is $9.78\pm 0.14$ on Los-loop PH1 --- worse than the
 physical GCN and more than twice T-GCN-MultiGSL on the same graphs
@@ -273,6 +280,8 @@ comparison does not isolate consumption from backbone differences, but
 shows that multi-lag graphs are not automatically beneficial once estimated.
 
 \subsection{Dataset Dependence and Temporal Resolution}\label{sec:res-boundaries}
+
+Figure~\ref{fig:predvsact-sz} shows an analogous predicted-versus-actual overlay on SZ-Taxi: the graph-free baseline and Mix almost coincide, matching the aggregate results.
 
 On SZ-Taxi the multi-lag fit retains only two lagged edges. Mix vs
 NoSpatial differs by at most $0.015$ RMSE ($\le 0.34\%$). The Los-loop

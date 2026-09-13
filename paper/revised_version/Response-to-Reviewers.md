@@ -279,7 +279,7 @@ We kept 5.1–5.3 as separate subsections rather than merging them, because each
 
 ### W10 — Metric definitions (Eqs. 4.1–4.4) too long / unnecessary
 
-**Response.** We shortened the metrics subsection to **RMSE (primary) and MAE only**, with compact formulas and a one-line definition of the evaluation set size $n$ (all test windows, sensors, and pooled target steps for the chosen PH). Accuracy and $R^{2}$ are no longer expanded in the main text (they remain in the code base only). Full MAE tables are in **Appendix B**.
+**Response.** We shortened the metrics subsection to **RMSE (primary) and MAE only**, with compact formulas and a one-line definition of the evaluation set size $n$ (all test windows, sensors, and pooled target steps for the chosen PH). Accuracy and $R^{2}$ are no longer expanded in the main text (they remain in the code base only). MAE remains available in the evaluation pipeline and for the controls; a full MAE appendix was omitted to keep the paper compact. RMSE remains the primary metric in the main tables.
 
 **Location.** Section 4.6 (*Evaluation Metrics*); Appendix B (*Additional MAE Results*).
 
