@@ -110,6 +110,109 @@ pdflatex sn-article.tex
 pdflatex sn-article.tex
 ```
 
+### Notes for the revised manuscript
+
+These notes are referenced from the point-by-point response to reviewers
+(`paper/revised_version/R1/Response-to-Comments.tex`).
+
+1. **Numbers vs. the submitted version.** The evaluation pipeline and especially
+   the DAGMA graph-learning code were substantially revised. Absolute RMSE values
+   and relative percentages therefore differ in places from the originally
+   submitted tables. The experimental protocol (SZ-Taxi and Los-loop, PH1–4,
+   physical baseline) is unchanged, but the current artifacts under `results/`
+   and the revised tables are authoritative.
+
+2. **Removed from the submitted manuscript.**
+   - *Table: Hardware specifications and hyperparameter settings* — removed
+     from the revised paper; training settings are described compactly in
+     Experimental Setup. The full details are preserved below for
+     reproducibility.
+   - *Algorithm 1 (NOTEARS)* and the detailed DAGMA algorithm box — removed.
+     The Method cites the original papers and describes only the constructions
+     used in this study (contemporaneous and multi-lag).
+   - Dense multi-panel per-epoch convergence grids — replaced by compact
+     final-metric tables and a short appendix training-loss figure.
+
+3. **Hardware, environment, and hyperparameters**
+
+   The hardware and software description below was in the submitted manuscript
+   and is kept here so it is not lost from the revision record.
+
+   **Hardware and environment (as used for the paper runs)**
+
+   | Component | Value |
+   |-----------|--------|
+   | GPU | NVIDIA GeForce RTX 3090 (24 GB) |
+   | CPU | Intel Core i3 (9th Gen) |
+   | System RAM | 16 GB |
+   | Framework | PyTorch |
+   | OS | Windows |
+   | Python | ≥ 3.10 (see `requirements.txt`) |
+
+   Offline DAGMA structure learning is the heavier stage; CPU training of the
+   forecasting models is sufficient for the published runs (see paper
+   Limitations §6.5).
+
+   **Reproducibility / seeds**
+
+   - Forecasting training seeds: `{42, 43, 44, 45, 46}` (revised paper).
+   - Random seeds are fixed for PyTorch and NumPy so reported numbers are
+     replicable; training still involves stochastic elements (e.g. weight
+     initialization), which is why the revised paper reports mean ± std over
+     five seeds rather than a single run.
+   - DAGMA is deterministic for a given dataset, construction, and
+     hyperparameters: the graph is fitted once and shared across forecasting
+     seeds.
+
+   **Hyperparameters**
+
+   | Setting | Submitted manuscript | Revised manuscript (authoritative) |
+   |---------|----------------------|------------------------------------|
+   | Historical window $T$ | 12 | 12 |
+   | Prediction horizons | 1, 2, 3, 4 | 1, 2, 3, 4 |
+   | Optimizer | Adam | Adam |
+   | Learning rate | 0.001 | $10^{-3}$ |
+   | Weight decay | — | $10^{-4}$ |
+   | Batch size | 64 | 128 |
+   | Max epochs | 50 | 50 |
+   | Hidden dimension | — | 64 |
+   | Loss (GCN) | MSE | MSE |
+   | Loss (T-GCN) | MSE | $\ell_2$ + weight penalty $\lambda_{\mathrm{reg}}=1.5\times 10^{-3}$ |
+   | Structure learning | DAGMA | DAGMA (contemporaneous and multi-lag) |
+
+   Notes:
+
+   - The revised experimental protocol uses **batch size 128**; the submitted
+     text listed 64. Treat the revised Setup section and this table’s
+     “Revised manuscript” column as the values used for the current tables.
+   - Training settings for the main matrices are also described in
+     `paper/revised_version/sn-article.tex` §4.3 (*Training Protocol*).
+
+   **Rough cost profile (paper runs)**
+
+   - Contemporaneous DAGMA: on the order of tens of minutes per horizon with
+     $O(10^2)$ sensors.
+   - Multi-lag DAGMA on Los-loop ($828$ variables): on the order of a few
+     hours on CPU.
+   - Exact wall-clock times depend on the machine.
+
+4. **Reproducing the revised tables.** Use `run_experiments.sh` as above.
+   Canonical main-table training writes under `results/stage40_canonical/`;
+   sparsity sweep under `results/stage58_sparsity_sweep/`; figures under
+   `paper/revised_version/figures/`.
+
+5. **What changed relative to the submitted manuscript** (for reviewers).
+   - Primary framing is learned adjacency vs the physical road-network
+     graph; the identity (graph-free) model is a control baseline only.
+   - Multi-lag vs contemporaneous constructions are separated; the earlier
+     temporal-DAG claim is not used.
+   - Five-seed reporting, matched-sparsity and capacity controls, an
+     edge-budget sweep, structure figures, and a 15-minute Los-loop
+     resolution control were added.
+   - Absolute RMSE values differ from the submitted tables because the
+     evaluation and DAGMA code were revised; the current tables are
+     authoritative.
+
 ---
 
 ## Citation

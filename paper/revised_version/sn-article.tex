@@ -76,6 +76,8 @@ Multi-Lag Graph Learning
 
 \maketitle
 
+% Temporary TOC for section-title alignment during revision; remove before submission.
+%\tableofcontents
 
 % ======================================================================
 \section{Introduction}\label{sec:intro}
@@ -1037,7 +1039,7 @@ RandTop50 & $6.50\pm 0.10$ & $+24.3\%$ \\
 RandTop80 & $7.03\pm 0.15$ & $+34.4\%$ \\
 \midrule
 T-GCN-MultiGSL ($K{=}30$) & $4.84\pm 0.11$ & $-7.5\%$ \\
-T-GCN-MultiGSL-Mix ($K{=}30$) & \textbf{$4.49\pm 0.14$} & $-14.2\%$ \\
+T-GCN-MultiGSL-Mix ($K{=}30$) & \boldmath$4.49\pm 0.14$\unboldmath & $-14.2\%$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1269,6 +1271,14 @@ it makes an extensive grid of graph-estimation experiments expensive.
 Second, a fair comparison with a physical graph requires benchmarks that
 ship a road-network adjacency; we therefore use two standard public traffic
 datasets rather than an arbitrary collection of sensors.
+
+Scope is also limited by the evaluation protocol: main results use PH1--4
+at each dataset's native sampling interval; matched-sparsity and capacity
+controls are reported only on Los-loop at PH1; and forecasting results are
+five-seed means ($n=5$), which is enough to report training spread and
+paired seed consistency but not enough to support formal significance
+claims beyond the statistical-reporting paragraph in
+Section~\ref{sec:metrics}.
 
 If graph structure is to be re-estimated dynamically, or over many rolling
 time windows, a more efficient estimator (or an adaptive, incremental

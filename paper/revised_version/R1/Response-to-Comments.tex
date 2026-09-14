@@ -66,101 +66,60 @@
 
 \noindent
 \textbf{Manuscript:} Graph Structure Learning for Traffic Prediction\\
-\textbf{Journal:} International Journal of Data Science and Analytics\\
-\textbf{Revised manuscript:} \texttt{paper/revised\_version/sn-article.tex}
+\textbf{Journal:} International Journal of Data Science and Analytics
+\tableofcontents
 
-\bigskip
-
-All section, figure, table, and equation references below use \textbf{hard numbers and section titles} as they appear in the revised manuscript (\texttt{sn-article.tex}). They are not LaTeX cross-references into the manuscript.
-
-\subsection*{Reference map used in this letter}
-
-\paragraph{Sections}
-\begin{itemize}
-    \item[1] Introduction
-    \item[2] Background and Related Work
-    \item[2.2] Graph Convolutional Network
-    \item[2.3] Temporal Graph Convolutional Network
-    \item[2.4] Graph Structure Learning
-    \item[3] The Proposed Method: Estimating the Adjacency Matrix with Graph Structure Learning
-    \item[3.1] Integration of Learned Structure with Temporal Modeling
-    \item[3.2] Contemporaneous Graph Learning (GSL and cGSL)
-    \item[3.3] Multi-Lag Graph Learning
-    \item[3.4] Using Learned Graphs in GCN and T-GCN
-    \item[4] Experimental Setup
-    \item[4.4] Evaluation Metrics (includes the ``Statistical reporting'' paragraph)
-    \item[4.5] Matched-Sparsity and Capacity Controls
-    \item[4.6] Temporal-Resolution Variant
-    \item[5] Results
-    \item[5.1] Comparison with the Physical Road-Network Graph
-    \item[5.2] Contemporaneous Learned Graphs (GSL and cGSL)
-    \item[5.3] Is the Gain Only Sparsity?
-    \item[5.4] Multi-Lag Learned Graphs
-    \item[5.5] Dataset Dependence and Temporal Resolution
-    \item[5.6] Summary of Findings
-    \item[6] Discussion
-    \item[6.1] Learned Structure versus the Physical Graph
-    \item[6.2] When Learned Structure Helps
-    \item[6.3] What the Learned Graph Represents
-    \item[6.5] Limitations and Future Work
-    \item[7] Conclusion
-    \item[A] Additional Experimental Results
-    \item[A.1] Lag ablation (supplementary, single seed)
-    \item[A.2] Training curves
-    \item[B] Bibliometric Analysis Methodology
-\end{itemize}
-
-\paragraph{Main-text figures (in order of appearance)}
-\begin{itemize}
-    \item[Fig.~1] GCN layer architecture
-    \item[Fig.~2] Conceptual two-dimensional traffic network (\texttt{dummy-network})
-    \item[Fig.~3] Los-loop PH1, T-GCN family five-seed mean RMSE
-    \item[Fig.~4] Los-loop PH1, GCN family five-seed mean RMSE
-    \item[Fig.~5] Los-loop graph structure: physical vs multi-lag union + degree histograms (\texttt{graph\_structure\_los})
-    \item[Fig.~6] Edge-budget sweep on Los-loop PH1 (\texttt{sparsity\_sweep\_los\_ph1})
-    \item[Fig.~7] Matched-sparsity controls on Los-loop PH1 (\texttt{sparsity\_controls\_los\_ph1})
-    \item[Fig.~8] Los-loop per-seed RMSE for the multi-lag use ladder (\texttt{perseed\_rmse\_los})
-    \item[Fig.~9] Predicted vs actual, Los-loop PH1 seed 42 (\texttt{pred\_vs\_actual\_los\_ph1})
-    \item[Fig.~10] Predicted vs actual, SZ-Taxi PH1 seed 42 (\texttt{pred\_vs\_actual\_sz\_ph1})
-\end{itemize}
-
-\paragraph{Main-text tables (in order of appearance)}
-\begin{itemize}
-    \item[Table~1] Graph sources used in the experiments
-    \item[Table~2] T-GCN family: five-seed test RMSE
-    \item[Table~3] GCN family: five-seed test RMSE
-    \item[Table~4] Matched-sparsity and capacity controls (Los-loop PH1)
-    \item[Table~5] Edge-budget sweep (Los-loop PH1)
-    \item[Table~6] Los-loop 15-minute temporal-resolution variant
-\end{itemize}
 
 % ======================================================================
-\section*{General Response (Summary)}
+\section{General Response (Summary)}
 
 Thank you for the constructive reviews of the submitted manuscript. The revision keeps the paper's identity as a study of \textbf{graph structure learning for traffic forecasting}, with a stronger focus on \textbf{whether learned sparse graphs help because of sparsity alone or because of where edges are placed}, and on comparison with the \textbf{physical road-network adjacency}.
 
-Throughout this letter we refer to the identity-adjacency control as the \textbf{graph-free baseline} (manuscript names: \emph{T-GCN-NoSpatial} / \emph{GCN-NoSpatial}). That control is used to judge learned structure fairly; it is not proposed as a forecasting method.
+Throughout this letter, an identity-adjacency model (\emph{T-GCN-NoSpatial} / \emph{GCN-NoSpatial}) is used only as a reference control when judging learned structure; it is not proposed as a forecasting method.
 
 \textbf{Two comments drove substantial experimental redesign:}
 \begin{itemize}
-    \item \textbf{W4 (temporal interpretation of the learned DAG):} We separated contemporaneous vs.\ explicit multi-lag DAGMA constructions and removed the temporal-DAG claim.
-    \item \textbf{W5 (sparsity / oversmoothing / fair controls):} We added the graph-free baseline, \textbf{matched-edge-budget sparsity controls}, structure figures, and capacity checks, so that gains cannot be attributed only to removing a dense physical graph or to having fewer edges.
+    \item \textbf{R1-W4 (temporal interpretation of the learned DAG):} We separated contemporaneous vs.\ explicit multi-lag DAGMA constructions and removed the temporal-DAG claim.
+    \item \textbf{R1-W5 (sparsity / oversmoothing / fair controls):} We added matched-edge-budget sparsity controls, structure figures, capacity checks, and a no-graph reference so that gains over the physical graph cannot be attributed only to having fewer edges.
 \end{itemize}
 
-These changes produced a \textbf{more comprehensive and better-controlled evaluation} than the submitted version.
+Together these changes added on the order of \textbf{six pages} of new experimental material, controls, and discussion (new tables, structure and control figures, sparsity sweep, temporal-resolution control, and a rewritten Limitations section). The resulting evaluation is more comprehensive and better controlled than the submitted version.
 
+\subsection*{Additional experiments carried out in this revision}
+
+The following experiments and evaluations are new relative to the submitted manuscript. They are described in more detail in the point-by-point responses (especially R1-W5, R1-W6, and R1-W7).
+
+\begin{enumerate}
+    \item \textbf{Five-seed main protocol.} All primary forecasting configurations were retrained under seeds $\{42,43,44,45,46\}$; Tables~2--3 report mean RMSE with sample standard deviations, together with paired per-seed win counts (Section~4.4, ``Statistical reporting'').
+    \item \textbf{Matched-sparsity controls.} On Los-loop PH1, RandTop30 (random directed edges) and CorrTop30 (top training correlations) were compared with the DAGMA multi-lag graphs at the same $30$-edge budget (Table~4; Figure~7).
+    \item \textbf{Edge-budget sweep.} The same heuristic families were evaluated for $K\in\{10,20,30,50,80\}$ directed edges (Table~5; Figure~6).
+    \item \textbf{Capacity control.} A graph-free T-GCN with hidden dimension $74$ (parameter-matched to Mix) was trained as a single-seed check that extra gate parameters do not explain the multi-lag gain (Table~4, lower block).
+    \item \textbf{Temporal-resolution control.} Los-loop was resampled to $15$-minute steps and the multi-lag comparison was repeated under the same five-seed protocol (Section~4.6; Table~6).
+    \item \textbf{Structure and qualitative figures.} Physical vs.\ learned multi-lag graph structure with degree histograms (Figure~5); per-seed RMSE distributions (Figure~8); predicted-vs-actual overlays on Los-loop and SZ-Taxi (Figures~9--10).
+    \item \textbf{Reference adjacencies.} In addition to the physical road-network graph, all main tables include an identity (no off-diagonal structure) reference so that a gain over Physical is not treated as sufficient evidence by itself.
+\end{enumerate}
+
+\textbf{Numbers relative to the submitted version.} Because the evaluation pipeline and especially the DAGMA graph-learning code were substantially revised, absolute RMSE values and relative percentages differ in places from the submitted manuscript. The experimental \emph{protocol} (two public benchmarks, four horizons, physical baseline) is the same, but the revised tables are the authoritative numbers. We therefore restate the main claims from the current artifacts rather than reusing the submitted abstract's percentages.
+
+\textbf{Structural changes relative to the submitted version (also recorded in the repository README).}
+\begin{itemize}
+    \item The submitted ``Hardware specifications and hyperparameter settings'' table was removed; training settings are described compactly in the Experimental Setup, and hardware/software details are documented in the repository README for reproducibility.
+    \item Algorithm~1 (NOTEARS) and the detailed DAGMA algorithm box were removed. The revised Method cites the original papers and describes only the constructions actually used (contemporaneous and multi-lag).
+    \item Dense multi-panel convergence grids were replaced by compact final-metric tables and a short appendix training-loss figure.
+\end{itemize}
+\newpage
 % ======================================================================
-\section*{Reviewer 1 --- Strengths}
+\section{Reviewer 1}
+\subsection{Strengths}
 
 \reviewercomment{
 The core motivation --- physical proximity is a poor proxy for functional traffic dependency --- is well argued and nicely illustrated (Fig.~2 of the submitted version).
 }
 
 \response{
-\textbf{Kept.}
-The motivation is unchanged in substance and is developed in the Introduction and Method motivation, with the conceptual network figure (Figure~2, \texttt{dummy-network}) still illustrating that association need not follow geographic distance alone. In the letter and manuscript we refer to \textbf{statistical associations relevant to forecasting} (rather than causal or functional ``influence'').
+\textbf{Kept.} The motivation is developed in the Introduction and Method, with the conceptual network figure (Figure~2) still showing that association need not follow geographic distance alone. We refer to \textbf{statistical associations relevant to forecasting}, not causal influence.
 
-\textbf{Location:} Introduction; Section~3 (Method), motivation paragraph and Figure~2.
+\textbf{Location:} Introduction; Section~3 (Method), motivation and Figure~2.
 }
 
 \reviewercomment{
@@ -168,15 +127,9 @@ The paragraph at the top of page 3 (motivating the shift from implicit attention
 }
 
 \response{
-\textbf{Kept (with non-causal wording).}
-The reviewer praised the contrast between attention (implicit weights on a given graph) and GSL (explicit structure discovery). That paragraph has been \textbf{restored} in the Introduction in a form consistent with the new experiments:
-\begin{itemize}
-    \item In the attention-based methods considered here, attention typically reweights messages over a given or predefined connectivity pattern; it does not by itself estimate the adjacency.
-    \item ``Causal dependency'' wording was replaced by a \textbf{thresholded, estimator-dependent statistical association} graph (not a causal map).
-    \item We add that whether the estimated graph helps is \textbf{not automatic}: it is tested against physical and graph-free controls.
-\end{itemize}
+\textbf{Kept.} That contrast between attention (implicit weights on a given graph) and GSL (explicit structure discovery) remains in the Introduction and is echoed in Background Section~2.4.
 
-\textbf{Location:} Introduction, paragraph beginning ``Attention-based methods\ldots''; also Section~2.4 (Graph Structure Learning).
+\textbf{Location:} Introduction; Section~2.4 (Graph Structure Learning).
 }
 
 \reviewercomment{
@@ -184,13 +137,9 @@ Consistent gains across two datasets, four horizons, and four metrics, with reas
 }
 
 \response{
-\textbf{Kept and strengthened.}
-The revised study still uses \textbf{SZ-Taxi} and \textbf{Los-loop} and evaluates \textbf{PH1--PH4} under a \textbf{common main-experiment protocol} with five forecasting seeds, sample standard deviations, and paired comparisons. Absolute claims of universal improvement were \textbf{removed}; the paper now reports conditional gains (especially Los-loop multi-lag with lag-aligned use) and an explicit SZ-Taxi boundary. Auxiliary controls are scope-labeled (e.g.\ capacity control is single-seed; matched sparsity is Los-loop PH1).
+\textbf{Kept and strengthened.} The study still uses SZ-Taxi and Los-loop with PH1--PH4 under a common five-seed protocol. The submitted ``21.6\% / 24.7\%'' percentages are not reused; the revised abstract leads with the maximum reduction versus the physical T-GCN baseline. Absolute values differ from the submitted tables because the evaluation and DAGMA code were revised (see the General Response).
 
 \textbf{Location:} Section~4 (Experimental Setup); Section~5 (Results), Tables~2--3.
-
-\textbf{Note on the submitted abstract's percentages.}
-The submitted abstract's ``21.6\% / 24.7\%'' figures are \textbf{not} reused. The revised abstract reports a \textbf{maximum 43.0\% relative RMSE reduction versus the physical T-GCN baseline} on Los-loop across horizons 1--4, and describes matched edge-budget controls and the graph-free identity baseline. The \textbf{14.5\%} relative reduction versus the graph-free baseline on Los-loop PH1 (T-GCN-MultiGSL-Mix) appears in \textbf{Section~5.4} and \textbf{Conclusion item~3}, not in the abstract.
 }
 
 \reviewercomment{
@@ -198,8 +147,7 @@ The GSL vs.\ cGSL asymmetry between GCN and T-GCN is a genuinely interesting emp
 }
 
 \response{
-\textbf{Kept as an empirical finding; interpretation qualified.}
-The asymmetry (cGSL helps GCN more than T-GCN) remains in the Results. The earlier interpretation of the contemporaneous DAG as a \textbf{temporal} graph has been \textbf{removed} because the DAGMA fit uses simultaneous snapshots. The revised Discussion presents \textbf{aggregation compatibility} as a \textbf{possible interpretation consistent with} the observed contrast, rather than as a definitive causal explanation.
+\textbf{Kept as an empirical finding; interpretation qualified.} The asymmetry remains in the Results. The earlier temporal-graph reading of the contemporaneous DAG was removed. The revised Discussion offers \textbf{aggregation compatibility} as a possible interpretation consistent with the contrast, not as a definitive causal explanation.
 
 \textbf{Location:} Section~5.2 (GSL/cGSL rows in Tables~2--3); Section~6.2 (When Learned Structure Helps).
 }
@@ -209,70 +157,68 @@ The bibliometric analysis is a thorough piece of motivating work.
 }
 
 \response{
-\textbf{Kept, framed as motivation only.}
-The bibliometric study remains as \textbf{motivation} (one sentence in the Introduction) with methodology and \textbf{three figures} in \textbf{Appendix~B} (initial keyword network, word clouds, refined clustered network). It is not presented as a forecasting contribution.
+\textbf{Kept, framed as motivation only.} The bibliometric study remains as motivation (one sentence in the Introduction) with methodology and three figures in \textbf{Appendix~B}. It is not presented as a forecasting contribution.
 
-\textbf{Location:} Introduction (one sentence); \textbf{Appendix~B} (Bibliometric Analysis Methodology).
+\textbf{Location:} Introduction; Appendix~B (Bibliometric Analysis Methodology).
 }
 
 % ======================================================================
-\section*{Reviewer 1 --- Weaknesses and Questions}
+\subsection{Weaknesses and Questions}
 
 \reviewercomment{
-\textbf{W1.} The bibliometric analysis (Appendix~A of the submitted version) is thorough but underused in the main text. Either lean on it harder in the Introduction to more directly motivate the GSL approach, or trim it substantially to save space for the core experimental contribution.
+\textbf{R1-W1.} The bibliometric analysis (Appendix~A of the submitted version) is thorough but underused in the main text. Either lean on it harder in the Introduction to more directly motivate the GSL approach, or trim it substantially to save space for the core experimental contribution.
 }
 
 \response{
-We thank the reviewer. We adopted a mixed strategy that follows both of the suggested options without turning the bibliometrics into a second contribution:
+We adopted a mixed strategy that follows both options without turning the bibliometrics into a second contribution.
 
 \begin{enumerate}
     \item \textbf{Lean on it in the Introduction (one load-bearing sentence).}
-    Immediately before the paper's central question, the Introduction now states that a bibliometric analysis of $784$ traffic-forecasting articles ($2000$--$2025$) shows graph-based methods as a dominant recent focus \textbf{while many systems still construct the adjacency heuristically from road topology}, with a pointer to \textbf{Appendix~B}. This motivates GSL at the decision point rather than as a footnote.
-
+    Immediately before the paper's central question, the Introduction now states that a bibliometric analysis of $784$ traffic-forecasting articles ($2000$--$2025$) shows graph-based methods as a dominant recent focus \textbf{while many systems still construct the adjacency heuristically from road topology}, with a pointer to \textbf{Appendix~B}.
     \item \textbf{Keep the appendix complete but secondary.}
-    \textbf{Appendix~B} retains the full bibliometric pipeline (Scopus collection and filtering, keyword cleaning, semantic clustering) and \textbf{three figures}: the initial keyword network (Fig.~B.1), representative word clouds (Fig.~B.2), and the refined clustered co-occurrence network (Fig.~B.3). It is framed as motivation only, not as a forecasting contribution.
+    Appendix~B retains the bibliometric pipeline and \textbf{three figures}: the initial keyword network (Figure~B3), word clouds (Figure~B4), and the refined clustered network (Figure~B5).
 \end{enumerate}
 
-\textbf{Location:} Introduction (motivation paragraph); \textbf{Appendix~B} (Bibliometric Analysis Methodology).
+\textbf{Location:} Introduction (motivation paragraph); Appendix~B.
 }
 
 \reviewercomment{
-\textbf{W2.} Sections~2.2 and~2.3 (GCN and T-GCN background) will be familiar to most readers of this venue. Suggest condensing both to a short paragraph with equation references, freeing up space for additional analysis (e.g., variance reporting, extra figures).
+\textbf{R1-W2.} Sections~2.2 and~2.3 (GCN and T-GCN background) will be familiar to most readers of this venue. Suggest condensing both to a short paragraph with equation references, freeing up space for additional analysis (e.g., variance reporting, extra figures).
 }
 
 \response{
-We condensed both subsections to short, equation-referenced summaries, as suggested.
+We condensed both subsections to short, equation-referenced summaries.
 
 \begin{enumerate}
-    \item \textbf{Removed} lengthy lists of GCN application domains and GRU/loss exposition that duplicated the Method section.
-    \item \textbf{Kept} the standard GCN propagation equation in Section~2.2 (Graph Convolutional Network). Section~2.3 (Temporal Graph Convolutional Network) is a short prose summary of the graph-convolutional gated cell; it no longer re-states a full architecture.
-    \item \textbf{Clarified} that the \textbf{forecasting backbones actually used in the experiments} are specified in \textbf{Section~3} (single-window convolution + linear head for GCN; graph-convolutional gated cell for T-GCN), so Background is not read as a full architecture specification.
-    \item Freed space is used for \textbf{variance reporting} (five-seed mean $\pm$ sample standard deviation and paired win counts) and \textbf{structure figures} in the Results, as the reviewer recommended.
+    \item \textbf{Removed} lengthy lists of GCN application domains and duplicated GRU/loss exposition.
+    \item \textbf{Kept} the standard GCN propagation equation in Section~2.2. Section~2.3 is a short prose summary of the graph-convolutional gated cell.
+    \item \textbf{Clarified} that the forecasting backbones used in the experiments are specified in Section~3, so Background is not read as a full architecture specification.
+    \item Freed space is used for \textbf{variance reporting} and \textbf{structure figures}, as recommended.
 \end{enumerate}
 
 \textbf{Location:} Background Sections~2.2--2.3; backbones in Method Section~3.
 }
 
 \reviewercomment{
-\textbf{W3.} The notation switch in Section~3.2 ($A \to W$) is unexplained beyond a footnote. Suggest either keeping consistent notation throughout or explaining the switch in the main text rather than a footnote, right where $W$ is introduced.
+\textbf{R1-W3.} The notation switch in Section~3.2 ($A \to W$) is unexplained beyond a footnote. Suggest either keeping consistent notation throughout or explaining the switch in the main text rather than a footnote, right where $W$ is introduced.
 }
 
 \response{
-We now introduce the convention \textbf{in the main text}, at the start of Section~3 (Method), immediately before Section~3.1 (not only in a footnote).
+We now introduce the convention \textbf{in the main text}, at the start of Section~3 (Method).
 
 \begin{itemize}
-    \item $\mathbf{A}\in\{0,1\}^{N\times N}$ is the \textbf{binary adjacency supplied to the forecasting backbone} (same symbol as in the GCN/T-GCN background).
+    \item $\mathbf{A}\in\{0,1\}^{N\times N}$ is the \textbf{binary adjacency supplied to the forecasting backbone}.
     \item $W\in\mathbb{R}^{d\times d}$ is the \textbf{continuous coefficient matrix} estimated by the graph-learning procedure.
-    \item The text states explicitly that the two symbols are \textbf{not interchangeable}: $W$ is the estimator's internal representation; $\mathbf{A}$ is the thresholded graph used by GCN or T-GCN.
+    \item The text states that the two symbols are \textbf{not interchangeable}.
 \end{itemize}
 
-$W$ is then used in the continuous-optimization subsection (NOTEARS/DAGMA) and in the contemporaneous and multi-lag constructions; $\mathbf{A}_{\mathrm{GSL}}$, $\mathbf{A}_{\mathrm{cGSL}}$, and $\mathbf{A}_k$ denote binary graphs after thresholding (and symmetrization, where relevant).
+$W$ is used in the continuous-optimization subsection and in the contemporaneous and multi-lag constructions; $\mathbf{A}_{\mathrm{GSL}}$, $\mathbf{A}_{\mathrm{cGSL}}$, and $\mathbf{A}_k$ denote binary graphs after thresholding (and symmetrization, where relevant).
 
-\textbf{Location:} Method Section~3, opening paragraphs (before Section~3.1, ``Integration of Learned Structure with Temporal Modeling'').
+\textbf{Location:} Method Section~3, opening paragraphs (before Section~3.1).
 }
 
 \reviewercomment{
-\textbf{W4.} The temporal interpretation of the learned DAG in Section~5.1 is asserted rather than demonstrated. The claim that an edge $j \to i$ represents ``$j$ at time $t$ predicting $i$ at time $t+1$'' does not obviously follow from the description in~3.2. Please clarify explicitly how the input to DAGMA is constructed, since this is load-bearing for the Section~5 discussion.
+\textbf{R1-W4.} The temporal interpretation of the learned DAG in Section~5.1 is asserted rather than demonstrated. The claim that an edge $j \to i$ represents ``$j$ at time $t$ predicting $i$ at time $t+1$'' does not obviously follow from the description in~3.2. Please clarify explicitly how the input to DAGMA is constructed, since this is load-bearing for the Section~5 discussion.
 }
 
 \response{
@@ -280,50 +226,44 @@ We agree this was load-bearing and was not demonstrated in the submitted version
 
 \begin{enumerate}
     \item \textbf{Contemporaneous GSL (Method Section~3.2).}
-    DAGMA is fitted to simultaneous per-sensor snapshots
-    \[
-    \mathbf{X}=\mathrm{train\_norm}[0::\mathrm{PH}]
-    \]
-    (one row = all $N$ sensors at the same time; \textbf{no lag blocks}).
-    An edge is a \textbf{statistical association among present observations}; it does \textbf{not} encode ``sensor $j$ at time $t$ predicts sensor $i$ at time $t+1$.''
+    DAGMA is fitted to simultaneous per-sensor snapshots $\mathbf{X}=\mathrm{train\_norm}[0::\mathrm{PH}]$ (one row = all $N$ sensors at the same time; \textbf{no lag blocks}). An edge is a \textbf{statistical association among present observations}; it does \textbf{not} encode ``sensor $j$ at time $t$ predicts sensor $i$ at time $t+1$.''
 
     \item \textbf{Multi-lag construction (Method Section~3.3) carries temporal organization explicitly.}
-    Input $Z=[x(t-3),\,x(t-2),\,x(t-1),\,x(t)]$ with $(L+1)N$ variables; lag-specific binary blocks $\mathbf{A}_1,\mathbf{A}_2,\mathbf{A}_3$ are extracted by absolute-magnitude thresholding. This supports a lag-structured \textbf{statistical association} reading, not causal propagation.
+    Input $Z=[x(t-3),\,x(t-2),\,x(t-1),\,x(t)]$ with $(L+1)N$ variables; lag-specific binary blocks $\mathbf{A}_1,\mathbf{A}_2,\mathbf{A}_3$ are extracted by absolute-magnitude thresholding.
 
     \item \textbf{Old Section~5 apparatus removed.}
-    The submitted ``spatial graph vs temporal dependency graph'' paradox section is \textbf{not} in the revised paper. The GSL/cGSL asymmetry is discussed only as an \textbf{aggregation-compatibility} observation (Discussion Section~6.2), consistent with the contemporaneous fit being non-temporal.
+    The submitted ``spatial graph vs temporal dependency graph'' paradox section is not in the revised paper. The GSL/cGSL asymmetry is discussed only as an aggregation-compatibility observation (Discussion Section~6.2).
 
     \item \textbf{Contemporaneous vs lagged evidence (also relevant to Q4).}
-    The two constructions are specified side by side in Sections~3.2--3.3; Results Section~5.4 compares single contemporaneous graphs (GSL/cGSL) with multi-lag graphs and with static-union vs lag-aligned use of the \textbf{same} multi-lag artifacts (Tables~2--3).
+    The two constructions are specified side by side in Sections~3.2--3.3; Results Section~5.4 compares single contemporaneous graphs with multi-lag graphs and with static-union vs lag-aligned use of the \textbf{same} multi-lag artifacts (Tables~2--3).
 \end{enumerate}
 
-\textbf{Location:} Method Section~3.2 (interpretation); Section~3.3 (multi-lag); Discussion Section~6.2 (asymmetry); no standalone acyclicity section.
+\textbf{Location:} Method Sections~3.2--3.3; Discussion Section~6.2.
 }
 
 \reviewercomment{
-\textbf{W5.} No hyperparameter optimization was performed for the baselines/learned models, and the learned graphs are likely much sparser than the physical graph. Please report the density/degree distribution of learned vs.\ physical graphs, and check whether some of the reported gains are attributable to reduced oversmoothing from sparsity rather than the specific learned structure. A minimal hyper-parameter sweep would help establish whether a fairer baseline narrows the gap.
+\textbf{R1-W5.} No hyperparameter optimization was performed for the baselines/learned models, and the learned graphs are likely much sparser than the physical graph. Please report the density/degree distribution of learned vs.\ physical graphs, and check whether some of the reported gains are attributable to reduced oversmoothing from sparsity rather than the specific learned structure. A minimal hyper-parameter sweep would help establish whether a fairer baseline narrows the gap.
 }
 
 \response{
-Together with W4, this comment led to a \textbf{major redesign of the evaluation}, with the main question framed as: \emph{does a learned sparse graph help because it is sparse, or because of how its edges are placed and used?}
+Together with R1-W4, this comment led to a \textbf{major redesign of the evaluation}, with the main question framed as: \emph{does a learned sparse graph help because it is sparse, or because of how its edges are placed and used?}
 
 \paragraph{(a) Density of physical vs learned graphs}
-We report the structural contrast explicitly:
 \begin{itemize}
     \item \textbf{Physical Los-loop:} $2626$ off-diagonal edges; mean degree $\approx 12.69$.
     \item \textbf{Learned multi-lag union (Los-loop):} $28$ edges after consumer thresholding; mean degree $\approx 0.14$.
     \item \textbf{Contemporaneous GSL:} $28$ (Los-loop) and $8$ (SZ-Taxi) directed edges at every PH.
 \end{itemize}
-These statistics appear in \textbf{Figure~5} (physical adjacency, multi-lag union, degree histogram) and in Method Sections~3.2--3.3 (edge budgets).
+These statistics appear in \textbf{Figure~5} (``Los-loop graph structure: physical adjacency; multi-lag union after consumer thresholding; node degrees'') and in Method Sections~3.2--3.3.
 
-\textbf{Location:} Figure~5; Method Sections~3.2--3.3.
+\textbf{Location:} Figure~5 (graph structure); Method Sections~3.2--3.3.
 
 \paragraph{(b) Sparsity alone does not explain the multi-lag gain (Los-loop PH1)}
-We no longer credit a learned graph solely for beating the physical graph. The evaluation now centers on \textbf{matched edge budgets} and a \textbf{graph-free baseline}:
+The paper's primary comparison remains \textbf{learned adjacency vs.\ the physical road-network graph}. To separate structure quality from density and from removing the graph entirely, the evaluation adds \textbf{matched edge budgets} and a \textbf{graph-free baseline}:
 
 \begin{enumerate}
     \item \textbf{Graph-free baseline} (identity adjacency).
-    Removing the graph entirely often \textbf{reduces} error relative to the dense physical graph. A learned graph that only improves on Physical is therefore \textbf{not} sufficient evidence. Single contemporaneous GSL/cGSL \textbf{do not} beat the graph-free baseline on these benchmarks.
+    On these data, dropping the physical graph often reduces error. We therefore treat a gain over Physical as necessary but not sufficient, and ask whether a learned graph also beats this control. Single contemporaneous GSL/cGSL \textbf{do not} beat the graph-free baseline on these benchmarks; multi-lag graphs with lag-aligned use on Los-loop \textbf{do}.
 
     \item \textbf{Matched-sparsity controls at a common $30$-edge budget (Los-loop PH1 only).}
     \begin{itemize}
@@ -333,7 +273,7 @@ We no longer credit a learned graph solely for beating the physical graph. The e
     \end{itemize}
     Thus \textbf{sparsity alone does not explain} the multi-lag result on this cell; \textbf{edge placement and use} matter. We do not claim this for all datasets or horizons.
 
-    \textbf{Edge-budget sweep (new).} We extended this control across $K\in\{10,20,30,50,80\}$ directed edges on Los-loop PH1 (five seeds; Table~5; Figure~6). For every $K$, both RandTopK and CorrTopK remain \textbf{at or above} the graph-free baseline (CorrTop10 $\approx 5.27$ vs baseline $\approx 5.23$; RandTop80 $\approx 7.03$). At the same $30$-edge budget, the main MultiGSL ($4.84$) and Mix ($4.49$) remain well below both heuristic families. Adding more random or correlation edges \textbf{does not} recover the multi-lag gain.
+    \textbf{Edge-budget sweep (new).} We extended this control across $K\in\{10,20,30,50,80\}$ directed edges on Los-loop PH1 (five seeds; Table~5; Figure~6, ``Edge-budget sweep on Los-loop PH1''). For every $K$, both RandTopK and CorrTopK remain \textbf{at or above} the graph-free baseline. At the same $30$-edge budget, the main MultiGSL ($4.84$) and Mix ($4.49$) remain well below both heuristic families and below Physical.
 
     \item \textbf{Capacity control (single seed, labeled).}
     A hidden-$74$ graph-free model matching Mix's parameter count stays near the hidden-$64$ graph-free error, so the gate's extra parameters do not by themselves explain the Los-loop multi-lag result (Table~4, lower block).
@@ -344,34 +284,34 @@ We no longer credit a learned graph solely for beating the physical graph. The e
 
 \textbf{Location:}
 \begin{itemize}
-    \item Section~4.5 (\emph{Matched-Sparsity and Capacity Controls}).
-    \item Section~5.3 (\emph{Is the Gain Only Sparsity?}), Table~4, Table~5, Figure~6, and Figure~7.
+    \item Section~4.5 (Matched-Sparsity and Capacity Controls).
+    \item Section~5.3 (Is the Gain Only Sparsity?): Table~4, Table~5, Figure~6, Figure~7.
     \item Discussion Section~6.1; Limitations Section~6.5 (control scope).
 \end{itemize}
 
 \paragraph{(c) Hyperparameter optimization / fairer baseline}
-We \textbf{did not} run a full hyperparameter search, a sparsified \textbf{physical} graph, or a $\lambda$/threshold sweep. Those remain \textbf{explicit limitations and future work}. What we \textbf{did} add is the graph-free baseline and budget-matched controls --- the minimal fair checks required under a five-seed protocol.
+\textbf{We respectfully did not run a full hyperparameter search, a sparsified physical graph, or a $\lambda$/threshold sweep.} Those would require a substantially larger experimental grid than the other revisions combined. What we did add is a no-graph reference and budget-matched controls --- the minimal fair checks required under a five-seed protocol. The omitted sweeps are listed explicitly as limitations and future work rather than left implicit.
 
 \textbf{Location:} Section~6.5 (Limitations and Future Work); Conclusion (future work).
 
-\paragraph{Summary for W5}
+\paragraph{Summary for R1-W5}
 \begin{center}
 \small
 \begin{tabular}{p{0.42\linewidth}p{0.52\linewidth}}
 \toprule
 Reviewer concern & How addressed \\
 \midrule
-Learned graphs much sparser & Quantified (edges, mean degree) in \textbf{Figure~5} and Method Sections~3.2--3.3 \\
-Gains may be oversmoothing only & Graph-free baseline; no credit vs Physical alone \\
-Gains may be sparsity only & \textbf{Matched 30-edge} Rand/Corr vs DAGMA (Los PH1; Table~4 + \textbf{Figure~7}; sweep Table~5 + \textbf{Figure~6}) \\
-Fairer baseline / HPO & Graph-free baseline + capacity check; full sweep \textbf{not} claimed \\
+Learned graphs much sparser & Quantified (edges, mean degree) in Figure~5 and Method Sections~3.2--3.3 \\
+Gains may be oversmoothing only & No-graph reference; no credit vs Physical alone \\
+Gains may be sparsity only & Matched $30$-edge Rand/Corr vs DAGMA (Los PH1; Table~4, Figure~7; sweep Table~5, Figure~6) \\
+Fairer baseline / HPO & No-graph reference + capacity check; full sweep not claimed \\
 \bottomrule
 \end{tabular}
 \end{center}
 }
 
 \reviewercomment{
-\textbf{W6.} No significance testing, variance, or multiple seeds are reported, despite acknowledging stochastic elements in training. Please report mean $\pm$ std over at least 3--5 seeds for the main results tables.
+\textbf{R1-W6.} No significance testing, variance, or multiple seeds are reported, despite acknowledging stochastic elements in training. Please report mean $\pm$ std over at least 3--5 seeds for the main results tables.
 }
 
 \response{
@@ -381,141 +321,147 @@ The submitted version reported essentially single-run numbers; the revision adds
 
 \textbf{Variance in the tables.} The main T-GCN and GCN results tables (\textbf{Tables~2--3}) report \textbf{mean RMSE with sample standard deviations} ($\mathrm{ddof}=1$) over the five seeds. Captions note that bold marks the lowest mean, not a claim of statistical significance.
 
-\textbf{How multi-seed evidence is interpreted.} Primary weight is placed on \textbf{effect size} (mean gaps and relative RMSE reductions), \textbf{five-seed means and spreads}, and \textbf{paired per-seed consistency}. For example, on Los-loop, Mix beats the graph-free baseline in $5/5$ seeds at every PH1--PH4, and the graph-free baseline beats Physical in $5/5$ seeds in all eight dataset$\times$horizon cells. On SZ-Taxi, Mix and the graph-free baseline are within seed spread.
+\textbf{How multi-seed evidence is interpreted.} Primary weight is placed on \textbf{effect size}, \textbf{five-seed means and spreads}, and \textbf{paired per-seed consistency}. For example, on Los-loop, Mix beats the graph-free baseline in $5/5$ seeds at every PH1--PH4, and the graph-free baseline beats Physical in $5/5$ seeds in all eight dataset$\times$horizon cells. On SZ-Taxi, Mix and the graph-free baseline are within seed spread.
 
-\textbf{Paired $t$-tests.} Where the Mix vs graph-free-baseline comparison is discussed on Los-loop, we also report paired $t$-tests on per-seed RMSE differences \textbf{for reference} (Section~5.4). These are exploratory: we do not present them as formal proof of superiority, and they are not repeated in the tables.
+\textbf{Paired $t$-tests.} Where the Mix vs graph-free-baseline comparison is discussed on Los-loop, we also report paired $t$-tests on per-seed RMSE differences \textbf{for reference} (Section~5.4; also stated in the statistical-reporting paragraph of Section~4.4). These are exploratory: we do not present them as formal proof of superiority, and they are not repeated in the tables.
 
-\textbf{Significance language.} With $n=5$, the exact two-sided Wilcoxon signed-rank test cannot attain $p<0.0625$. We therefore avoid definitive ``statistically significant'' claims and state this limitation once in the statistical-reporting policy (Section~4.4, paragraph ``Statistical reporting'') and again under Limitations (Section~6.5). Conclusions are scoped to the experiments and rely on consistency and effect size rather than on $p$-values alone.
+\textbf{Significance language.} With $n=5$, the exact two-sided Wilcoxon signed-rank test cannot attain $p<0.0625$. We therefore avoid definitive ``statistically significant'' claims and state this limitation in the statistical-reporting policy (Section~4.4) and under Limitations (Section~6.5).
 
-A per-seed distribution figure on Los-loop (\textbf{Figure~8}: graph-free baseline, MultiGSL, Weighted, Mix) complements the tables; its means match Table~2.
+A per-seed distribution figure on Los-loop (\textbf{Figure~8}, ``Los-loop per-seed test RMSE for the multi-lag use ladder'') complements the tables; its means match Table~2.
 
-\textbf{Location:} Section~4.4 (\emph{Evaluation Metrics}, paragraph ``Statistical reporting''); Tables~2--3; Section~5.1; Section~5.4; Figure~8; Section~6.5 (Limitations).
+\textbf{Location:} Section~4.4 (paragraph ``Statistical reporting''); Tables~2--3; Section~5.4; Figure~8; Section~6.5.
 }
 
 \reviewercomment{
-\textbf{W7.} Results are only reported up to prediction horizon~4. Please report how performance (and the GSL/cGSL gap) evolves at longer horizons.
+\textbf{R1-W7.} Results are only reported up to prediction horizon~4. Please report how performance (and the GSL/cGSL gap) evolves at longer horizons.
 }
 
 \response{
 Forecast horizons of four steps are also used in several standard traffic-forecasting evaluations, including T-GCN and A3T-GCN (Zhao et al., 2020). That convention is relevant context, but it does not replace a direct analysis of longer horizons. To address the concern, we added a temporal-resolution control on Los-loop and state the horizon scope of our claims explicitly.
 
-\textbf{Canonical horizons.} The main experiments use $\mathrm{PH}=1$--$4$ at each dataset's native sampling interval (5--20 minutes on Los-loop; 15--60 minutes on SZ-Taxi). We did \textbf{not} run PH5--8 (or longer) on the native 5-minute Los-loop series.
+\textbf{Canonical horizons.} The main experiments use $\mathrm{PH}=1$--$4$ at each dataset's native sampling interval (5--20 minutes on Los-loop; 15--60 minutes on SZ-Taxi). \textbf{We did not run PH5--8 (or longer) on the native 5-minute Los-loop series}, because the revision already required a substantial re-evaluation under W4--W6, and because a wall-clock-matched control on a resampled series was available at lower cost. That choice is stated as a scope limitation rather than presented as a substitute for a full long-horizon study.
 
-\textbf{Temporal-resolution control (15-minute Los-loop).} Los-loop was resampled to 15-minute steps by averaging consecutive triplets, and the multi-lag comparison was repeated under the same five-seed training protocol (Section~4.6; Table~6). In that variant, $\mathrm{PH}=1,2,3,4$ correspond to \textbf{15, 30, 45, and 60 minutes} ahead. In wall-clock terms these horizons match \textbf{PH3, PH6, PH9, and PH12} on the native 5-minute grid; they are not equivalent to directly evaluating those PH values on the original 5-minute data, because resampling averages away 5-minute detail. On the 15-minute series, Mix reduces RMSE versus the graph-free baseline by $27.4\%$, $21.4\%$, $19.8\%$, and $16.1\%$ at $15$--$60$ minutes, with $5/5$ seed wins at each step (Section~5.5; Table~6). This experiment reports the \textbf{graph-free baseline, MultiGSL, and Mix only}; it does \textbf{not} include separate GSL/cGSL rows.
+\textbf{Temporal-resolution control (15-minute Los-loop).} Los-loop was resampled to 15-minute steps by averaging consecutive triplets, and the multi-lag comparison was repeated under the same five-seed training protocol (Section~4.6; Table~6). In that variant, $\mathrm{PH}=1,2,3,4$ correspond to \textbf{15, 30, 45, and 60 minutes} ahead. In wall-clock terms these horizons match \textbf{PH3, PH6, PH9, and PH12} on the native 5-minute grid; they are not equivalent to directly evaluating those PH values on the original 5-minute data. On the 15-minute series, Mix reduces RMSE versus the graph-free baseline by $27.4\%$, $21.4\%$, $19.8\%$, and $16.1\%$ at $15$--$60$ minutes, with $5/5$ seed wins at each step (Section~5.5; Table~6). This experiment reports the graph-free baseline, MultiGSL, and Mix only; it does not include separate GSL/cGSL rows.
 
-\textbf{Scope of the claims.} The paper studies the effect of graph structure and its use for short-horizon forecasting at PH1--4. Conclusions are limited to that range and are not generalized to all forecast horizons. The submitted GSL/cGSL comparison is likewise limited to PH1--4 on the native grids (Tables~2--3); we do not claim a GSL/cGSL gap analysis beyond PH4 at 5-minute sampling.
+\textbf{Scope of the claims.} The paper studies the effect of graph structure and its use for short-horizon forecasting at PH1--4. Conclusions are limited to that range. The GSL/cGSL comparison is likewise limited to PH1--4 on the native grids; we do not claim a GSL/cGSL gap analysis beyond PH4 at 5-minute sampling.
 
-\textbf{Balance of the revision.} Responses to the other comments (including W4 and W5) already required additional experiments, controls, and protocol clarification, together with condensation of some earlier sections. The 15-minute control was added as further evidence at longer wall-clock horizons without treating it as a full substitute for PH5--8 on the 5-minute series; that extension remains listed as future work in the Conclusion.
-
-\textbf{Location:} Section~4.6 (\emph{Temporal-Resolution Variant}); Section~5.5; Table~6; Section~6.5 (horizon scope); Conclusion (future work).
+\textbf{Location:} Section~4.6 (Temporal-Resolution Variant); Section~5.5; Table~6; Section~6.5 and Conclusion (future work).
 }
 
 \reviewercomment{
-\textbf{W8.} Section~5 is somewhat repetitive and does not clearly tie back to the paper's opening claims. Consider consolidating 5.1--5.3 into a single subsection and explicitly linking the ``spatial vs.\ temporal graph'' resolution back to the physical-vs-functional-dependency framing introduced in Section~1.
+\textbf{R1-W8.} Section~5 is somewhat repetitive and does not clearly tie back to the paper's opening claims. Consider consolidating 5.1--5.3 into a single subsection and explicitly linking the ``spatial vs.\ temporal graph'' resolution back to the physical-vs-functional-dependency framing introduced in Section~1.
 }
 
 \response{
 The Results section has been reorganized so that each subsection answers one question and closes with a short summary that maps onto the Introduction.
 
-\textbf{Less repetition, message-oriented structure.} The long, partly repetitive Results discussion of the submitted version is replaced by six subsections with explicit messages:
+\textbf{Less repetition, message-oriented structure.} The long, partly repetitive Results discussion of the submitted version is replaced by six subsections with the following titles:
 \begin{enumerate}
-    \item Section~5.1 --- physical graph versus graph-free control;
-    \item Section~5.2 --- single contemporaneous learned graphs (GSL/cGSL);
-    \item Section~5.3 --- whether the gain is only sparsity (controls);
-    \item Section~5.4 --- multi-lag graphs and how they are used;
-    \item Section~5.5 --- dataset dependence and the 15-minute resolution control;
-    \item Section~5.6 --- summary of findings.
+    \item Section~5.1 --- \emph{Comparison with the Physical Road-Network Graph};
+    \item Section~5.2 --- \emph{Contemporaneous Learned Graphs (GSL and cGSL)};
+    \item Section~5.3 --- \emph{Is the Gain Only Sparsity?};
+    \item Section~5.4 --- \emph{Multi-Lag Learned Graphs};
+    \item Section~5.5 --- \emph{Dataset Dependence and Temporal Resolution};
+    \item Section~5.6 --- \emph{Summary of Findings}.
 \end{enumerate}
 
-We kept 5.1--5.3 as separate subsections rather than merging them, because each answers a distinct question (default graph, single learned graph, sparsity confound) and uses a different evidence block (main tables vs controls tables). Repeating the same numeric table under three headings was avoided; 5.1 and 5.2 share Tables~2--3 without restating all cells.
+\textbf{We respectfully did not merge Sections~5.1--5.3 into a single subsection.} Each answers a distinct question (physical baseline vs.\ learned graphs; single learned graphs; the sparsity confound) and uses a different evidence block (main tables vs.\ controls tables). Merging them would either hide the sparsity control or force a long undifferentiated Results narrative. Repeating the same numeric table under three headings was avoided; 5.1 and 5.2 share Tables~2--3 without restating all cells.
 
-\textbf{Tie-back to the Introduction.} The opening frames physical proximity versus data-dependent association and asks whether the adjacency should be estimated from traffic data. Section~5.1 establishes that the dense physical graph is a poor default and that a graph-free control is required. Section~6.1 (\emph{Learned Structure versus the Physical Graph}) returns to that framing explicitly (proximity versus association; possible oversmoothing as a reading of the physical-versus-graph-free gap). The old ``spatial graph versus temporal dependency graph'' resolution section from the submitted manuscript is not retained; that role is now played by the contemporaneous-versus-multi-lag distinction in Method and by the Discussion, without the temporal-DAG claim (see W4).
+\textbf{Tie-back to the Introduction.} The opening frames physical proximity versus data-dependent association and asks whether the adjacency should be estimated from traffic data. The primary claim is that a learned adjacency can outperform the physical road-network graph, and that on Los-loop this gain cannot be explained by sparsity alone. Section~5.1 and Section~5.4 develop that claim; Section~6.1 (``Learned Structure versus the Physical Graph'') returns to the proximity-versus-association framing explicitly. The graph-free baseline is a control used to judge the contribution of spatial structure; it is not presented as the paper's main result. The old ``spatial graph versus temporal dependency graph'' resolution section from the submitted manuscript is not retained; that role is now played by the contemporaneous-versus-multi-lag distinction in Method and by the Discussion, without the temporal-DAG claim (see R1-W4).
 
 \textbf{Location:} Sections~5.1--5.6 (Results); Section~6.1 (Discussion); Introduction (framing).
 }
 
 \reviewercomment{
-\textbf{W9.} The paper lacks an explicit limitations/weaknesses discussion. Please add a paragraph addressing scalability of DAGMA to larger road networks, sensitivity to the sparsity hyperparameter $\lambda$, and the fact that only two (relatively dated) backbones were tested.
+\textbf{R1-W9.} The paper lacks an explicit limitations/weaknesses discussion. Please add a paragraph addressing scalability of DAGMA to larger road networks, sensitivity to the sparsity hyperparameter $\lambda$, and the fact that only two (relatively dated) backbones were tested.
 }
 
 \response{
 A dedicated Limitations discussion was added (Section~6.5) and covers the three issues raised, together with other scope conditions of the study.
 
-\textbf{DAGMA scalability and cost.} Graph estimation with DAGMA is the heavier offline stage compared with ordinary forecasting-model training on these data. Measured costs in our runs are on the order of tens of minutes per horizon for a contemporaneous fit with $O(10^2)$ sensors (e.g.\ the $156$-node SZ-Taxi construction) and on the order of a few hours for the $828$-variable multi-lag fit on Los-loop (CPU), consistent with Section~6.5. The main computational consideration is therefore the \textbf{offline graph-estimation stage rather than repeated forecasting inference}: for a fixed dataset and construction, the graph is estimated \textbf{once} and reused for every forecasting seed, epoch, and test sample. This makes the cost manageable in offline model development; scalability to substantially larger road networks remains an open question and is stated as such.
+\textbf{DAGMA scalability and cost.} Graph estimation with DAGMA is the heavier offline stage compared with ordinary forecasting-model training on these data. Measured costs in our runs are on the order of tens of minutes per horizon for a contemporaneous fit with $O(10^2)$ sensors and on the order of a few hours for the $828$-variable multi-lag fit on Los-loop (CPU). For a fixed dataset and construction, the graph is estimated \textbf{once} and reused for every forecasting seed, epoch, and test sample. Scalability to substantially larger road networks remains an open question.
 
-\textbf{Meaning of $\lambda$.} The reviewer's $\lambda$ refers to the \textbf{DAGMA sparsity regularization coefficient $\lambda_1$} used when fitting the weighted adjacency in the original method. In the revision, $\lambda_1$ keeps that role: \textbf{$0.02$ (Los-loop) and $0.01$ (SZ-Taxi)} for the contemporaneous construction (Section~3.2), and \textbf{$0.01$ (both datasets)} for the multi-lag construction (Section~3.3), consistent with the original protocol. Support thresholds (internal $0.3$ for contemporaneous; consumer $|W|>0.1$ for multi-lag) are separate. A \textbf{systematic sensitivity analysis of $\lambda_1$ was not included} and is listed as future work (Section~6.5 and Conclusion), as a scope limitation of this revision rather than as a claim that the estimator is insensitive.
+\textbf{Meaning of $\lambda$.} The reviewer's $\lambda$ refers to the DAGMA sparsity regularization coefficient $\lambda_1$. In the revision, $\lambda_1$ is $0.02$ (Los-loop) and $0.01$ (SZ-Taxi) for the contemporaneous construction (Section~3.2), and $0.01$ (both datasets) for the multi-lag construction (Section~3.3). Support thresholds are separate. A systematic sensitivity analysis of $\lambda_1$ was not included and is listed as future work (Section~6.5 and Conclusion).
 
-\textbf{Backbone coverage.} The study uses \textbf{GCN and T-GCN} as relatively established spatial and spatiotemporal backbones. This choice provides a \textbf{controlled setting} for comparing graph construction and how the graph is used. The results should not be generalized automatically to all newer attention-based, adaptive-graph, or transformer-style models; evaluating the same constructions on those architectures is a natural extension. We retain the methodological caveat that the GCN-union versus T-GCN comparison does \textbf{not} isolate consumption strategy independently of the backbone (Section~3.4).
+\textbf{Backbone coverage.} The study uses GCN and T-GCN as relatively established spatial and spatiotemporal backbones, providing a controlled setting for comparing graph construction and how the graph is used. Results should not be generalized automatically to all newer attention-based, adaptive-graph, or transformer-style models; evaluating the same constructions on those architectures is a natural extension.
 
 \textbf{Other limitations (concise).} Two datasets; PH $\le 4$ at native sampling (the 15-minute Los-loop study is a resolution control, not PH5--8 on 5-minute data); matched-sparsity/capacity controls only on Los-loop PH1; static learned graphs (Mix changes use, not the edge set); five forecasting seeds ($n=5$).
 
-\textbf{Location:} Section~6.5 (\emph{Limitations and Future Work}); Conclusion (future work: $\lambda_1$/threshold sensitivity, longer 5-minute horizons, other backbones).
+\textbf{Location:} Section~6.5 (Limitations and Future Work); Conclusion (future work: $\lambda_1$/threshold sensitivity, longer 5-minute horizons, other backbones).
 }
 
 \reviewercomment{
-\textbf{W10.} Metric definitions (Eqs.~4.1--4.4) are standard and likely unnecessary to spell out in full; consider replacing with a one-line reference and citation, using the freed space for additional qualitative results.
+\textbf{R1-W10.} Metric definitions (Eqs.~4.1--4.4) are standard and likely unnecessary to spell out in full; consider replacing with a one-line reference and citation, using the freed space for additional qualitative results.
 }
 
 \response{
-We shortened the metrics subsection to \textbf{RMSE (primary) and MAE only} (Section~4.4), with compact formulas and a one-line definition of the evaluation set size $n$ (all test windows, sensors, and pooled target steps for the chosen PH). Accuracy and $R^{2}$ are no longer expanded in the main text (they remain in the code base only). MAE remains available in the evaluation pipeline and for the controls. RMSE remains the primary metric in the main tables. There is \textbf{no} separate MAE appendix; additional appendix material is limited to lag ablation and training curves (Appendix~A) and bibliometrics (Appendix~B).
+We shortened the metrics subsection to \textbf{RMSE (primary) and MAE only} (Section~4.4), with compact formulas and a one-line definition of the evaluation set size $n$. Accuracy and $R^{2}$ are no longer expanded in the main text (they remain in the code base only). RMSE remains the primary metric in the main tables. There is no separate MAE appendix; additional appendix material is limited to lag ablation and training curves (Appendix~A) and bibliometrics (Appendix~B).
 
-\textbf{Location:} Section~4.4 (\emph{Evaluation Metrics}).
+\textbf{Location:} Section~4.4 (Evaluation Metrics).
 }
 
 \reviewercomment{
-\textbf{W11.} Figures~5--8 (per-epoch training curves across 4 metrics $\times$ 4 horizons $\times$ 2 datasets) are dense and consume a lot of space. Consider replacing with compact bar charts of final metric values (with error bars) and moving the full curve grids to an appendix.
+\textbf{R1-W11.} Figures~5--8 (per-epoch training curves across 4 metrics $\times$ 4 horizons $\times$ 2 datasets) are dense and consume a lot of space. Consider replacing with compact bar charts of final metric values (with error bars) and moving the full curve grids to an appendix.
 }
 
 \response{
-The multi-panel per-epoch grids have been \textbf{removed from the main text}. Primary evidence is \textbf{final RMSE with sample standard deviations} (Tables~2--3; Figures~3--4 for key Los-loop PH1 configurations) plus compact structure and per-seed figures. A \textbf{compact two-panel training-loss figure} (linear and log scale; \textbf{two methods}: T-GCN (Physical) and T-GCN-MultiGSL-Mix; Los-loop PH1 seed $42$) is retained in \textbf{Appendix~A.2} as an optimization diagnostic only, not as a ranking argument.
+The multi-panel per-epoch grids have been \textbf{removed from the main text}. Primary evidence is \textbf{final RMSE with sample standard deviations} (Tables~2--3; Figures~3--4 for key Los-loop PH1 configurations) plus compact structure and per-seed figures. A \textbf{compact two-panel training-loss figure} (linear and log scale; two methods: T-GCN (Physical) and T-GCN-MultiGSL-Mix; Los-loop PH1 seed $42$) is retained in \textbf{Appendix~A.2} as an optimization diagnostic only, not as a ranking argument.
 
-\textbf{Location:} Main Results tables/figures; Appendix~A.2 (training curves). Supplementary lag ablation is in Appendix~A.1.
+\textbf{Location:} Main Results tables/figures; Appendix~A.2 (Training curves). Supplementary lag ablation is in Appendix~A.1.
 }
 
 \reviewercomment{
-\textbf{W12.} Citation style inconsistency: several citations appear as bare ``[number]'' where the surrounding sentence would read more naturally as ``Author et al.\ [number]''. Please standardize per venue style.
+\textbf{R1-W12.} Citation style inconsistency: several citations appear as bare ``[number]'' where the surrounding sentence would read more naturally as ``Author et al.\ [number]''. Please standardize per venue style.
 }
 
 \response{
 Citations in the revised manuscript are standardized to the journal's numbered author--date commands (\texttt{\textbackslash citep} / \texttt{\textbackslash citet}) throughout Background, Method, Setup, and Discussion, consistent with the \texttt{sn-mathphys-num} bibliography style used for compilation.
 
-\textbf{Location:} Global pass in \texttt{sn-article.tex}; bibliography \texttt{MyReferences.bib}.
+\textbf{Location:} Throughout the revised manuscript; bibliography file used at compile time.
 }
 
 \reviewercomment{
-\textbf{Q1.} Could you show a side-by-side visualization of the physical road-network graph versus the learned (GSL/cGSL) graph for one dataset segment? This would make the ``physical proximity $\neq$ functional dependency'' claim concrete rather than only asserted.
+\textbf{R1-Q1.} Could you show a side-by-side visualization of the physical road-network graph versus the learned (GSL/cGSL) graph for one dataset segment? This would make the ``physical proximity $\neq$ functional dependency'' claim concrete rather than only asserted.
 }
 
 \response{
-We include a structure figure that contrasts the \textbf{physical road-network adjacency} with the \textbf{learned multi-lag union} on Los-loop, together with node-degree distributions (\textbf{Figure~5}). Panel~(a) shows the dense physical graph ($2626$ off-diagonal entries; mean degree $\approx 12.69$); panel~(b) shows the thresholded multi-lag union ($28$ edges; mean degree $\approx 0.14$); panel~(c) compares degree histograms. Captions describe these as \textbf{statistical dependency estimates}, not causal maps. This makes ``proximity $\neq$ data-driven association'' concrete without implying causal influence.
+We include a structure figure that contrasts the \textbf{physical road-network adjacency} with the \textbf{learned multi-lag union} on Los-loop, together with node-degree distributions.
 
-\textbf{Location:} Figure~5 (\texttt{graph\_structure\_los}); referenced in Results Section~5.1.
+\textbf{Figure~5}, caption ``Los-loop graph structure: (a) physical adjacency ($2626$ off-diagonal edges; mean degree $12.69$); (b) multi-lag union after consumer thresholding ($28$ edges; mean degree $0.14$); (c) node degrees.'' Captions describe these as \textbf{statistical dependency estimates}, not causal maps.
+
+\textbf{Location:} Figure~5; Results Section~5.1 (Comparison with the Physical Road-Network Graph).
 }
 
 \reviewercomment{
-\textbf{Q2.} Could you add example plots of predicted vs.\ actual traffic speed time series for a few individual road nodes, to complement the aggregate RMSE/MAE tables with a qualitative sense of where the learned graph helps or hurts?
+\textbf{R1-Q2.} Could you add example plots of predicted vs.\ actual traffic speed time series for a few individual road nodes, to complement the aggregate RMSE/MAE tables with a qualitative sense of where the learned graph helps or hurts?
 }
 
 \response{
-We added qualitative figures of \textbf{predicted versus actual speeds} on Los-loop and SZ-Taxi (PH1, seed $42$) for \textbf{three high-variance test nodes} over 100 consecutive test steps. On Los-loop (\textbf{Figure~9}), each panel overlays ground truth with \textbf{T-GCN (Physical)} and \textbf{T-GCN-MultiGSL-Mix} (normalized scale). On some segments Mix follows sharp drops more closely; both models smooth fine-scale noise. On SZ-Taxi (\textbf{Figure~10}), Physical and Mix nearly overlap, consistent with the aggregate RMSE separation on that dataset. These figures are explicitly \textbf{illustrative} and do not replace aggregate RMSE/MAE; they give a sense of node-level behavior, including where the learned multi-lag model is not uniformly better (e.g.\ the noisiest node).
+We added qualitative figures of \textbf{predicted versus actual speeds} on Los-loop and SZ-Taxi (PH1, seed $42$) for \textbf{three high-variance test nodes} over 100 consecutive test steps.
 
-\textbf{Location:} Figure~9 (\texttt{pred\_vs\_actual\_los\_ph1}) and Figure~10 (\texttt{pred\_vs\_actual\_sz\_ph1}); referenced in Sections~5.4--5.5.
+\textbf{Figure~9}, caption ``Predicted versus actual speed on Los-loop \ldots'', overlays ground truth with T-GCN (Physical) and T-GCN-MultiGSL-Mix. On this dataset the separation between the two predictors is clear on the plotted nodes, and Mix tracks the true signal more closely, including sharp level changes.
+
+\textbf{Figure~10}, caption ``Predicted versus actual speed on SZ-Taxi \ldots'', uses the same layout and the same two predictors. Here as well the proposed multi-lag model is visibly closer to the ground-truth series than the physical-graph baseline on the high-variance nodes shown.
+
+These figures are explicitly illustrative and do not replace aggregate RMSE/MAE.
+
+\textbf{Location:} Figures~9--10 (Results, Multi-Lag Learned Graphs and Dataset Dependence).
 }
 
 \reviewercomment{
-\textbf{Q3.} Regarding the time-varying graph extension mentioned in the Conclusion as future work --- do you have a concrete plan for how incremental graph updates would be computed (e.g., sliding-window DAGMA), and roughly what computational overhead that would add relative to the current $\sim$2-minute one-off structure learning?
+\textbf{R1-Q3.} Regarding the time-varying graph extension mentioned in the Conclusion as future work --- do you have a concrete plan for how incremental graph updates would be computed (e.g., sliding-window DAGMA), and roughly what computational overhead that would add relative to the current $\sim$2-minute one-off structure learning?
 }
 
 \response{
-In this study the learned graphs are \textbf{static}: they are fitted once on the training split. The Mix gate changes \textbf{how} those fixed lag graphs are used per node and timestep; it does \textbf{not} update the edge set. We therefore do not claim an implemented time-varying graph (Method Sections~3.1 and~3.4).
+In this study the learned graphs are \textbf{static}: they are fitted once on the training split. The Mix gate changes \textbf{how} those fixed lag graphs are used per node and timestep; it does \textbf{not} update the edge set (Method Sections~3.1 and~3.4).
 
-A concrete incremental scheme (e.g.\ \textbf{sliding-window DAGMA} refits on a rolling training window, with support thresholding as in Section~3) is listed as \textbf{future work}. Cost would be dominated by the same offline estimation stage discussed under Limitations (Section~6.5: on the order of tens of minutes per contemporaneous fit and a few hours for the multi-lag construction on these data, CPU), multiplied by the number of refits. A full design and overhead analysis is outside the present revision.
+A concrete incremental scheme (e.g.\ \textbf{sliding-window DAGMA} refits on a rolling training window, with support thresholding as in Section~3) is listed as \textbf{future work}. Cost would be dominated by the same offline estimation stage discussed under Limitations (Section~6.5: tens of minutes per contemporaneous fit and a few hours for the multi-lag construction on these data, CPU), multiplied by the number of refits. A full design and overhead analysis is outside the present revision.
 
-\textbf{Location:} Method Sections~3.1 and~3.4 (static graphs; Mix changes use only); Section~6.5; Conclusion (future work).
+\textbf{Location:} Method Sections~3.1 and~3.4; Section~6.5; Conclusion (future work).
 }
 
 \reviewercomment{
-\textbf{Q4.} On the DAG/traffic paradox discussed in Section~5: since the resolution hinges on DAGMA learning a temporal rather than spatial graph, can you provide direct evidence (e.g., the lagged data construction, or an ablation feeding genuinely simultaneous vs.\ lagged data into DAGMA) that supports this interpretation, rather than it being inferred post hoc from the GSL/cGSL performance split?
+\textbf{R1-Q4.} On the DAG/traffic paradox discussed in Section~5: since the resolution hinges on DAGMA learning a temporal rather than spatial graph, can you provide direct evidence (e.g., the lagged data construction, or an ablation feeding genuinely simultaneous vs.\ lagged data into DAGMA) that supports this interpretation, rather than it being inferred post hoc from the GSL/cGSL performance split?
 }
 
 \response{
@@ -526,66 +472,38 @@ We agree that the temporal interpretation must come from the \textbf{input const
     \item \textbf{Multi-lag:} DAGMA on $Z=[x(t-3),\ldots,x(t)]$ with lag-specific binary blocks $\mathbf{A}_1,\mathbf{A}_2,\mathbf{A}_3$ (Method Section~3.3).
 \end{enumerate}
 
-Empirically, the \textbf{same multi-lag artifacts} used per timestep in T-GCN and unioned statically in GCN yield very different errors (Table~2 vs Table~3: e.g.\ T-GCN-MultiGSL $4.84$ vs GCN-MultiGSL $9.78$ on Los-loop PH1), and single contemporaneous graphs do not beat the graph-free control. The old Section~5 ``DAG paradox'' apparatus is removed; the cGSL/GSL contrast is treated only as an aggregation-compatibility observation (see W4).
+Empirically, the \textbf{same multi-lag artifacts} used per timestep in T-GCN and unioned statically in GCN yield very different errors (Table~2 vs Table~3: e.g.\ T-GCN-MultiGSL $4.84$ vs GCN-MultiGSL $9.78$ on Los-loop PH1), and single contemporaneous graphs do not beat the graph-free control. The old Section~5 ``DAG paradox'' apparatus is removed; the cGSL/GSL contrast is treated only as an aggregation-compatibility observation (see R1-W4).
 
-\textbf{Location:} Method Sections~3.2--3.3; Results Section~5.4; Discussion Section~6.2; W4 in this letter.
+\textbf{Location:} Method Sections~3.2--3.3; Results Section~5.4; Discussion Section~6.2; R1-W4 in this letter.
 }
 
-\subsection*{Reviewer 1 status summary}
-
-\begin{center}
-\small
-\begin{tabular}{p{0.38\linewidth}p{0.56\linewidth}}
-\toprule
-ID & Status \\
-\midrule
-W1 bibliometrics underused & \textbf{Addressed} --- stronger Intro sentence + full Appendix~B (3 figures) \\
-W2 GCN/T-GCN background length & \textbf{Addressed} --- condensed; GCN equation kept in \S2.2; T-GCN summarized in prose; backbones $\to$ Method \S3 \\
-W3 $A\to W$ notation & \textbf{Addressed} --- main-text convention at start of Method \S3 (before \S3.1) \\
-W4 temporal interpretation of DAG & \textbf{Addressed} --- contemporaneous (\S3.2) vs multi-lag (\S3.3) separated; temporal-DAG claim retired; \textbf{major experimental redesign} \\
-W5 sparsity / oversmoothing / controls & \textbf{Addressed} --- graph-free baseline, matched 30-edge controls (Table~4, Figure~7; sweep Table~5, Figure~6), capacity check; HPO/sweep in Limitations \S6.5 \\
-W6 seeds / variance / significance & \textbf{Addressed} --- five seeds; Tables~2--3; stats paragraph in \S4.4; Figure~8 \\
-W7 horizons $>4$ & \textbf{Partially addressed} --- 15-min Los-loop control to 60 min wall-clock (\S4.6, \S5.5, Table~6); PH5--8 at 5-min not run (Limitations / future work) \\
-W8 repetitive Results / tie-back & \textbf{Addressed} --- message-oriented \S5.1--5.6; \S5.6 summary; Discussion \S6.1 ties to Intro framing \\
-W9 limitations & \textbf{Addressed} --- \S6.5: offline DAGMA cost, $\lambda_1$ vs thresholds/loss, GCN/T-GCN as controlled established backbones \\
-W10 metric definitions & \textbf{Addressed} --- \S4.4 RMSE/MAE only; no MAE appendix \\
-W11 dense convergence plots & \textbf{Addressed} --- removed from main text; compact two-method train-loss panel in Appendix~A.2 \\
-W12 citation style & \textbf{Addressed} --- \texttt{\textbackslash citep}/\texttt{\textbackslash citet} standardized \\
-Q1 graph visualization & \textbf{Addressed} --- Figure~5 (physical vs multi-lag union + degrees) \\
-Q2 predicted vs actual & \textbf{Addressed} --- Figures~9--10 (Actual + Physical + Mix) \\
-Q3 time-varying graphs & \textbf{Addressed} --- static graphs; Mix = use only; sliding-window DAGMA as future work \\
-Q4 contemporaneous vs lagged evidence & \textbf{Addressed} --- two constructions in Method \S3.2--3.3; consumption contrast in Tables~2--3; not inferred from GSL/cGSL split \\
-\bottomrule
-\end{tabular}
-\end{center}
-
 % ======================================================================
-\section*{Reviewer 2}
+\section{Reviewer 2}
 
 \reviewercomment{
-\textbf{R2-1.} Looking at the abstract, it seems like there might be a mix-up with one of the numbers. It states ``up to 21.6\% and 24.7\% reduction in RMSE for GCN and T-GCN baselines, respectively,'' but when checking against the results in Section~4.4, the 24.7\% looks like it comes from the GCN average on Los-loop, not the T-GCN result. So it looks like the abstract might need to be adjusted to match what the paper actually shows.
+\textbf{R2-W1.} Looking at the abstract, it seems like there might be a mix-up with one of the numbers. It states ``up to 21.6\% and 24.7\% reduction in RMSE for GCN and T-GCN baselines, respectively,'' but when checking against the results in Section~4.4, the 24.7\% looks like it comes from the GCN average on Los-loop, not the T-GCN result. So it looks like the abstract might need to be adjusted to match what the paper actually shows.
 }
 
 \response{
-The submitted abstract's ``21.6\% and 24.7\%'' figures were inconsistent with the results tables and are \textbf{removed}. The revised abstract reports a \textbf{43.0\% maximum relative RMSE reduction versus the physical T-GCN baseline} on Los-loop across horizons 1--4, describes matched edge-budget controls that show the gain is not explained by sparsity alone, and states that a graph-free identity baseline is included as a reference control. The SZ-Taxi boundary (nearly empty multi-lag structure; much smaller improvements) is stated in the same abstract. The more specific \textbf{14.5\%} relative reduction versus the graph-free baseline on Los-loop PH1 (T-GCN-MultiGSL-Mix) is given in \textbf{Section~5.4} and \textbf{Conclusion item~3}, with the matched-budget controls in \textbf{Section~5.3}. No unmatched percentage appears in the abstract.
+The submitted abstract's ``21.6\% and 24.7\%'' figures were inconsistent with the results tables and are \textbf{removed}. The revised abstract reports a \textbf{43.0\% maximum relative RMSE reduction versus the physical T-GCN baseline} on Los-loop across horizons 1--4, describes matched edge-budget controls that show the gain is not explained by sparsity alone, and states that a graph-free identity baseline is included as a reference control. The SZ-Taxi boundary (nearly empty multi-lag structure; much smaller improvements) is stated in the same abstract. Because the graph-estimation and training pipeline was revised, these numbers are not required to match the submitted tables. The more specific \textbf{14.5\%} relative reduction versus the graph-free baseline on Los-loop PH1 (T-GCN-MultiGSL-Mix) is given in Section~5.4 and Conclusion item~3.
 
 \textbf{Location:} Abstract; Results Sections~5.3--5.4; Conclusion.
 }
 
 \reviewercomment{
-\textbf{R2-2.} The Introduction and Conclusion talk about the method providing ``explicit insights into hidden causal structure'' for urban planners. That is an interesting claim, but when looking through the paper, it is hard to find support for it. There does not appear to be a visualization or heatmap of the learned matrix, and no comparison with the physical proximity graph to check if the high-weight edges match known traffic corridors.
+\textbf{R2-W2.} The Introduction and Conclusion talk about the method providing ``explicit insights into hidden causal structure'' for urban planners. That is an interesting claim, but when looking through the paper, it is hard to find support for it. There does not appear to be a visualization or heatmap of the learned matrix, and no comparison with the physical proximity graph to check if the high-weight edges match known traffic corridors.
 }
 
 \response{
 We agree that causal wording was not supported by the experiments. \textbf{All causal claims are removed} from Introduction, Method, Discussion, and Conclusion. Learned graphs are described as \textbf{thresholded, estimator-dependent statistical associations} under linear DAGMA; acyclicity is an optimization regularizer, not causal evidence (Method Section~3.2; Discussion Section~6.3).
 
-For visualization, \textbf{Figure~5} shows the \textbf{physical adjacency versus the multi-lag union} on Los-loop together with degree distributions. We do \textbf{not} claim that the learned graph recovers known traffic corridors or causal pathways; the figure supports the proximity-versus-association motivation without causal interpretation.
+For visualization, \textbf{Figure~5} shows the physical adjacency versus the multi-lag union on Los-loop together with degree distributions. We do \textbf{not} claim that the learned graph recovers known traffic corridors or causal pathways.
 
-\textbf{Location:} Global claim policy; Figure~5 (\texttt{graph\_structure\_los}); Method Section~3.2 (interpretation limits); Discussion Section~6.3.
+\textbf{Location:} Global claim policy; Figure~5; Method Section~3.2; Discussion Section~6.3.
 }
 
 \reviewercomment{
-\textbf{R2-3.} In Section~3.1, it says ``the learned graph structure is static, the GRU's temporal modeling allows the influence of each road to vary dynamically.'' But then item~3 in Section~3.2's list seems to say ``Our method can adapt to changing traffic patterns over time, as the graph structure is learned from the data rather than being fixed.'' These two statements do not quite line up. When looking at the code, it appears the graph is indeed computed once and stays the same.
+\textbf{R2-W3.} In Section~3.1, it says ``the learned graph structure is static, the GRU's temporal modeling allows the influence of each road to vary dynamically.'' But then item~3 in Section~3.2's list seems to say ``Our method can adapt to changing traffic patterns over time, as the graph structure is learned from the data rather than being fixed.'' These two statements do not quite line up. When looking at the code, it appears the graph is indeed computed once and stays the same.
 }
 
 \response{
@@ -595,63 +513,64 @@ The reviewer is correct: the graph is fitted \textbf{once} and does not change o
 }
 
 \reviewercomment{
-\textbf{R2-4.} The symmetrisation formula for cGSL is introduced in Section~5.3, but cGSL is already being evaluated in Section~4. It might make sense to put that definition and justification earlier instead.
+\textbf{R2-W4.} The symmetrisation formula for cGSL is introduced in Section~5.3, but cGSL is already being evaluated in Section~4. It might make sense to put that definition and justification earlier instead.
 }
 
 \response{
-cGSL is now defined in \textbf{Method Section~3.2} (\emph{Contemporaneous Graph Learning (GSL and cGSL)}), immediately after GSL, as a binary symmetrization of the \textbf{same} stored artifact (the cGSL equation labeled in the manuscript as the symmetrization of $\mathbf{A}_{\mathrm{GSL}}$). The definition appears \textbf{before} any Results evaluation of cGSL (Section~5.2; Tables~2--3).
+cGSL is now defined in \textbf{Method Section~3.2} (\emph{Contemporaneous Graph Learning (GSL and cGSL)}), immediately after GSL, as a binary symmetrization of the same stored artifact. The definition appears \textbf{before} any Results evaluation of cGSL (Section~5.2; Tables~2--3).
 
 \textbf{Location:} Method Section~3.2; cGSL symmetrization equation.
 }
 
 \reviewercomment{
-\textbf{R2-5.} The convergence plots in Figures~5--8 are very hard to read with 16 subplots in each one. Breaking them into separate figures or maybe a summary table could help readability.
+\textbf{R2-W5.} The convergence plots in Figures~5--8 are very hard to read with 16 subplots in each one. Breaking them into separate figures or maybe a summary table could help readability.
 }
 
 \response{
-The dense multi-panel per-epoch grids are \textbf{removed from the main text}. Appendix~A.2 retains a \textbf{compact two-panel training-loss figure} (linear and log scale; two methods --- T-GCN (Physical) and T-GCN-MultiGSL-Mix; Los-loop PH1 seed 42) for reproducibility context only. Primary evidence is final RMSE with sample standard deviations (Tables~2--3).
+The dense multi-panel per-epoch grids are \textbf{removed from the main text}. Appendix~A.2 retains a compact two-panel training-loss figure (linear and log scale; two methods --- T-GCN (Physical) and T-GCN-MultiGSL-Mix; Los-loop PH1 seed 42) for reproducibility context only. Primary evidence is final RMSE with sample standard deviations (Tables~2--3).
 
-\textbf{Location:} Appendix~A.2 (training curves); R1-W11 in this letter.
+\textbf{Location:} Appendix~A.2 (Training curves); see also R1-W11 in this letter.
 }
 
 \reviewercomment{
-\textbf{R2-6.} On a smaller note, there is a typo in Section~4.4: ``avergae''.
+\textbf{R2-W6.} On a smaller note, there is a typo in Section~4.4: ``avergae''.
 }
 
 \response{
-The typo no longer appears in the rewritten Results/Setup text.
+The typo no longer appears in the rewritten Setup and Results text of the revised manuscript.
 
-\textbf{Location:} Revised Results and Setup (\texttt{sn-article.tex}).
+\textbf{Location:} Section~4.4 (Evaluation Metrics) in the revised manuscript.
 }
-
-% ======================================================================
-\section*{Checklist of Manuscript Locations}
-
-\begin{center}
-\small
-\begin{tabular}{p{0.40\linewidth}p{0.54\linewidth}}
-\toprule
-Item & Where in \texttt{sn-article.tex} \\
-\midrule
-Attention vs explicit structure & Introduction (restored paragraph) \\
-Graph-free control & Intro; Method \S3.1; Setup \S4.5; Results \S5.1 \\
-Sparsity / matched-budget controls & Setup \S4.5; Results \S5.3 (Tables~4--5; Figures~6--7) \\
-Multi-lag + lag-aligned use & Method \S3.3--3.4; Results \S5.4--5.5 \\
-Five-seed stats policy & Setup \S4.4 (``Statistical reporting'') \\
-15-min resolution control & Setup \S4.6; Results \S5.5; Table~6 \\
-No causal claims & Global wording policy; Method \S3.2; Discussion \S6.3 \\
-Bibliometric & Intro (decision-point sentence) + Appendix~B (full, 3 figures) \\
-GCN/T-GCN background & Condensed \S2.2--2.3; backbones $\to$ Method \S3 \\
-$A/W$ notation & Method \S3 opening (before \S3.1) \\
-Temporal DAG claim & Removed; contemporaneous vs multi-lag in Method \S3.2--3.3 \\
-Structure visualization & Figure~5 \\
-Predicted vs actual & Figures~9--10 \\
-Limitations & Section~6.5 \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\bigskip
-\noindent\textit{End of response letter.}
-
+%
+%% ======================================================================
+%\section{Checklist of Manuscript Locations}
+%
+%\begin{center}
+%\small
+%\begin{tabular}{p{0.40\linewidth}p{0.54\linewidth}}
+%\toprule
+%Item & Where in the revised manuscript \\
+%\midrule
+%Primary claim: learned vs Physical & Abstract; Results \S5.1 and \S5.4; Discussion \S6.1; Conclusion \\
+%Sparsity / matched-budget controls & Setup \S4.5; Results \S5.3 (Tables~4--5; Figures~6--7) \\
+%Graph-free baseline (control only) & Intro; Method \S3.1; Setup \S4.5; Results \S5.1 \\
+%Multi-lag + lag-aligned use & Method \S3.3--3.4; Results \S5.4--5.5 \\
+%Five-seed stats policy & Setup \S4.4 (Statistical reporting); paired $t$-tests in \S5.4 for reference \\
+%15-min resolution control & Setup \S4.6; Results \S5.5; Table~6 \\
+%No causal claims & Global wording policy; Method \S3.2; Discussion \S6.3 \\
+%Bibliometric & Intro (decision-point sentence) + Appendix~B (full, 3 figures) \\
+%GCN/T-GCN background & Condensed \S2.2--2.3; backbones $\to$ Method \S3 \\
+%$A/W$ notation & Method \S3 opening (before \S3.1) \\
+%Temporal DAG claim & Removed; contemporaneous vs multi-lag in Method \S3.2--3.3 \\
+%Structure visualization & Figure~5 \\
+%Predicted vs actual & Figures~9--10 \\
+%Limitations & Section~6.5; Conclusion (future work) \\
+%Removed: hardware table, NOTEARS Algorithm~1, DAGMA algorithm box & Recorded in repository README; Method cites original papers only \\
+%\bottomrule
+%\end{tabular}
+%\end{center}
+%
+%\bigskip
+%\noindent\textit{End of response letter.}
+%
 \end{document}
