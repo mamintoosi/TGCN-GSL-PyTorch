@@ -34,19 +34,16 @@ data/                 # speed CSVs + physical adjacencies
 models/               # GCN, T-GCN, GRU, multi-lag GSL (multigsl.py)
 utils/                # graph Laplacian, losses, logging
 tasks/                # SupervisedForecastTask (training + eval)
-configs/              # YAML configs (legacy main.py / Colab)
-gsl_stage26/          # multi-lag DAGMA fit + Stage 29/32 helpers
-gsl_stage40/          # canonical 12-method experiment runner
-gsl_stage41/          # aggregation of Stage 40 JSONs → summary CSV
-gsl_stage58_sparsity/ # edge-budget sparsity sweep
-results/              # experiment artifacts (see below)
-paper/revised_version/ # current manuscript (sn-article.tex) + figure scripts
-run_*.sh              # Linux-style runners (see Experiments)
+src/                  # all experiment and figure scripts
+configs/              # YAML configs (legacy main.py)
+results/              # experiment artifacts used by the paper
+paper/revised_version/ # manuscript (sn-article.tex), figures, response letter
+run_experiments.sh    # single entry point for experiments and figures
 ```
 
-Archived material (old stage briefs, previous paper drafts, forensic
-logs) lives under `archive/repo_cleanup_20260913/` and is **not** required
-to reproduce the paper.
+Historical stage reports, old runners, and previous paper drafts live under
+`archive/repo_cleanup_20260913/` and are **not** required to reproduce the
+paper. See `archive/repo_cleanup_20260913/CLEANUP_REPORT.md`.
 
 ---
 
@@ -61,73 +58,43 @@ Chronological 80/20 split; features divided by **training-split max** only.
 
 ---
 
-## Experiments (current)
+## Experiments
 
-Assume repo root as cwd. On Windows use
-`C:\programs\anaconda3\envs\pth\python.exe` (or your env).
-
-### 1. Multi-lag DAGMA graphs (once per dataset)
-
-Fits lag-stacked DAGMA on the training split; artifacts under
-`results/stage26_validation/`.
+All runners go through **`run_experiments.sh`** (set `PYTHON` if needed).
 
 ```bash
-# see gsl_stage26/stage26_run_dagma.py for CLI
-# (already fitted graphs are typically present in results/)
+bash run_experiments.sh help
+bash run_experiments.sh canonical    # 12-method matrix (main tables)
+bash run_experiments.sh aggregate    # five-seed mean±std from JSONs
+bash run_experiments.sh dagma        # multi-lag DAGMA (long)
+bash run_experiments.sh gsl          # contemporaneous GSL/cGSL graphs
+bash run_experiments.sh los15        # 15-min Los-loop variant
+bash run_experiments.sh sparse       # Stage 32 matched-30-edge controls
+bash run_experiments.sh sweep        # Stage 58 edge-budget sweep
+bash run_experiments.sh physical     # Physical T-GCN preds + train loss
+bash run_experiments.sh figures      # regenerate all paper figures
 ```
 
-### 2. Canonical 12-method matrix (main paper tables)
+Equivalent Python entry points are under `src/`
+(e.g. `python src/run_canonical_matrix.py --help`).
 
-Physical, NoSpatial, GSL, cGSL, MultiGSL family on GCN/T-GCN; both
-datasets; PH1–4; seeds 42–46.
+**Outputs**
 
-```bash
-bash run_stage40_experiments.sh
-# or
-python gsl_stage40/scripts/stage40_run_all.py --help
-```
-
-JSON per run: `results/stage40_canonical/training/{dataset}_ph{ph}_seed{seed}_{variant}.json`.
-
-Aggregate to five-seed mean±std:
-
-```bash
-python gsl_stage41/scripts/stage41_audit.py
-```
-
-### 3. Matched-sparsity edge-budget sweep (Los-loop PH1)
-
-```bash
-bash run_sparsity_edge_sweep.sh          # smoke
-MODE=full bash run_sparsity_edge_sweep.sh
-```
-
-Outputs: `results/stage58_sparsity_sweep/full.csv`.
-
-### 4. T-GCN vs GCN fairness audit (loss isolation)
-
-```bash
-bash run_tgcn_gcn_audit.sh
-MODE=full bash run_tgcn_gcn_audit.sh
-```
-
-### 5. Physical T-GCN predictions for figures (optional)
-
-```bash
-bash run_physical_for_figures.sh
-```
+| Command | Artifacts |
+|---------|-----------|
+| `canonical` | `results/stage40_canonical/training/*.json` |
+| `aggregate` | `gsl_stage41` summary (if present) / printed tables |
+| `dagma` / `gsl` | DAGMA graphs under `results/stage26_validation/`, `stage33_gsl_canonical/` |
+| `sweep` | `results/stage58_sparsity_sweep/full.csv` |
+| `figures` | `paper/revised_version/figures/*.pdf` |
 
 ---
 
 ## Manuscript figures
 
 ```bash
-python paper/revised_version/scripts/make_results_figures.py
-python paper/revised_version/scripts/make_pred_vs_actual.py
-python paper/revised_version/scripts/make_figs_258.py   # optional extras
+bash run_experiments.sh figures
 ```
-
-Figures land in `paper/revised_version/figures/`.
 
 ---
 
