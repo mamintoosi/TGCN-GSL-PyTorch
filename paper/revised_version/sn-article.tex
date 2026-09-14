@@ -792,7 +792,7 @@ scope-labeled controls on Los-loop at $\mathrm{PH}=1$.
 directed edges, redrawn per seed), CorrTop30 (top-$30$ training Pearson
 correlations), and the DAGMA multi-lag graphs under fixed and gated use,
 with five seeds under the same training protocol. No sparsified physical
-graph and no full $\lambda$/threshold sweep were run.
+graph and no full $\lambda$/threshold sweep were run under this protocol.
 
 \emph{Capacity.} A T-GCN-NoSpatial model with hidden dimension $74$
 ($16{,}872$ parameters) more closely matches the gated multi-lag model
@@ -1302,8 +1302,11 @@ ship a road-network adjacency; we therefore use two standard public traffic
 datasets rather than an arbitrary collection of sensors.
 
 Scope is also limited by the evaluation protocol: main results use PH1--4
-at each dataset's native sampling interval; matched-sparsity and capacity
-controls are reported only on Los-loop at PH1; and forecasting results are
+at each dataset's native sampling interval; longer horizons (e.g.\ PH5--8)
+were not evaluated on the native 5-minute Los-loop series (the 15-minute
+study is a resolution control only); matched-sparsity and capacity
+controls are reported only on Los-loop at PH1, with no sparsified or
+retuned physical-graph control under the current protocol; and forecasting results are
 five-seed means ($n=5$), which is enough to report training spread and
 paired seed consistency but not enough to support formal significance
 claims beyond the statistical-reporting paragraph in

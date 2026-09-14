@@ -411,3 +411,27 @@ def random_edge_graph(N, k, seed):
     for (i, j) in chosen:
         adj[i, j] = 1.0
     return adj
+
+
+def physical_topk_graph(adj_phys, k):
+    """Top-k off-diagonal physical edges by adjacency weight (directed support).
+
+    Used as a fairer sparse physical baseline at the same nominal edge budget
+    as RandTopK / CorrTopK (R1-W5). Symmetric road graphs contribute both
+    directions when both matrix entries are among the top-k magnitudes.
+    """
+    A = np.array(adj_phys, dtype=np.float32, copy=True)
+    np.fill_diagonal(A, 0.0)
+    N = A.shape[0]
+    flat = np.abs(A).ravel()
+    idx = np.argsort(flat)[::-1]
+    out = np.zeros((N, N), dtype=np.float32)
+    kept = 0
+    for t in idx:
+        if kept >= k:
+            break
+        if flat[t] <= 0:
+            break
+        out.flat[t] = 1.0
+        kept += 1
+    return out

@@ -84,7 +84,7 @@ Thank you for the constructive reviews of the submitted manuscript. The revision
     \item \textbf{R1-W5 (sparsity / oversmoothing / fair controls):} We added matched-edge-budget sparsity controls, structure figures, capacity checks, and a no-graph reference so that gains over the physical graph cannot be attributed only to having fewer edges.
 \end{itemize}
 
-Together these changes added on the order of \textbf{six pages} of new experimental material, controls, and discussion (new tables, structure and control figures, sparsity sweep, temporal-resolution control, and a rewritten Limitations section). The resulting evaluation is more comprehensive and better controlled than the submitted version.
+Together these changes added substantial new experimental material, controls, and discussion (new tables, structure and control figures, sparsity sweep, temporal-resolution control, and a rewritten Limitations section). The resulting evaluation is more comprehensive and better controlled than the previous version.
 %Throughout this letter, an identity-adjacency model (\emph{T-GCN-NoSpatial} / \emph{GCN-NoSpatial}) is used only as a reference control when judging learned structure; it is not proposed as a forecasting method.
 
 \subsection*{Additional experiments carried out in this revision}
@@ -101,7 +101,7 @@ The following experiments and evaluations are new relative to the submitted manu
     \item \textbf{Reference adjacencies.} In addition to the physical road-network graph, all main tables include an identity (no off-diagonal structure) reference so that a gain over Physical is not treated as sufficient evidence by itself.
 \end{enumerate}
 
-\textbf{Numbers relative to the submitted version.} Because the evaluation pipeline and especially the DAGMA graph-learning code were substantially revised, absolute RMSE values and relative percentages differ in places from the previous submitted manuscript. The experimental \emph{protocol} (two public benchmarks, four horizons, physical baseline) is the same, but the revised tables are the authoritative numbers. We therefore restate the main claims from the current artifacts rather than reusing the submitted abstract's percentages.
+\textbf{Numbers relative to earlier drafts of this work.} The evaluation pipeline and especially the DAGMA graph-learning code were substantially revised before this submission cycle. Absolute RMSE values and relative percentages therefore differ in places from any earlier draft tables. Known protocol differences that contribute to non-comparability include the five-seed reporting policy, training settings in Section~4.3 (e.g.\ batch size, weight decay, and the T-GCN loss with weight penalty), and the rewritten evaluation/graph-estimation code. The experimental \emph{protocol} family (two public benchmarks, four horizons, physical baseline) is unchanged in spirit, but the revised tables are the authoritative numbers. We therefore restate the main claims from the current artifacts rather than reusing earlier percentages.
 
 Structural changes relative to the submitted version (also recorded in the repository README):
 \begin{itemize}
@@ -253,6 +253,8 @@ We agree this was load-bearing and was not demonstrated in the previous submitte
 \response{
 Together with R1-W4, this comment led to a \textbf{major redesign of the evaluation}, with the main question framed as: \emph{does a learned sparse graph help because it is sparse, or because of how its edges are placed and used?}
 
+\textbf{In short:} we report physical vs.\ learned graph density (Figure~5); add matched random/correlation sparse controls and an edge-budget sweep on Los-loop PH1 (Tables~4--5; Figures~6--7); add a capacity check; and scope claims to those controls. A sparsified physical graph and a $\lambda_1$ sweep were not run under the current protocol and are stated as limitations (details in (a)--(c) below).
+
 \paragraph{(a) Density of physical vs learned graphs}
 \begin{itemize}
     \item \textbf{Physical Los-loop:} $2626$ off-diagonal edges; mean degree $\approx 12.69$.
@@ -296,7 +298,9 @@ The paper's primary comparison remains \textbf{learned adjacency vs.\ the physic
 \end{itemize}
 
 \paragraph{(c) Hyperparameter optimization / fairer baseline}
-To address the fairness concern, we added a no-graph reference and budget-matched sparse controls (including an edge-budget sweep), which test whether any sparse graph of the same size would recover the gain. We did \textbf{not} add a sparsified or retuned \textbf{physical} graph, nor a systematic $\lambda_1$/threshold sweep; those remain explicit limitations and future work. Claims in the paper are therefore scoped to \emph{the evaluated controls}, not to an optimal physical baseline.
+To address the fairness concern, we added a no-graph reference and budget-matched sparse controls (including an edge-budget sweep). These test whether \textbf{random or correlation-placed} sparse graphs of the same size recover the gain; they do \textbf{not} include a sparsified or retuned \textbf{physical} graph, nor a systematic $\lambda_1$/threshold sweep. Those remain explicit limitations (Section~6.5) and future work. Claims in the paper are scoped to \emph{the evaluated controls}, not to an optimal physical baseline.
+
+If the reviewer still considers a sparsified physical baseline (or a minimal $\lambda_1$ sweep) essential, we are willing to add that control in a further revision under the current protocol.
 
 \textbf{Location:} Section~6.5 (Limitations and Future Work); Conclusion (future work).
 
@@ -310,7 +314,7 @@ Reviewer concern & How addressed \\
 Learned graphs much sparser & Quantified (edges, mean degree) in Figure~5 and Method Sections~3.2--3.3 \\
 Gains may be oversmoothing only & No-graph reference; no credit vs Physical alone \\
 Gains may be sparsity only & Matched nominal-$30$-edge Rand/Corr vs DAGMA (Los PH1; Table~4, Figure~7; sweep Table~5, Figure~6) \\
-Fairer baseline / HPO & No-graph reference + capacity check + budget sweep; no sparsified/tuned physical graph \\
+Fairer baseline / HPO & No-graph reference + capacity check + budget sweep; no sparsified/tuned physical graph (offered for a further revision if required) \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -349,7 +353,7 @@ Forecast horizons of four steps are also used in several standard traffic-foreca
 
 \textbf{Temporal-resolution control (15-minute Los-loop).} Los-loop was resampled to 15-minute steps by averaging consecutive triplets, and the multi-lag comparison was repeated under the same five-seed training protocol (Section~4.6; Table~6). In that variant, $\mathrm{PH}=1,2,3,4$ correspond to \textbf{15, 30, 45, and 60 minutes} ahead. In wall-clock terms these horizons match \textbf{PH3, PH6, PH9, and PH12} on the native 5-minute grid; they are not equivalent to directly evaluating those PH values on the original 5-minute data. On the 15-minute series, Mix reduces RMSE versus the graph-free baseline by $27.4\%$, $21.4\%$, $19.8\%$, and $16.1\%$ at $15$--$60$ minutes, with $5/5$ seed wins at each step (Section~5.5; Table~6). This experiment reports the graph-free baseline, MultiGSL, and Mix only; it does not include separate GSL/cGSL rows.
 
-\textbf{Scope of the claims.} The paper studies the effect of graph structure and its use for short-horizon forecasting at PH1--4. Conclusions are limited to that range. \textbf{We did not report a GSL/cGSL gap at horizons longer than PH4}, either on the native 5-minute series or as a separate analysis on the 15-minute control (which includes only the graph-free baseline, MultiGSL, and Mix). That part of the request is therefore \textbf{not fully answered} in this revision; the manuscript and this letter do not claim otherwise. Long-horizon GSL/cGSL evaluation remains future work (Section~6.5; Conclusion).
+\textbf{Scope of the claims.} The paper studies the effect of graph structure and its use for short-horizon forecasting at PH1--4. Conclusions are limited to that range. \textbf{We did not report a GSL/cGSL gap at horizons longer than PH4}, either on the native 5-minute series or as a separate analysis on the 15-minute control (which includes only the graph-free baseline, MultiGSL, and Mix). That part of the request is therefore \textbf{not fully answered} in this revision; the manuscript and this letter do not claim otherwise. Long-horizon GSL/cGSL evaluation remains future work (Section~6.5; Conclusion). If the reviewer still requires PH5--8 on the native 5-minute series (including a GSL/cGSL comparison), we are willing to add that experiment in a further revision.
 
 \textbf{Location:} Section~4.6 (Temporal-Resolution Variant); Section~5.5; Table~6; Section~6.5 and Conclusion (future work).
 }
@@ -371,7 +375,7 @@ The Results section has been reorganized so that each subsection answers one que
     \item Section~5.6 --- \emph{Summary of Findings}.
 \end{enumerate}
 
-\textbf{We respectfully did not merge Sections~5.1--5.3 into a single subsection.} Each answers a distinct question (physical baseline vs.\ learned graphs; single learned graphs; the sparsity confound) and uses a different evidence block (main tables vs.\ controls tables). Merging them would either hide the sparsity control or force a long undifferentiated Results narrative. Repeating the same numeric table under three headings was avoided; 5.1 and 5.2 share Tables~2--3 without restating all cells.
+\textbf{We reorganized Results to reduce repetition, but kept three separate subsections (5.1--5.3)} rather than merging them, because each answers a distinct question (physical baseline vs.\ learned graphs; single learned graphs; the sparsity confound) and uses a different evidence block (main tables vs.\ controls tables). Merging them would either hide the sparsity control or force a long undifferentiated Results narrative. Repeating the same numeric table under three headings was avoided; 5.1 and 5.2 share Tables~2--3 without restating all cells.
 
 \textbf{Tie-back to the Introduction.} The opening frames physical proximity versus data-dependent association and asks whether the adjacency should be estimated from traffic data. The primary claim is that a learned adjacency can outperform the physical road-network graph, and that on Los-loop this gain cannot be explained by sparsity alone. Section~5.1 and Section~5.4 develop that claim; Section~6.1 (``Learned Structure versus the Physical Graph'') returns to the proximity-versus-association framing explicitly. The graph-free baseline is a control used to judge the contribution of spatial structure.
 %; it is not presented as the paper's main result.
