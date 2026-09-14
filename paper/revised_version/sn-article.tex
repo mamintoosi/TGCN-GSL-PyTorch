@@ -1281,12 +1281,13 @@ structure is informative and is used consistently with how it was
 estimated, learning the adjacency can improve short-horizon traffic
 forecasting relative to a fixed physical graph.
 
-\section{Conclusion and Future Works}\label{sec:conclusion}
+\section{Conclusion}\label{sec:conclusion}
 
-This paper revisits graph structure learning for traffic forecasting under
-a protocol that includes physical, graph-free, contemporaneous learned, and
-multi-lag learned adjacencies on two public benchmarks. The main findings
-are:
+This paper studies graph structure learning for traffic forecasting: the
+adjacency used by GCN and T-GCN is estimated from traffic data
+(contemporaneous and multi-lag DAGMA) instead of being taken only from the
+physical road network. The evaluation includes physical, graph-free, and
+learned adjacencies on two public benchmarks. The main findings are:
 
 \begin{enumerate}
 \item Learning the adjacency from traffic data can reduce forecasting error
@@ -1313,6 +1314,14 @@ not causal maps of traffic influence.
 Overall, learning the adjacency from traffic data can improve short-horizon
 forecasting when the recovered structure is informative and is incorporated
 into the model consistently with how it was estimated.
+
+Future work follows the operational limits above. Faster or incremental
+graph-estimation procedures would make rolling re-estimation practical;
+evaluation on additional networks that ship a physical adjacency would test
+how often the Los-loop pattern repeats; and longer horizons at native
+sampling, sensitivity to $\lambda_1$ and support thresholds, hybrids with
+attention \citep{Sun2023Attention}, and other backbones would broaden the
+setting beyond GCN and T-GCN.
 
 \begin{appendices}
 
