@@ -1,0 +1,147 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Long Lined Cover Letter
+% LaTeX Template
+% Version 2.0 (September 17, 2021)
+%
+% This template originates from:
+% https://www.LaTeXTemplates.com
+%
+% Authors:
+% Vel (vel@LaTeXTemplates.com)
+%
+% License:
+% CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[10pt]{article}
+
+\usepackage{charter} % Use the Charter font
+
+\usepackage[
+	a4paper, % Paper size
+	top=.5in, % Top margin
+	bottom=.7in, % Bottom margin
+	left=1in, % Left margin
+	right=1in, % Right margin
+	%showframe % Uncomment to show frames around the margins for debugging purposes
+]{geometry}
+
+\setlength{\parindent}{0pt} % Paragraph indentation
+\setlength{\parskip}{1em} % Vertical space between paragraphs
+
+\usepackage{graphicx} % Required for including images
+\usepackage{natbib}
+\usepackage[colorlinks=true, linkcolor=magenta, citecolor=magenta, urlcolor=magenta]{hyperref}
+\usepackage{fancyhdr} % Required for customizing headers and footers
+
+\fancypagestyle{firstpage}{%
+	\fancyhf{} % Clear default headers/footers
+	\renewcommand{\headrulewidth}{0pt} % No header rule
+	\renewcommand{\footrulewidth}{1pt} % Footer rule thickness
+}
+
+\fancypagestyle{subsequentpages}{%
+	\fancyhf{} % Clear default headers/footers
+	\renewcommand{\headrulewidth}{1pt} % Header rule thickness
+	\renewcommand{\footrulewidth}{1pt} % Footer rule thickness
+}
+
+\AtBeginDocument{\thispagestyle{firstpage}} % Use the first page headers/footers style on the first page
+\pagestyle{subsequentpages} % Use the subsequent pages headers/footers style on subsequent pages
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%	FIRST PAGE HEADER
+%----------------------------------------------------------------------------------------
+
+%\includegraphics[width=0.35\textwidth]{logo.pdf} % Logo
+
+\vspace{-1em} % Pull the rule closer to the logo
+
+\rule{\linewidth}{1pt} % Horizontal rule
+
+\bigskip\bigskip % Vertical whitespace
+
+%----------------------------------------------------------------------------------------
+%	YOUR NAME AND CONTACT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\hfill
+\begin{tabular}{l @{}}
+	\today \bigskip\\ % Date
+\href{https://mamintoosi.github.io/}{Mahmood Amintoosi}\\
+Division of Computer Science,\\
+Department of Applied Mathematics \&\\
+\href{https://gta-lab.github.io/}{Graph Theory and its Applications Lab} \\
+Faculty of Mathematical Sciences,\\ Ferdowsi University of Mashhad,
+IRAN
+%\url{https://mamintoosi.github.io/}%{https://mamintoosi.github.io/}
+\end{tabular}
+
+%\bigskip % Vertical whitespace
+
+%----------------------------------------------------------------------------------------
+%	ADDRESSEE AND GREETING
+%----------------------------------------------------------------------------------------
+
+%\begin{tabular}{@{} l}
+%	Mrs.\ Jane Smith \\
+%	Recruitment Officer \\
+%	The Corporation \\
+%	123 Pleasant Lane \\
+%	City, State 12345
+%\end{tabular}
+
+\bigskip % Vertical whitespace
+
+Dear Editor,
+
+\bigskip % Vertical whitespace
+
+%----------------------------------------------------------------------------------------
+%	LETTER CONTENT
+%----------------------------------------------------------------------------------------
+I am pleased to submit our original research article, ``Graph Structure Learning for Traffic Prediction'', for consideration for publication in the \textit{International Journal of Data Science and Analytics}.
+Traditional graph-based methods for traffic forecasting rely on predefined adjacency matrices based on physical road proximity, which often fail to capture true functional dependencies between roads. In this work, we introduce a knowledge discovery framework that learns the underlying graph structure directly from traffic data using continuous optimization, shifting from heuristic graph construction to data-driven knowledge extraction. Key contributions are as follows:
+\begin{itemize}
+    \item A novel approach that infers meaningful, persistent traffic dependencies directly from data, overcoming the limitations of predefined spatial relationships.
+    \item Two methodological variants: GSL (directed acyclic graph capturing causal temporal influences) and cGSL (symmetrized cyclic version for spatial models).
+    \item Comprehensive validation on two real-world datasets (SZ-Taxi, Los-loop) demonstrating significant improvements—up to 24.7\% RMSE reduction for GCN-cGSL and 21.8\% for TGCN-GSL.
+\end{itemize}
+
+This work aligns well with the journal's scope, advancing both traffic prediction and graph-based knowledge discovery. It shares common ground with recent contributions such as \cite{Chen2026TASTGCN} on trend-aware spatio-temporal graph convolutional networks.
+While a preliminary version was presented at a national conference \citep{Amintoosi1403aimc55-GSL}, this submission represents a substantial extension:
+\begin{itemize}
+    \item \textbf{Scope:} Extends both GCN and T-GCN architectures (conference focused only on T-GCN).
+    \item \textbf{Implementation:} Complete modern implementation in PyTorch 2.0 with Google Colab notebooks for reproducibility  available at \url{https://github.com/mamintoosi/TGCN-GSL-PyTorch} (conference used deprecated TensorFlow 1.x).
+    \item \textbf{Experiments:} Comprehensive evaluation on two datasets across multiple horizons (conference presented only preliminary results).
+    \item \textbf{Novelty:} Introduces the cyclic cGSL variant and provides detailed ablation studies absent from the conference version.
+\end{itemize}
+
+%The conference paper is properly cited and discussed within the manuscript. All code and data are publicly available at \url{https://github.com/mamintoosi/TGCN-GSL-PyTorch}.
+
+%We believe this work will be of great interest to your readers and look forward to your editorial decision.
+
+%Thank you for considering my paper for publication in ``Data \& Knowledge Engineering". I look forward to the opportunity to contribute to the journal.
+
+
+\bigskip % Vertical whitespace
+
+Sincerely,
+
+%\vspace{50pt} % Vertical whitespace
+
+Mahmood Amintoosi
+
+\bibliographystyle{elsarticle-harv} 
+\bibliography{MyReferences}
+
+\end{document}

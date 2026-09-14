@@ -1,0 +1,246 @@
+% !TEX TS-program = pdfLaTeX
+% !TeX root=elsarticle-template-harv.tex
+%\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{mathtools} 
+%\usepackage{amsthm,amssymb,amsmath}
+%\usepackage{comment}
+%\usepackage{setspace}
+%\usepackage[colorlinks, citecolor=magenta, breaklinks = true]{hyperref}		% for pdflatex
+%%\usepackage{caption}
+\usepackage{subcaption}
+%\usepackage[labelformat=simple]{subcaption}
+%\renewcommand\thesubfigure{(\alph{subfigure})}
+%\usepackage[ruled,vlined, linesnumbered]{algorithm2e}
+%\usepackage{booktabs} 
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{arydshln}
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18} 
+%\usepackage{amsthm}
+\ifx\theorem\undefined
+\newtheorem{theorem}{Theorem}
+\fi
+%\ifx\proposition\undefined
+%\newtheorem{proposition}{Proposition}
+%\fi
+%\ifx\BlackBox\undefined
+%\newcommand{\BlackBox}{\rule{1.5ex}{1.5ex}}  % end of proof
+%\fi
+%\ifx\proof\undefined
+%\newenvironment{proof}{\par\noindent{\em Proof:\ }}{\hfill\BlackBox\\[.0mm]}
+%\fi
+
+%%% LOCAL MACRO DEFS
+% from b.sty
+%\usepackage{amssymb}
+%\usepackage{amsmath,amscd}
+%\usepackage{amsthm}
+%\usepackage{color}
+%\usepackage{subfigure}
+
+% Convenient macro for editing, internal notes, etc
+\newcommand{\edit}[1]{\textcolor{red}{\textbf{[#1]}}}
+\newcommand{\hilite}[1]{\textcolor{red}{#1}}
+\newcommand{\note}[1]{\textcolor{blue}{\textbf{\texttt{[#1]}}}}
+%\newcommand{\update}[1]{\textcolor{orange}{#1}}
+ \newcommand{\update}[1]{#1}
+% \newcommand{\note}[1]{\texttt{[#1]}}
+
+
+% Pretty integrals
+% Redefine \int to use integral font from mathabx package
+%
+% Setup the mathx font (from mathabx.sty)
+\DeclareFontFamily{U}{mathx}{\hyphenchar\font45}
+\DeclareFontShape{U}{mathx}{m}{n}{
+      <5> <6> <7> <8> <9> <10> gen * mathx
+      <10.95> mathx10 <12> <14.4> <17.28> <20.74> <24.88> mathx12
+      }{}
+\DeclareSymbolFont{mathx}{U}{mathx}{m}{n}
+\DeclareMathSymbol{\intop}  {1}{mathx}{"B3}
+
+% Independent symbol
+\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern4mu{#1#2}}}
+
+% Horizontal lines
+\newcommand{\HRule}[1][0.25mm]{\rule{\linewidth}{#1}}
+
+% Custom bullet for nested lists
+\renewcommand{\labelitemii}{$\circ$}
+
+% Shorthand for commonly used tex macros
+\newcommand{\wt}{\widetilde}
+\newcommand{\wh}{\widehat}
+\newcommand{\wb}{\overline}
+\newcommand{\cl}{\overline}
+\newcommand{\upto}{\nearrow} % increasing
+\newcommand{\downto}{\searrow} % decreasing
+
+% Changed Notation
+%\newcommand{\vphi}{\phi}
+%\renewcommand{\phi}{\varphi} 
+%\renewcommand{\varphi}{\vphi}
+\let\temp\phi
+\let\phi\varphi
+\let\varphi\temp
+\renewcommand{\Re}{\real}
+\renewcommand{\Im}{\imag}
+\renewcommand{\sec}{\textsection}
+\renewcommand{\S}{\mathbb{S}}
+%\renewcommand{\P}{\mathbb{P}}  % replaced by \pr below
+\newcommand{\n}{\centernot}         % to simplify negations
+
+% Notation
+\newcommand{\pr}{\mathbb{P}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\T}{\mathbb{T}}
+\newcommand{\D}{\mathbb{D}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\normalN}{\mathcal{N}}
+\renewcommand{\|}{\,|\,}            % add spacing for conditioning variables
+\newcommand{\given}{\,|\,}  % verbose alternative to \|
+\newcommand{\Setdef}[2]{\left\{#1 \mid #2\right\} }
+\newcommand{\setdef}[2]{\{#1 \mid #2\} }
+\newcommand{\fcndef}[3]{#1:#2\rightarrow#3}
+\newcommand{\Norm}[1]{\left\Vert#1\right\Vert}
+\newcommand{\norm}[1]{\Vert#1\Vert}
+\newcommand{\Dotp}[2]{\left\langle#1,#2\right\rangle}
+\newcommand{\dotp}[2]{\langle#1,#2\rangle}
+\newcommand{\ip}[1]{\langle#1\rangle}
+%\newcommand{\br}[1]{\!\left\langle#1\right\rangle\!}
+\newcommand{\parder}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\bd}{\partial}
+\newcommand{\eps}{\varepsilon}
+%\newcommand{\lap}{\Delta}
+\newcommand{\norder}[1]{\parder{#1}{\nu}}
+\newcommand{\del}{\nabla}
+\newcommand{\grad}{\nabla}
+\newcommand{\les}{\lesssim}
+\newcommand{\ges}{\gtrsim}
+\newcommand{\kldiv}[2]{\KL(#1\,\Vert\,#2)}
+\newcommand{\iid}{\overset{\text{iid}}{\sim}}
+\newcommand{\symdiff}{\triangle}
+
+% New unary operators
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\intr}{int}
+\DeclareMathOperator{\diam}{diam}
+\DeclareMathOperator{\id}{id}
+\DeclareMathOperator{\closure}{cl}
+\DeclareMathOperator{\conv}{conv}
+\DeclareMathOperator{\vol}{vol}
+\DeclareMathOperator{\Div}{div}
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\Ric}{Ric}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Corr}{Corr}
+\DeclareMathOperator{\corr}{cor}
+\DeclareMathOperator{\cov}{cov}
+\DeclareMathOperator{\var}{var}
+\DeclareMathOperator{\KL}{KL}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Span}{span}
+\DeclareMathOperator{\Null}{null} % \null already defined
+\DeclareMathOperator{\real}{Re}
+\DeclareMathOperator{\imag}{Im}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\ran}{ran}
+\DeclareMathOperator{\dom}{dom}
+%\DeclareMathOperator{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmin}{arg\,min}
+%\DeclareMathOperator{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\dist}{dist}
+\DeclareMathOperator\ext{ext}
+
+% Probability distributions
+\DeclareMathOperator{\PoissonDist}{Poisson}
+\DeclareMathOperator{\BernoulliDist}{Ber}
+\DeclareMathOperator{\GammaDist}{Gamma}
+\DeclareMathOperator{\ExpDist}{Exp}
+\DeclareMathOperator{\NormalDist}{Normal}
+\DeclareMathOperator{\NegbinomDist}{NegBinom}
+\DeclareMathOperator{\UniformDist}{Unif}
+\DeclareMathOperator{\GumbelDist}{Gumbel}
+
+%\usepackage{microtype}
+%\usepackage{graphicx}
+%\usepackage{booktabs}
+%%\usepackage{algorithm}
+%
+%\newcommand{\description}{}
+\usepackage{enumitem}
+%\usepackage{pgfplots}
+%\usepackage{subcaption}
+%\usepackage{cleveref}
+%
+%% Convenient macro for editing, internal notes, etc
+%\usepackage{color}
+%\usepackage{enumitem}
+%
+\newcommand{\dagspace}{\mathbb{D}} %{\mathsf{DAG}}
+\newcommand{\wadj}{\R^{d\times d}}
+\newcommand{\bin}{\{0,1\}^{d\times d}}
+\newcommand{\dags}{\mathbb{D}}
+\newcommand{\adj}{\mathcal{A}}
+% \newcommand{\atoms}{\mathcal{A}}
+\newcommand{\perms}{\mathbb{S}}
+\newcommand{\lowers}{\mathcal{L}}
+\newcommand{\ecp}{\mathsf{ECP}}
+\newcommand{\spec}{r}
+
+\newcommand{\Gauss}{\mathsf{Gauss}}
+\newcommand{\Exp}{\mathsf{Exp}}
+\newcommand{\Gumbel}{\mathsf{Gumbel}}
+\newcommand{\Logistic}{\mathsf{Logistic}}
+
+\newcommand{\FGS}{\text{FGS}}
+\newcommand{\fgsest}{B_{\FGS}}
+
+\newcommand{\dat}{\mathbf{X}}
+
+\newcommand{\method}{\text{NOTEARS}}
+\newcommand{\methodreg}{\text{NOTEARS-}\ell_{1}}
+\newcommand{\true}{W}
+\newcommand{\truecol}{w}
+\newcommand{\trueadj}{B}
+\newcommand{\est}{\widehat{W}}
+\newcommand{\adjest}{\widehat{B}}
+\newcommand{\estecp}{\widetilde{W}_{\ecp}}
+\newcommand{\estgob}{W_{\gr}}
+
+\newcommand{\loss}{\ell}
+\newcommand{\scoregr}{Q}
+\newcommand{\score}{F}
+\newcommand{\gr}{\mathsf{G}}
+\newcommand{\ver}{\mathsf{V}}
+\newcommand{\edg}{\mathsf{E}}
+\DeclareMathOperator{\pa}{pa}
+\newcommand{\hess}{\nabla^{2}}
+\DeclareMathOperator{\vect}{vec}
+
+
+%\theoremstyle{plain}
+%\newtheorem{theorem}{Theorem}[section]
+%\newtheorem{lemma}[theorem]{Lemma}
+%\newtheorem{proposition}[theorem]{Proposition}
+%\newtheorem{corollary}[theorem]{Corollary}
+%
+%\theoremstyle{definition}
+%\newtheorem{definition}{Definition}[section]
+%\newtheorem{conj}{Conjecture}[section]
+%\newtheorem{exmp}{Example}[section]
+\numberwithin{equation}{section}
+
