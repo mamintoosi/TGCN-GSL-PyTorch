@@ -3,13 +3,13 @@
 **Manuscript:** Graph Structure Learning for Traffic Prediction  
 **Journal:** International Journal of Data Science and Analytics  
 **Document type:** Staged point-by-point response (updated as each reviewer item is addressed)  
-**Manuscript source of truth:** `paper/revised_version/sn-article-flat.tex`
+**Manuscript source of truth:** `paper/revised_version/sn-article.tex`
 
 ---
 
 ## General response (summary)
 
-Thank you for the constructive reviews. The revision keeps the paper's identity as a study of **graph structure learning for traffic forecasting**, with a stronger focus on **whether learned sparse graphs help because of sparsity alone or because of where edges are placed**.
+Thank you for the constructive reviews of the submitted manuscript. The revision keeps the paper’s identity as a study of **graph structure learning for traffic forecasting**, with a stronger focus on **whether learned sparse graphs help because of sparsity alone or because of where edges are placed**, and on comparison with the **physical road-network adjacency**.
 
 Throughout this letter we refer to the identity-adjacency control as the **graph-free baseline** (manuscript names: *T-GCN-NoSpatial* / *GCN-NoSpatial*). That control is used to judge learned structure fairly; it is not proposed as a forecasting method.
 
