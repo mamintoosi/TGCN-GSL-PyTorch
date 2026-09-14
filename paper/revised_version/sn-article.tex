@@ -314,22 +314,11 @@ is also estimated from traffic data.}
 %======================================================================
 \subsection{Graph Convolutional Network}
 \label{sec:bg-gcn}
-%======================================================================
 
-Graph convolutional networks (GCNs) extend convolutional operations to
-non-Euclidean domains represented by graphs. In traffic forecasting,
-the graph nodes correspond to traffic sensors, while the graph edges
-represent the relationships used to propagate information between
-sensors. Let $\mathcal{G}=(\mathcal{V},\mathcal{E},\mathbf{A})$ denote a
-graph with $N=|\mathcal{V}|$ nodes and adjacency matrix
-$\mathbf{A}\in\mathbb{R}^{N\times N}$. By adding self-loops, the adjacency
-matrix is defined as
-\begin{equation}
-\widetilde{\mathbf{A}}=\mathbf{A}+\mathbf{I},
-\end{equation}
-where $\mathbf{I}$ is the identity matrix. Let
-$\widetilde{\mathbf{D}}$ be the corresponding degree matrix. A standard
-GCN layer is then expressed as
+Graph convolutional networks (GCNs) extend convolution to graph-structured
+data \citep{kipf2017semi,battaglia2018relational}. With self-loops
+$\widetilde{\mathbf{A}}=\mathbf{A}+\mathbf{I}$ and degree matrix
+$\widetilde{\mathbf{D}}$, a GCN layer is
 \begin{equation}
 \mathbf{H}^{(l+1)}
 =
@@ -342,145 +331,23 @@ GCN layer is then expressed as
 \right),
 \label{eq:gcn-layer}
 \end{equation}
-where $\mathbf{H}^{(l)}$ is the node-feature matrix at layer $l$,
-$\mathbf{W}^{(l)}$ is a trainable feature-transformation matrix, and
-$\sigma(\cdot)$ is a nonlinear activation function. The normalized
-adjacency operator aggregates information from neighboring nodes and
-therefore provides a mechanism for spatial information propagation.
+where $\mathbf{H}^{(l)}$ collects node features and $\mathbf{W}^{(l)}$ is a
+trainable map. In traffic forecasting, nodes are sensors and the historical
+window supplies each node's features; the normalized operator mixes
+neighborhood information (Figure~\ref{fig:GCN}). The graph convolution
+itself does not model temporal evolution.
 
-In traffic forecasting, the input associated with each sensor is often
-a historical sequence of observed speeds rather than a single scalar.
-Let $B$ denote the batch size and $T$ the length of the historical
-observation window. The input tensor can consequently be represented as
-\begin{equation}
-\mathbf{X}\in\mathbb{R}^{B\times T\times N},
-\end{equation}
-where $\mathbf{X}_{b,t,n}$ is the observed speed at node $n$, time
-$t$, and batch sample $b$. For a particular sample $b$, the historical
-window can be viewed as a node-feature matrix
-$\mathbf{X}_b^{\mathsf{T}}\in\mathbb{R}^{N\times T}$, in which the
-$T$ historical observations constitute the feature vector of each
-node.
-
-Accordingly, a graph-convolution operation on the historical input can
-be written in the form
-\begin{equation}
-\mathbf{Z}_b
-=
-\sigma\left(
-\mathbf{G}\mathbf{X}_b^{\mathsf{T}}\mathbf{W}
-\right),
-\qquad
-\mathbf{G}\in\mathbb{R}^{N\times N},
-\quad
-\mathbf{W}\in\mathbb{R}^{T\times d},
-\label{eq:traffic-gcn}
-\end{equation}
-where $\mathbf{G}$ denotes the graph-propagation operator constructed
-from the adjacency matrix, $d$ is the output feature dimension, and
-$\mathbf{W}$ is shared across all graph nodes. The resulting matrix
-$\mathbf{Z}_b\in\mathbb{R}^{N\times d}$ contains spatially aggregated
-representations of the historical observations.
-
-This formulation emphasizes that the graph operation models
-relationships between nodes, whereas the historical window supplies
-the input features associated with each node. The graph convolution
-itself does not explicitly model the temporal evolution of these
-features; temporal dependencies must either be represented through the
-input window or learned by an additional temporal component.
-
-%======================================================================
 \subsection{Temporal Graph Convolutional Network}
 \label{sec:bg-tgcn}
-%======================================================================
 
-The Temporal Graph Convolutional Network (T-GCN) proposed by
-\citet{zhao2019t} combines graph-based spatial information propagation
-with a recurrent gated architecture for traffic forecasting. Its
-purpose is to jointly capture dependencies among spatially related
-traffic sensors and the temporal evolution of traffic conditions.
-
-Unlike a model that first applies a standalone GCN and subsequently
-passes its output to an independent vanilla GRU, the T-GCN architecture
-incorporates graph convolution directly into the recurrent cell. More
-specifically, graph convolution is applied to the concatenation of the
-current input and the previous hidden state. The resulting
-graph-aggregated representation is then used in the gate and candidate
-computations of the recurrent unit.
-
-Let $\mathbf{x}_t\in\mathbb{R}^{N}$ denote the traffic observations at
-time $t$, and let $\mathbf{h}_{t-1}\in\mathbb{R}^{N\times d_h}$ denote
-the previous hidden state. The input and hidden state are concatenated
-along the feature dimension and processed by a graph-convolution
-operator. In abstract form, this operation can be represented as
-\begin{equation}
-\mathbf{S}_t
-=
-\operatorname{GCN}
-\left(
-[\mathbf{x}_t,\mathbf{h}_{t-1}]
-\right),
-\label{eq:tgcn-spatial-operation}
-\end{equation}
-where $[\cdot,\cdot]$ denotes feature-wise concatenation. The resulting
-spatially aggregated representation $\mathbf{S}_t$ is used to compute
-the update gate, reset gate, and candidate hidden state. In a generic
-gated formulation, these operations can be written as
-\begin{align}
-\mathbf{z}_t
-&=
-\sigma\left(
-\mathbf{S}^{(z)}_t
-\right),\\
-\mathbf{r}_t
-&=
-\sigma\left(
-\mathbf{S}^{(r)}_t
-\right),\\
-\widetilde{\mathbf{h}}_t
-&=
-\tanh\left(
-\mathbf{S}^{(h)}_t
-\right),
-\end{align}
-where $\mathbf{z}_t$ and $\mathbf{r}_t$ are the update and reset gates,
-respectively, and $\widetilde{\mathbf{h}}_t$ is the candidate hidden
-state. The hidden state is subsequently updated according to the GRU
-mechanism,
-\begin{equation}
-\mathbf{h}_t
-=
-(1-\mathbf{z}_t)\odot\mathbf{h}_{t-1}
-+
-\mathbf{z}_t\odot\widetilde{\mathbf{h}}_t,
-\label{eq:tgcn-hidden-update}
-\end{equation}
-where $\odot$ denotes element-wise multiplication. The graph
-convolution in these computations allows the recurrent unit to account
-for spatial interactions among sensors, while the recurrent state
-provides a mechanism for retaining information over successive time
-steps.
-
-It is important to distinguish the two types of dependencies modeled by
-T-GCN. The graph operator describes how information is propagated
-between nodes and therefore represents the spatial component of the
-model. In contrast, the recurrent hidden state and the gated update
-mechanism represent the temporal component by carrying information from
-previous time steps to the current step. Thus, the graph used by
-T-GCN should not be interpreted as a direct representation of temporal
-edges or explicit time-lag relationships; rather, it defines the
-spatial information-propagation structure used within the recurrent
-computation.
-
-In the public T-GCN code lineage and in the implementation used in this
-study, the graph-convolution operation is integrated into the T-GCN
-cell and is applied to the current input together with the previous
-hidden state during the gate and candidate computations. Therefore, the
-implementation follows the recurrent graph-convolutional design of
-T-GCN rather than a pipeline consisting of an independent GCN followed
-by a conventional GRU. The T-GCN model serves as the principal
-spatiotemporal backbone in our experiments, whereas the non-recurrent
-GCN model is used as a spatial counterpart.
+T-GCN \citep{zhao2019t} combines graph-based spatial propagation with a
+recurrent gated architecture. Unlike a standalone GCN followed by an
+independent vanilla GRU, graph convolution is applied inside the recurrent
+cell to the concatenation of the current input and the previous hidden
+state; the aggregated representation feeds the update/reset gates and the
+candidate state. We follow this graph-convolutional gated-cell formulation
+(Section~\ref{sec:method}). The non-recurrent GCN backbone is used as a
+spatial counterpart in our experiments.
 
 \subsection{Graph Structure Learning}\label{sec:bg-gsl}
 
@@ -532,8 +399,6 @@ estimate $\mathbf{A}$ from traffic data, which is known as \emph{graph
 structure learning} (GSL) \citep{Chen2022}. The goal is to obtain a graph
 representation that reflects dependency structure present in the observed
 series rather than structure imposed solely by physical proximity.
-
-\subsection{Motivation}\label{sec:method-motivation}
 
 In a typical urban traffic network, spatial proximity of roads need not
 coincide with statistical dependence among their speeds. Distant segments can
@@ -608,8 +473,6 @@ the \emph{physical} road-network graph (standard T-GCN/GCN baseline) and a
 \emph{graph-free} identity control (T-GCN-NoSpatial / GCN-NoSpatial). The
 latter is required to measure whether learned structure adds value beyond
 removing a possibly harmful dense proximity graph.
-
-\subsection{Continuous Optimization for Graph Structure Learning}\label{sec:method-notears}
 
 Score-based GSL seeks a weighted adjacency that fits the data under a
 structural equation model (SEM). Following the continuous formulation of
@@ -728,14 +591,12 @@ static after fitting.
 
 \subsection{Using Learned Graphs in GCN and T-GCN}\label{sec:consumption}
 
-\paragraph{Single-graph use (GSL / cGSL / physical / identity).}
 One normalized adjacency is applied for the whole input window in GCN, and
 at every recurrent step in T-GCN. This is the standard integration of a
 learned static structure with temporal modeling: GSL provides persistent
 spatial dependency estimates; the backbone models temporal evolution on
 that fixed operator.
 
-\paragraph{Multi-lag use in T-GCN.}
 When three lag graphs are available, T-GCN can apply them in different
 ways. We evaluate:
 \begin{itemize}
@@ -746,7 +607,7 @@ ways. We evaluate:
 \end{equation}
 so recent steps use lag-1 and older steps cycle through lag-2 and lag-3.
 No extra parameters.
-\item {Global mixture (T-GCN-MultiGSL-Weighted, supplementary).}
+\item {Global mixture (T-GCN-MultiGSL-Weighted).}
 Three learned scalars (softmax) mix the normalized lag operators for every
 step ($+3$ parameters).
 \item {Per-node gate (T-GCN-MultiGSL-Mix).} At each step $t$ and
@@ -756,7 +617,6 @@ parameters). Mix changes how the \emph{static} lag graphs are used per node
 and timestep; it does not relearn the edge set.
 \end{itemize}
 
-\paragraph{Multi-lag use in GCN (GCN-MultiGSL).}
 The non-recurrent GCN applies a single operator to the window, so lag graphs
 are merged into a static union
 \[
@@ -769,15 +629,7 @@ the backbones also differ, this comparison is evidence about consumption
 under different architectures, not a fully isolated causal test of
 consumption alone.
 
-\paragraph{Capacity.}
-Within a backbone family, graph sources add no trainable parameters.
-Verified counts (excluding the shared output layer) are $768$ for GCN and
-$12{,}672$ for single-graph T-GCN; Mix adds $4{,}419$ relative to
-T-GCN-MultiGSL. Capacity-matched checks are reported with the experiments
-(Section~\ref{sec:setup}).
-
-\subsection{Summary of Graph Sources}\label{sec:method-summary}
-
+\paragraph{Graph sources.}\label{sec:method-summary}
 Table~\ref{tab:method-graphs} summarizes the adjacencies compared in this
 paper. The experimental study asks whether replacing the physical graph with
 a learned one improves forecasting, whether a graph-free control changes
@@ -830,8 +682,6 @@ road-network adjacency used as the physical baseline
 (Section~\ref{sec:method}). The two benchmarks contrast urban taxi traffic
 with highway dynamics.
 
-\subsection{Data Split and Normalization}\label{sec:split}
-
 Each series is split chronologically into $80\%$ training and $20\%$ test
 segments, preserving temporal order: $1612$/$404$ timesteps for Los-loop
 and $2380$/$596$ for SZ-Taxi. Input windows and targets are generated
@@ -856,8 +706,6 @@ foundational backbones rather than an exhaustive set of recent
 architectures: the goal is to assess the effect of graph structure learning
 inside established frameworks that many later models build upon
 \citep{YU2020189,ZHOU2025110304}.
-
-\subsection{Model Configurations}\label{sec:methods}
 
 Within each backbone family we compare physical, graph-free, and learned
 adjacencies, and (for multi-lag graphs) different ways of using the learned
@@ -918,8 +766,7 @@ computing the reported RMSE and MAE (they are not computed separately for
 the final horizon alone). Additional diagnostics used in the code base
 (relative accuracy and $R^2$) are not required for the comparisons below.
 
-\subsection{Statistical Reporting}\label{sec:stats}
-
+\paragraph{Statistical reporting.}\label{sec:stats}
 Main-text numbers are five-seed means with sample standard deviations
 ($\mathrm{ddof}=1$) over forecasting seeds $\{42,43,44,45,46\}$. DAGMA
 graphs are deterministic and shared across these seeds, so seed variability
@@ -949,7 +796,8 @@ graph and no full $\lambda$/threshold sweep were run.
 ($17{,}091$) than standard T-GCN-NoSpatial at hidden $64$ ($12{,}672$). This
 check is single-seed and is labeled as such.
 
-\subsection{Ablation Studies}\label{sec:ablations}
+\paragraph{Ablations.}\label{sec:ablations}
+
 
 In addition to the main comparison of graph sources, we examine:
 
@@ -1136,7 +984,7 @@ graphs at a matched $30$-edge budget on Los-loop PH1
 
 \begin{table}[t]
 \centering
-\caption{Matched-sparsity and capacity controls on Los-loop at PH1. Upper block: graphs at a common $30$-edge budget (or identity for the graph-free control), five seeds; lower block: capacity check on the graph-free model vs Mix, single seed (seed 42). Lower RMSE is better; bold marks the lowest mean among the $30$-edge DAGMA variants in the upper block (Mix). Positive percentages in the last column mean worse than the graph-free baseline; negative mean better.}
+\caption{Matched-sparsity and capacity controls on Los-loop at PH1. Upper block (five seeds): graphs at a common $30$-edge budget; the italic first row is the graph-free control. Lower block (single seed, seed 42): capacity check --- graph-free T-GCN at hidden $64$ vs $74$, and Mix at its standard size. Mix $4.49$ is the five-seed mean (upper block); Mix $4.46$ is the same model at seed $42$ only (lower block). $\Delta$ vs graph-free uses the matching reference in each block ($5.25$ five-seed vs $5.14$ seed-42). Bold: lowest mean among the $30$-edge DAGMA variants (Mix). Lower RMSE is better.}
 \label{tab:controls}
 \small
 \begin{tabular}{lccc}
@@ -1264,7 +1112,7 @@ with T-GCN (Physical) and T-GCN-MultiGSL-Mix (normalized scale).}
 \includegraphics[width=0.98\linewidth]{figures/pred_vs_actual_sz_ph1.pdf}
 \caption{Predicted versus actual speed on SZ-Taxi (PH1, seed $42$) for
 three high-variance nodes (100 test steps). Layout as in
-Figure~\ref{fig:predvsact}. Predictions of the graph-free baseline and Mix
+Figure~\ref{fig:predvsact}. Predictions of T-GCN (Physical) and Mix
 nearly overlap, consistent with the aggregate RMSE separation on this
 dataset.}
 \label{fig:predvsact-sz}
@@ -1404,46 +1252,18 @@ estimated from data.
 
 \section{Limitations}\label{sec:limitations}
 
-\begin{itemize}
-\item {Statistical power.} Main results use five training seeds.
-Sample standard deviations and paired win counts are reported; with $n=5$
-the exact Wilcoxon test cannot fall below $p=0.0625$, so we avoid definitive
-significance claims.
-\item {Control scope.} Matched-sparsity and capacity controls exist
-only for Los-loop at PH1. The edge-budget sweep covers
-$K\in\{10,20,30,50,80\}$ for random and correlation graphs only; the
-DAGMA multi-lag graphs are evaluated at the canonical $30$-edge budget
-(and in the main results matrix). There is no sparsified physical graph,
-and no systematic sensitivity sweep over the DAGMA sparsity coefficient
-$\lambda_1$ or over support thresholds was performed. In the contemporaneous
-construction $\lambda_1$ is $0.02$ (Los-loop) and $0.01$ (SZ-Taxi); in the
-multi-lag construction it is $0.01$ on both datasets. These values follow
-the original GSL protocol and are distinct from the internal and consumer
-thresholds and from the forecasting-loss regularization. A systematic
-study of $\lambda_1$ remains future work.
-\item {Graph-estimation cost.} The main computational consideration
-is the offline DAGMA graph-estimation stage rather than repeated
-forecasting inference. In our runs, a contemporaneous fit on the order of
-$10^2$ sensors is on the order of tens of minutes per horizon, while the
-$828$-variable multi-lag fit is on the order of hours on CPU. The learned
-graph is estimated once per dataset/construction and reused for all
-forecasting seeds, epochs, and test evaluation, so this cost is not
-repeated inside the forecasting loop. Scalability to substantially larger
-road networks remains an open question.
-\item {Estimator assumptions.} Linear DAGMA with $\ell_2$ score and
-acyclicity regularizer; nonlinear dependency and misspecified lag depth
-$L=3$ are not examined.
-\item {Static graphs.} Learned adjacencies are fitted once. Mix
-varies \emph{use} of those graphs, not the edge set; time-varying structure
-learning remains future work.
-\item {Backbones.} Evaluation uses GCN and T-GCN as relatively
-established, representative spatial and spatiotemporal backbones. This
-choice provides a controlled setting for comparing graph construction and
-graph use; transfer to newer attention-based, adaptive-graph, or
-transformer-style architectures is an open empirical question. The
-comparison between static-union GCN and lag-specific T-GCN does not isolate
-incorporation strategy independently of the backbone.
-\end{itemize}
+The evaluation is deliberately scoped. Main results use five training seeds
+and report mean RMSE with sample standard deviations and paired win counts;
+with $n=5$ we avoid formal significance claims. Experiments cover two
+benchmarks and prediction horizons $\mathrm{PH}\le 4$ at native sampling;
+the $15$-minute Los-loop study is a resolution control, not a third
+benchmark. Backbones are limited to GCN and T-GCN, which provide a
+controlled setting for comparing graph construction and use; transfer to
+newer architectures remains open. Learned graphs are static (Mix varies
+their use, not the edge set), and the estimator is a linear DAGMA fit.
+Matched-sparsity and capacity controls are reported for Los-loop at PH1;
+we do not claim universality beyond the evaluated cells, and we do not
+claim that the method is optimal for every network or horizon.
 
 \section{Conclusion and Future Works}\label{sec:conclusion}
 
