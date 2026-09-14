@@ -270,7 +270,8 @@ The paper's primary comparison remains \textbf{learned adjacency vs.\ the physic
     \item \textbf{Graph-free baseline} (identity adjacency).
     On these data, dropping the physical graph often reduces error. We therefore treat a gain over Physical as necessary but not sufficient, and ask whether a learned graph also beats this control. Single contemporaneous GSL/cGSL \textbf{do not} beat the graph-free baseline on these benchmarks; multi-lag graphs with lag-aligned use on Los-loop \textbf{do}.
 
-    \item \textbf{Matched-sparsity controls at a common $30$-edge budget (Los-loop PH1 only).}
+    \item \textbf{Matched-sparsity controls at a nominal $30$-edge budget (Los-loop PH1 only).}
+    The DAGMA multi-lag construction uses $30$ lag slots (lag blocks $\mathbf{A}_1,\mathbf{A}_2,\mathbf{A}_3$); after consumer thresholding and union this yields $28$ \emph{distinct} directed edges. Heuristic controls (RandTop30, CorrTop30) place exactly $30$ directed edges. The comparison is therefore at the same nominal budget scale, not a claim that every method has an identical final edge count after union/deduplication. On that budget scale:
     \begin{itemize}
         \item RandTop30 (random): \textbf{worse} than the graph-free baseline;
         \item CorrTop30 (top training correlations): \textbf{worse} than the graph-free baseline;
@@ -278,7 +279,7 @@ The paper's primary comparison remains \textbf{learned adjacency vs.\ the physic
     \end{itemize}
     Thus \textbf{sparsity alone does not explain} the multi-lag result on this cell; \textbf{edge placement and use} matter. We do not claim this for all datasets or horizons.
 
-    \textbf{Edge-budget sweep (new).} We extended this control across $K\in\{10,20,30,50,80\}$ directed edges on Los-loop PH1 (five seeds; Table~5; Figure~6, ``Edge-budget sweep on Los-loop PH1''). For every $K$, both RandTopK and CorrTopK remain \textbf{at or above} the graph-free baseline. At the same $30$-edge budget, the main MultiGSL ($4.84$) and Mix ($4.49$) remain well below both heuristic families and below Physical.
+    \textbf{Edge-budget sweep (new).} We extended this control across $K\in\{10,20,30,50,80\}$ directed edges on Los-loop PH1 (five seeds; Table~5; Figure~6, ``Edge-budget sweep on Los-loop PH1''). For every $K$, both RandTopK and CorrTopK remain \textbf{at or above} the graph-free baseline. At the same nominal $K=30$ budget, the main MultiGSL ($4.84$) and Mix ($4.49$) remain well below both heuristic families and below Physical.
 
     \item \textbf{Capacity control (single seed, labeled).}
     A hidden-$74$ graph-free model matching Mix's parameter count stays near the hidden-$64$ graph-free error, so the gate's extra parameters do not by themselves explain the Los-loop multi-lag result (Table~4, lower block).
@@ -295,7 +296,7 @@ The paper's primary comparison remains \textbf{learned adjacency vs.\ the physic
 \end{itemize}
 
 \paragraph{(c) Hyperparameter optimization / fairer baseline}
-\textbf{We respectfully did not run a full hyperparameter search, a sparsified physical graph, or a $\lambda$/threshold sweep.} Those would require a substantially larger experimental grid than the other revisions combined. What we did add is a no-graph reference and budget-matched controls --- the minimal fair checks required under a five-seed protocol. The omitted sweeps are listed explicitly as limitations and future work rather than left implicit.
+To address the fairness concern, we added a no-graph reference and budget-matched sparse controls (including an edge-budget sweep), which test whether any sparse graph of the same size would recover the gain. We did \textbf{not} add a sparsified or retuned \textbf{physical} graph, nor a systematic $\lambda_1$/threshold sweep; those remain explicit limitations and future work. Claims in the paper are therefore scoped to \emph{the evaluated controls}, not to an optimal physical baseline.
 
 \textbf{Location:} Section~6.5 (Limitations and Future Work); Conclusion (future work).
 
@@ -308,8 +309,8 @@ Reviewer concern & How addressed \\
 \midrule
 Learned graphs much sparser & Quantified (edges, mean degree) in Figure~5 and Method Sections~3.2--3.3 \\
 Gains may be oversmoothing only & No-graph reference; no credit vs Physical alone \\
-Gains may be sparsity only & Matched $30$-edge Rand/Corr vs DAGMA (Los PH1; Table~4, Figure~7; sweep Table~5, Figure~6) \\
-Fairer baseline / HPO & No-graph reference + capacity check; full sweep not claimed \\
+Gains may be sparsity only & Matched nominal-$30$-edge Rand/Corr vs DAGMA (Los PH1; Table~4, Figure~7; sweep Table~5, Figure~6) \\
+Fairer baseline / HPO & No-graph reference + capacity check + budget sweep; no sparsified/tuned physical graph \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -322,13 +323,13 @@ Fairer baseline / HPO & No-graph reference + capacity check; full sweep not clai
 \response{
 The submitted version reported essentially single-run numbers; the revision adds repeated evaluation and a clear reporting policy.
 
-\textbf{Multiple seeds.} All main forecasting configurations are trained under five seeds $\{42,43,44,45,46\}$. DAGMA graphs are fitted once and remain deterministic across those seeds, so the five runs quantify \textbf{training variability of the forecasting models}, not re-estimation of the graph.
+\textbf{Multiple seeds.} All main forecasting configurations are trained under five seeds $\{42,43,44,45,46\}$. Each DAGMA graph is \textbf{fitted once} on the training split and then \textbf{held fixed} for those forecasting seeds, so the five runs quantify \textbf{training variability of the forecasting models}, not uncertainty from re-estimating the graph under different graph-learning seeds. We do not claim bit-level determinism of every numerical backend; the operational statement is that one stored graph artifact is reused across seeds.
 
 \textbf{Variance in the tables.} The main T-GCN and GCN results tables (\textbf{Tables~2--3}) report \textbf{mean RMSE with sample standard deviations} ($\mathrm{ddof}=1$) over the five seeds. Captions note that bold marks the lowest mean, not a claim of statistical significance.
 
 \textbf{How multi-seed evidence is interpreted.} Primary weight is placed on \textbf{effect size}, \textbf{five-seed means and spreads}, and \textbf{paired per-seed consistency}. For example, on Los-loop, Mix beats the graph-free baseline in $5/5$ seeds at every PH1--PH4, and the graph-free baseline beats Physical in $5/5$ seeds in all eight dataset$\times$horizon cells. On SZ-Taxi, Mix and the graph-free baseline are within seed spread.
 
-\textbf{Paired $t$-tests.} Where the Mix vs graph-free-baseline comparison is discussed on Los-loop, we also report paired $t$-tests on per-seed RMSE differences \textbf{for reference} (Section~5.4; also stated in the statistical-reporting paragraph of Section~4.4). These are exploratory: we do not present them as formal proof of superiority, and they are not repeated in the tables.
+\textbf{Paired $t$-tests (secondary only).} For one Los-loop Mix-vs-baseline discussion we also computed paired $t$-tests on per-seed RMSE differences as a secondary diagnostic (Section~5.4; statistical-reporting paragraph of Section~4.4). With $n=5$ these are not treated as formal proof and are not used as the primary evidence; the tables and claims rest on means, spreads, and paired win counts.
 
 \textbf{Significance language.} With $n=5$, the exact two-sided Wilcoxon signed-rank test cannot attain $p<0.0625$. We therefore avoid definitive ``statistically significant'' claims and state this limitation in the statistical-reporting policy (Section~4.4) and under Limitations (Section~6.5).
 
@@ -348,7 +349,7 @@ Forecast horizons of four steps are also used in several standard traffic-foreca
 
 \textbf{Temporal-resolution control (15-minute Los-loop).} Los-loop was resampled to 15-minute steps by averaging consecutive triplets, and the multi-lag comparison was repeated under the same five-seed training protocol (Section~4.6; Table~6). In that variant, $\mathrm{PH}=1,2,3,4$ correspond to \textbf{15, 30, 45, and 60 minutes} ahead. In wall-clock terms these horizons match \textbf{PH3, PH6, PH9, and PH12} on the native 5-minute grid; they are not equivalent to directly evaluating those PH values on the original 5-minute data. On the 15-minute series, Mix reduces RMSE versus the graph-free baseline by $27.4\%$, $21.4\%$, $19.8\%$, and $16.1\%$ at $15$--$60$ minutes, with $5/5$ seed wins at each step (Section~5.5; Table~6). This experiment reports the graph-free baseline, MultiGSL, and Mix only; it does not include separate GSL/cGSL rows.
 
-\textbf{Scope of the claims.} The paper studies the effect of graph structure and its use for short-horizon forecasting at PH1--4. Conclusions are limited to that range. The GSL/cGSL comparison is likewise limited to PH1--4 on the native grids; we do not claim a GSL/cGSL gap analysis beyond PH4 at 5-minute sampling.
+\textbf{Scope of the claims.} The paper studies the effect of graph structure and its use for short-horizon forecasting at PH1--4. Conclusions are limited to that range. \textbf{We did not report a GSL/cGSL gap at horizons longer than PH4}, either on the native 5-minute series or as a separate analysis on the 15-minute control (which includes only the graph-free baseline, MultiGSL, and Mix). That part of the request is therefore \textbf{not fully answered} in this revision; the manuscript and this letter do not claim otherwise. Long-horizon GSL/cGSL evaluation remains future work (Section~6.5; Conclusion).
 
 \textbf{Location:} Section~4.6 (Temporal-Resolution Variant); Section~5.5; Table~6; Section~6.5 and Conclusion (future work).
 }
@@ -479,7 +480,7 @@ We agree that the temporal interpretation must come from the \textbf{input const
     \item \textbf{Multi-lag:} DAGMA on $Z=[x(t-3),\ldots,x(t)]$ with lag-specific binary blocks $\mathbf{A}_1,\mathbf{A}_2,\mathbf{A}_3$ (Method Section~3.3).
 \end{enumerate}
 
-Empirically, the \textbf{same multi-lag artifacts} used per timestep in T-GCN and unioned statically in GCN yield very different errors (Table~2 vs Table~3: e.g.\ T-GCN-MultiGSL $4.84$ vs GCN-MultiGSL $9.78$ on Los-loop PH1), and single contemporaneous graphs do not beat the graph-free control. The old Section~5 ``DAG paradox'' apparatus is removed; the cGSL/GSL contrast is treated only as an aggregation-compatibility observation (see R1-W4).
+Empirically, the \textbf{same multi-lag artifacts} used per timestep in T-GCN and unioned statically in GCN yield very different errors (Table~2 vs Table~3: e.g.\ T-GCN-MultiGSL $4.84$ vs GCN-MultiGSL $9.78$ on Los-loop PH1), and single contemporaneous graphs do not beat the graph-free control. This shows that \textbf{how lag-organized structure is consumed} matters; it does \textbf{not} independently validate the physical meaning of each lag edge or prove recovered propagation delays. The old Section~5 ``DAG paradox'' apparatus is removed; the cGSL/GSL contrast is treated only as an aggregation-compatibility observation (see R1-W4).
 
 \textbf{Location:} Method Sections~3.2--3.3; Results Section~5.4; Discussion Section~6.2; R1-W4 in this letter.
 }
@@ -492,7 +493,7 @@ Empirically, the \textbf{same multi-lag artifacts} used per timestep in T-GCN an
 }
 
 \response{
-The previous submitted abstract's ``21.6\% and 24.7\%'' figures were inconsistent with the results tables and are \textbf{removed}. The revised abstract reports a \textbf{43.0\% maximum relative RMSE reduction versus the physical T-GCN baseline} on Los-loop across horizons 1--4, describes matched edge-budget controls that show the gain is not explained by sparsity alone, and states that a graph-free identity baseline is included as a reference control. The SZ-Taxi boundary (nearly empty multi-lag structure; much smaller improvements) is stated in the same abstract. Because the graph-estimation and training pipeline was revised, these numbers are not required to match the submitted tables. The more specific \textbf{14.5\%} relative reduction versus the graph-free baseline on Los-loop PH1 (T-GCN-MultiGSL-Mix) is given in Section~5.4 and Conclusion item~3.
+The previous submitted abstract's ``21.6\% and 24.7\%'' figures were inconsistent with the results tables and are \textbf{removed}. The revised abstract reports a \textbf{maximum relative RMSE reduction of $43.0\%$ versus the physical T-GCN baseline among the evaluated Los-loop horizons PH1--PH4} (i.e.\ the largest of the four horizon-wise reductions, not a constant $43\%$ at every horizon), describes matched edge-budget controls that show the gain is not explained by sparsity alone, and states that a graph-free identity baseline is included as a reference control. The SZ-Taxi boundary (nearly empty multi-lag structure; much smaller improvements) is stated in the same abstract. Because the graph-estimation and training pipeline was revised, these numbers are not required to match the submitted tables. The more specific \textbf{14.5\%} relative reduction versus the graph-free baseline on Los-loop PH1 (T-GCN-MultiGSL-Mix) is given in Section~5.4 and Conclusion item~3.
 
 \textbf{Location:} Abstract; Results Sections~5.3--5.4; Conclusion.
 }
@@ -504,7 +505,7 @@ The previous submitted abstract's ``21.6\% and 24.7\%'' figures were inconsisten
 \response{
 We agree that causal wording was not supported by the experiments. \textbf{All causal claims are removed} from Introduction, Method, Discussion, and Conclusion. Learned graphs are described as \textbf{thresholded, estimator-dependent statistical associations} under linear DAGMA; acyclicity is an optimization regularizer, not causal evidence (Method Section~3.2; Discussion Section~6.3).
 
-For visualization, \textbf{Figure~5} shows the physical adjacency versus the multi-lag union on Los-loop together with degree distributions. We do \textbf{not} claim that the learned graph recovers known traffic corridors or causal pathways.
+For visualization, \textbf{Figure~5} shows the physical adjacency versus the multi-lag union on Los-loop together with degree distributions. This is a \textbf{structural contrast} (density and degree), not a check that high-weight edges match known traffic corridors. We do \textbf{not} claim corridor recovery or causal pathways.
 
 \textbf{Location:} Global claim policy; Figure~5; Method Section~3.2; Discussion Section~6.3.
 }

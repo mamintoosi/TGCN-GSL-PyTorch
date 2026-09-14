@@ -52,7 +52,7 @@ with GCN and T-GCN on the public SZ-Taxi and Los-loop benchmarks.
 Relative to the physical adjacency, learned graphs can reduce forecasting
 error; the largest and most consistent gains on Los-loop occur when
 lag-specific graphs are used in a temporally aligned way in T-GCN, with
-up to 43.0\% relative RMSE reduction across horizons 1--4. On SZ-Taxi,
+up to 43.0\% relative RMSE reduction among horizons 1--4 (the maximum of the four horizon-wise reductions). On SZ-Taxi,
 the learned multi-lag structure is nearly empty and improvements over the
 physical graph are much smaller. Matched edge-budget controls show that
 the observed Los-loop improvement over the physical graph cannot be
