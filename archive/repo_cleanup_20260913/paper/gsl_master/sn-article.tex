@@ -1,0 +1,98 @@
+% ======================================================================
+% Master manuscript (working draft) — Stage 51 assembly
+% Compile from this directory: pdflatex sn-article.tex
+% Class: Springer Nature sn-jnl (sn-mathphys-num)
+% Sections are \input from stage folders for development; flatten for
+% journal submission.
+% ======================================================================
+\documentclass[pdflatex,sn-mathphys-num]{sn-jnl}
+
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage[title]{appendix}
+\usepackage{xcolor}
+\usepackage{textcomp}
+\usepackage{manyfoot}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\theoremstyle{thmstyleone}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{thmstyletwo}
+\newtheorem{example}{Example}
+\newtheorem{remark}{Remark}
+\theoremstyle{thmstylethree}
+\newtheorem{definition}{Definition}
+
+\raggedbottom
+\input{commands}
+
+\begin{document}
+
+\title[Graph Structure Learning for Traffic Prediction]{Graph Structure Learning for Traffic Prediction}
+
+\author*[1]{\fnm{Mahmood} \sur{Amintoosi}}\email{m.amintoosi@um.ac.ir}
+
+\affil*[1]{\orgdiv{Division of Computer Science, Department of Applied
+Mathematics, Faculty of Mathematical Sciences},
+\orgname{Ferdowsi University of Mashhad},
+\orgaddress{\street{Bahonar Av.}, \city{Mashhad}, \postcode{91775},
+\state{Khorasan-e Razavi}, \country{IRAN}}, ORCID:0000-0001-9640-6475}
+
+\abstract{Accurate traffic forecasting remains challenging due to complex
+spatial and temporal dependencies. Existing graph-based methods typically
+rely on predefined adjacency matrices constructed from physical
+proximity, although physical connections may not adequately represent
+functional dependencies in traffic data. To address this limitation, we
+investigate a Graph Structure Learning (GSL) framework in which the
+adjacency matrix is learned directly from traffic observations rather
+than predefined from physical connections. We consider both
+contemporaneous and multi-lag learned graph structures and evaluate them
+with spatial and spatiotemporal forecasting models on the real-world
+SZ-Taxi and Los-loop datasets. The results show that learned graph
+structures can improve traffic forecasting, with the largest and most
+consistent gains obtained when lag-specific structures are consumed
+according to their temporal alignment. On Los-loop, the best learned
+multi-lag configuration reduces RMSE by 14.5% relative to the graph-free
+baseline at the first forecasting horizon and by up to 43.0% relative to
+the physical-graph baseline across the evaluated horizons. On SZ-Taxi,
+the learned multi-lag structure provides only limited gains, reflecting
+the much sparser structure recovered from the data. Additional
+experiments with matched-sparsity graphs show that the observed gains on
+Los-loop cannot be explained by sparsity alone. Overall, the results
+indicate that learning the graph structure from traffic data can provide
+useful predictive information, although its effectiveness depends on the
+dataset and on how the learned structure is incorporated into the
+forecasting model. The learned graphs are interpreted as statistical
+dependencies rather than causal relationships. The paper code is
+available at \url{https://github.com/mamintoosi/TGCN-GSL-PyTorch}.}
+
+
+\keywords{Traffic forecasting,
+Graph structure learning,
+Graph convolutional networks,
+T-GCN,
+Multi-lag graphs,
+Graph consumption}
+
+\maketitle
+
+% ---------------------------------------------------------------------
+% Section files (development layout)
+% ---------------------------------------------------------------------
+\input{../gsl_stage50/sections/intro_background}
+\input{../gsl_stage46/sections/method}
+\input{../gsl_stage46/sections/setup}
+\input{../gsl_stage47/sections/results}
+\input{../gsl_stage48/sections/discussion}
+\input{../gsl_stage49/sections/limitations_conclusion}
+
+% Bibliography
+\bibliography{MyReferences}
+
+\end{document}
