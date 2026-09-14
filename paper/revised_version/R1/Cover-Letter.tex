@@ -25,9 +25,9 @@
 \usepackage[
 	a4paper, % Paper size
 	top=.5in, % Top margin
-	bottom=.7in, % Bottom margin
-	left=1in, % Left margin
-	right=1in, % Right margin
+	bottom=.6in, % Bottom margin
+	left=.8in, % Left margin
+	right=.8in, % Right margin
 	%showframe % Uncomment to show frames around the margins for debugging purposes
 ]{geometry}
 
@@ -102,12 +102,12 @@ Traditional graph-based traffic forecasting methods rely on a predefined adjacen
 The main changes in this revision are:
 \begin{itemize}
     \item \textbf{Clearer constructions.} Contemporaneous and multi-lag DAGMA fits are specified separately. The earlier temporal reading of the contemporaneous DAG has been removed; learned graphs are interpreted as statistical associations, not causal maps.
-    \item \textbf{Stronger controls.} We added matched edge-budget sparsity controls, an edge-budget sweep, a capacity check, structure figures, and an identity (no-graph) reference so that gains cannot be attributed only to sparsity or to removing a dense physical graph.
+    \item \textbf{Stronger controls.} We added matched edge-budget sparsity controls, an edge-budget sweep, a capacity check, structure figures, and an identity reference so that gains cannot be attributed only to sparsity or to removing a dense physical graph.
     \item \textbf{Statistical reporting.} Main results are five-seed means with sample standard deviations and paired per-seed consistency checks.
     \item \textbf{Scope and limitations.} Dataset dependence (including a 15-minute Los-loop control), offline DAGMA cost, and backbone scope are stated explicitly. Abstract percentages and causal wording were corrected.
 \end{itemize}
 
-On Los-loop, lag-specific learned graphs used in a lag-aligned way in T-GCN reduce RMSE by up to $43.0\%$ relative to the physical adjacency across horizons 1--4; matched-budget controls show that this gain is not explained by sparsity alone. On SZ-Taxi the recovered multi-lag structure is nearly empty and improvements over the physical graph are much smaller.
+On Los-loop, lag-specific learned graphs used in a lag-aligned way in T-GCN reduce RMSE by up to $43.0\%$ relative to the physical adjacency across horizons 1--4; matched-budget controls show that this gain is not explained by sparsity alone. On SZ-Taxi the improvements over the physical graph are much smaller.
 
 The work remains aligned with the journal's scope in traffic prediction and graph-based knowledge discovery. A preliminary version was presented at a national conference \citep{Amintoosi1403aimc55-GSL}; the present manuscript is a substantial extension covering both GCN and T-GCN, contemporaneous and multi-lag constructions, multi-seed evaluation, and dedicated controls. Code and experiment scripts are available at \url{https://github.com/mamintoosi/TGCN-GSL-PyTorch}.
 

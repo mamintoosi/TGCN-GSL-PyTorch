@@ -1184,63 +1184,91 @@ from the graph-free baseline.
 \end{enumerate}
 
 
-\section{Discussion}\label{sec:discussion}
+%======================================================================
+\section{Discussion}
+\label{sec:discussion}
+%======================================================================
 
-\subsection{Learned Structure versus the Physical Graph}\label{sec:disc-dense}
+\subsection{Learned Structure versus the Physical Graph}
+\label{sec:disc-physical}
 
 The primary comparison in this study is whether a learned adjacency
-improves on the conventional physical road-network graph. On both
-benchmarks it does, for most learned configurations. On Los-loop PH1,
-contemporaneous GSL/cGSL already reduce RMSE by roughly a quarter relative
-to T-GCN (Physical), and multi-lag use reduces error by about $43\%$
-relative to Physical at PH1 (and $32$--$38\%$ at PH2--PH4). On SZ-Taxi the
-same direction holds, with Mix about $24$--$25\%$ below Physical.
+improves upon the conventional physical road-network graph. On both
+benchmarks, several learned-structure configurations outperform the
+physical-graph baseline, although the magnitude and consistency of the
+improvement depend on the dataset, forecasting horizon, and manner in
+which the learned structure is consumed. On Los-loop PH1,
+contemporaneous GSL/cGSL reduce RMSE by roughly a quarter relative to
+T-GCN (Physical), while the lag-structured DAGMA configuration, when
+used in a lag-aligned manner, reduces error by about $43\%$ relative to
+Physical at PH1 and by approximately $32$--$38\%$ at PH2--PH4. On
+SZ-Taxi, the same overall trend is observed, with the Mix configuration
+achieving an RMSE reduction of about $24$--$25\%$ relative to Physical.
 
-The physical graph is also dense (order $10^3$ off-diagonal entries on
-Los-loop). Degradation relative to a model with no spatial graph is
-consistent with excessive neighborhood mixing or an unsuitable inductive
-bias; we do not measure oversmoothing directly. That observation belongs to
-how GCN and T-GCN use a dense proximity matrix and can be studied
-independently of GSL. We include a graph-free identity control only as a
-reference: it shows the error level when no spatial graph is used, and is
-not the primary target of the proposed methods.
+The physical graph is also relatively dense, with on the order of
+$10^3$ nonzero off-diagonal entries on Los-loop. Its degradation
+relative to a model without spatial propagation is consistent with
+excessive neighborhood mixing or an unsuitable inductive bias. However,
+we do not measure oversmoothing directly and therefore do not claim it
+as the established cause of this degradation. This observation concerns
+the use of a dense proximity matrix by the GCN and T-GCN backbones and
+can be studied independently of the proposed graph-learning procedure.
 
-Learned contemporaneous graphs sit between Physical and the multi-lag
-variants: they improve on the physical graph but are weaker than the
-multi-lag results on Los-loop. What they provide is a less harmful, much
-sparser neighborhood than the dense proximity graph.
+We include a graph-free identity control only as a reference: it
+measures the error level obtained when the spatial propagation operator
+is replaced by the identity. It is not the primary target of the
+proposed methods. Learned contemporaneous graphs lie between the
+Physical and multi-lag variants. They improve upon the physical graph
+but are weaker than the multi-lag results on Los-loop. Their main
+benefit is a less harmful and substantially sparser neighborhood
+structure than that induced by the dense proximity graph.
 
-\subsection{When Learned Structure Helps}\label{sec:disc-help}
+\subsection{When Learned Structure Helps}
+\label{sec:disc-help}
 
-The strongest Los-loop result is multi-lag DAGMA graphs used in a
-lag-aligned way inside T-GCN. Three observations support a
-structure-learning interpretation rather than a pure sparsity
-interpretation. First, at a matched $30$-edge budget, random and
-correlation-placed graphs are worse than the graph-free reference, while
-DAGMA-placed lag graphs with lag-aligned use are better (Los-loop PH1
-only). Second, the multi-lag construction recovers substantially more
-lagged structure on Los-loop than on SZ-Taxi ($30$ vs.\ $2$ slots). Third,
-the same multi-lag artifacts fail when merged into a static union for GCN,
-so estimation alone is not enough; the backbone must use the structure in a
-way that matches how it was organized (lag blocks).
+The strongest Los-loop result is obtained with multi-lag DAGMA graphs
+used in a lag-aligned manner inside T-GCN. Three observations are
+consistent with a structure-learning interpretation rather than with a
+purely sparsity-based explanation. First, at a matched $30$-edge budget,
+random and correlation-placed graphs perform worse than the graph-free
+reference, whereas DAGMA-derived lag graphs, when used in a
+lag-aligned manner, perform better than that reference on Los-loop PH1.
+Second, the multi-lag construction yields substantially more usable lag
+blocks on Los-loop than on SZ-Taxi ($30$ versus $2$ slots). Third, the
+same multi-lag artifacts perform poorly when merged into a static union
+for GCN. These results suggest that estimating a useful structure is
+not sufficient by itself; the downstream backbone must also consume
+that structure in a manner consistent with its organization into lag
+blocks.
 
-The GCN/T-GCN contrast for contemporaneous graphs (cGSL helps GCN more than
-T-GCN) is an aggregation-compatibility observation of this study. We do not
-interpret the contemporaneous DAG as a temporal graph
-(Section~\ref{sec:gsl_contemp}); temporal organization of learned structure
-is carried by the multi-lag construction only.
+The contrast between GCN and T-GCN for contemporaneous graphs---namely,
+that cGSL provides a larger benefit for GCN than for T-GCN---is an
+aggregation-compatibility observation specific to this study. We do not
+interpret the contemporaneous DAG as a temporal graph: although it is
+estimated from time-indexed observations, its edges do not explicitly
+encode time-lag relationships. Temporal organization of the learned
+structure is introduced only by the multi-lag construction.
 
-\subsection{What the Learned Graph Represents}\label{sec:disc-interpretation}
+\subsection{What the Learned Graph Represents}
+\label{sec:disc-interpretation}
 
-We treat the learned adjacencies as \emph{statistical dependency}
-estimates under a linear DAGMA fit. The acyclicity constraint is used as
-an optimization device for the estimator; we do not interpret the fitted
-matrices as causal traffic mechanisms. The lag-structured
-reading of the multi-lag blocks is consistent with the input construction
-$Z=[x(t-3),\ldots,x(t)]$ and with the consumption experiments, but it is
-not independently validated against ground-truth propagation. The gated
-variant changes how static lag graphs are used per node and timestep; it
-does not produce a time-varying edge set.
+We interpret the learned adjacencies as data-dependent estimates of
+statistical associations obtained from a linear DAGMA fit. The
+acyclicity constraint is used as an optimization device for the
+estimator; we do not interpret the fitted matrices as causal traffic
+mechanisms.
+
+Interpreting the multi-lag blocks as lag-specific structures is
+consistent with the input construction
+$Z=[x(t-3),\ldots,x(t)]$ and with the corresponding consumption
+experiments. However, this interpretation has not been independently
+validated against ground-truth propagation delays or known
+traffic-diffusion mechanisms.
+
+The gated variant changes which of the predefined static lag graphs
+contribute to each node's computation at a given timestep. It does not
+learn a new adjacency matrix or produce a continuously time-varying
+edge set.
 
 \subsection{Dataset Dependence}\label{sec:disc-dataset}
 

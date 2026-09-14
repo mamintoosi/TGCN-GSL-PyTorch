@@ -52,6 +52,7 @@
     \begin{myresponse}
         #1
     \end{myresponse}
+    \vspace{1mm}
 }
 
 % ------------------------------------------------------
@@ -64,18 +65,18 @@
 \date{\today}
 \maketitle
 
-\noindent
-\textbf{Manuscript:} Graph Structure Learning for Traffic Prediction\\
-\textbf{Journal:} International Journal of Data Science and Analytics
+%\noindent
+%\textbf{Manuscript:} Graph Structure Learning for Traffic Prediction\\
+%\textbf{Journal:} International Journal of Data Science and Analytics
 \tableofcontents
 
 
 % ======================================================================
-\section{General Response (Summary)}
+\section{General Response}
 
 Thank you for the constructive reviews of the submitted manuscript. The revision keeps the paper's identity as a study of \textbf{graph structure learning for traffic forecasting}, with a stronger focus on \textbf{whether learned sparse graphs help because of sparsity alone or because of where edges are placed}, and on comparison with the \textbf{physical road-network adjacency}.
 
-Throughout this letter, an identity-adjacency model (\emph{T-GCN-NoSpatial} / \emph{GCN-NoSpatial}) is used only as a reference control when judging learned structure; it is not proposed as a forecasting method.
+
 
 \textbf{Two comments drove substantial experimental redesign:}
 \begin{itemize}
@@ -84,6 +85,7 @@ Throughout this letter, an identity-adjacency model (\emph{T-GCN-NoSpatial} / \e
 \end{itemize}
 
 Together these changes added on the order of \textbf{six pages} of new experimental material, controls, and discussion (new tables, structure and control figures, sparsity sweep, temporal-resolution control, and a rewritten Limitations section). The resulting evaluation is more comprehensive and better controlled than the submitted version.
+%Throughout this letter, an identity-adjacency model (\emph{T-GCN-NoSpatial} / \emph{GCN-NoSpatial}) is used only as a reference control when judging learned structure; it is not proposed as a forecasting method.
 
 \subsection*{Additional experiments carried out in this revision}
 
@@ -99,15 +101,15 @@ The following experiments and evaluations are new relative to the submitted manu
     \item \textbf{Reference adjacencies.} In addition to the physical road-network graph, all main tables include an identity (no off-diagonal structure) reference so that a gain over Physical is not treated as sufficient evidence by itself.
 \end{enumerate}
 
-\textbf{Numbers relative to the submitted version.} Because the evaluation pipeline and especially the DAGMA graph-learning code were substantially revised, absolute RMSE values and relative percentages differ in places from the submitted manuscript. The experimental \emph{protocol} (two public benchmarks, four horizons, physical baseline) is the same, but the revised tables are the authoritative numbers. We therefore restate the main claims from the current artifacts rather than reusing the submitted abstract's percentages.
+\textbf{Numbers relative to the submitted version.} Because the evaluation pipeline and especially the DAGMA graph-learning code were substantially revised, absolute RMSE values and relative percentages differ in places from the previous submitted manuscript. The experimental \emph{protocol} (two public benchmarks, four horizons, physical baseline) is the same, but the revised tables are the authoritative numbers. We therefore restate the main claims from the current artifacts rather than reusing the submitted abstract's percentages.
 
-\textbf{Structural changes relative to the submitted version (also recorded in the repository README).}
+Structural changes relative to the submitted version (also recorded in the repository README):
 \begin{itemize}
     \item The submitted ``Hardware specifications and hyperparameter settings'' table was removed; training settings are described compactly in the Experimental Setup, and hardware/software details are documented in the repository README for reproducibility.
     \item Algorithm~1 (NOTEARS) and the detailed DAGMA algorithm box were removed. The revised Method cites the original papers and describes only the constructions actually used (contemporaneous and multi-lag).
     \item Dense multi-panel convergence grids were replaced by compact final-metric tables and a short appendix training-loss figure.
 \end{itemize}
-\newpage
+%\newpage
 % ======================================================================
 \section{Reviewer 1}
 \subsection{Strengths}
@@ -137,7 +139,7 @@ Consistent gains across two datasets, four horizons, and four metrics, with reas
 }
 
 \response{
-\textbf{Kept and strengthened.} The study still uses SZ-Taxi and Los-loop with PH1--PH4 under a common five-seed protocol. The submitted ``21.6\% / 24.7\%'' percentages are not reused; the revised abstract leads with the maximum reduction versus the physical T-GCN baseline. Absolute values differ from the submitted tables because the evaluation and DAGMA code were revised (see the General Response).
+\textbf{Kept and strengthened.} The study still uses SZ-Taxi and Los-loop with PH1--PH4 under a common five-seed protocol. The submitted ``21.6\% / 24.7\%'' percentages are not reused; the revised abstract leads with the maximum reduction versus the physical T-GCN baseline. Absolute values differ from the previous submitted tables because the evaluation and DAGMA code were revised (see the General Response).
 
 \textbf{Location:} Section~4 (Experimental Setup); Section~5 (Results), Tables~2--3.
 }
@@ -147,9 +149,9 @@ The GSL vs.\ cGSL asymmetry between GCN and T-GCN is a genuinely interesting emp
 }
 
 \response{
-\textbf{Kept as an empirical finding; interpretation qualified.} The asymmetry remains in the Results. The earlier temporal-graph reading of the contemporaneous DAG was removed. The revised Discussion offers \textbf{aggregation compatibility} as a possible interpretation consistent with the contrast, not as a definitive causal explanation.
+\textbf{Kept as an empirical finding; interpretation qualified.} The asymmetry remains in the Results. The earlier temporal-graph reading of the contemporaneous DAG was removed. The revised Discussion offers {aggregation compatibility} as a possible interpretation consistent with the contrast, not as a definitive causal explanation.
 
-\textbf{Location:} Section~5.2 (GSL/cGSL rows in Tables~2--3); Section~6.2 (When Learned Structure Helps).
+\textbf{Location:} Section~5.2 {\footnotesize(GSL/cGSL rows in Tables~2--3)}; Section~6.2 {\footnotesize(When Learned Structure Helps)}.
 }
 
 \reviewercomment{
@@ -157,7 +159,7 @@ The bibliometric analysis is a thorough piece of motivating work.
 }
 
 \response{
-\textbf{Kept, framed as motivation only.} The bibliometric study remains as motivation (one sentence in the Introduction) with methodology and three figures in \textbf{Appendix~B}. It is not presented as a forecasting contribution.
+\textbf{Kept, framed as motivation only.} The bibliometric study remains as motivation (one sentence in the Introduction) with methodology and three figures in \textbf{Appendix~B}. %It is not presented as a forecasting contribution.
 
 \textbf{Location:} Introduction; Appendix~B (Bibliometric Analysis Methodology).
 }
@@ -182,6 +184,8 @@ We adopted a mixed strategy that follows both options without turning the biblio
 \textbf{Location:} Introduction (motivation paragraph); Appendix~B.
 }
 
+\vspace{5mm}
+
 \reviewercomment{
 \textbf{R1-W2.} Sections~2.2 and~2.3 (GCN and T-GCN background) will be familiar to most readers of this venue. Suggest condensing both to a short paragraph with equation references, freeing up space for additional analysis (e.g., variance reporting, extra figures).
 }
@@ -199,6 +203,7 @@ We condensed both subsections to short, equation-referenced summaries.
 \textbf{Location:} Background Sections~2.2--2.3; backbones in Method Section~3.
 }
 
+\newpage 
 \reviewercomment{
 \textbf{R1-W3.} The notation switch in Section~3.2 ($A \to W$) is unexplained beyond a footnote. Suggest either keeping consistent notation throughout or explaining the switch in the main text rather than a footnote, right where $W$ is introduced.
 }
@@ -209,7 +214,7 @@ We now introduce the convention \textbf{in the main text}, at the start of Secti
 \begin{itemize}
     \item $\mathbf{A}\in\{0,1\}^{N\times N}$ is the \textbf{binary adjacency supplied to the forecasting backbone}.
     \item $W\in\mathbb{R}^{d\times d}$ is the \textbf{continuous coefficient matrix} estimated by the graph-learning procedure.
-    \item The text states that the two symbols are \textbf{not interchangeable}.
+    \item The text states that the two symbols are {not interchangeable}.
 \end{itemize}
 
 $W$ is used in the continuous-optimization subsection and in the contemporaneous and multi-lag constructions; $\mathbf{A}_{\mathrm{GSL}}$, $\mathbf{A}_{\mathrm{cGSL}}$, and $\mathbf{A}_k$ denote binary graphs after thresholding (and symmetrization, where relevant).
@@ -222,7 +227,7 @@ $W$ is used in the continuous-optimization subsection and in the contemporaneous
 }
 
 \response{
-We agree this was load-bearing and was not demonstrated in the submitted version. The revision separates two constructions and \textbf{retires} the claim that the contemporaneous DAG is a temporal graph.
+We agree this was load-bearing and was not demonstrated in the previous submitted version. The revision separates two constructions and {retires} the claim that the contemporaneous DAG is a temporal graph.
 
 \begin{enumerate}
     \item \textbf{Contemporaneous GSL (Method Section~3.2).}
@@ -367,7 +372,9 @@ The Results section has been reorganized so that each subsection answers one que
 
 \textbf{We respectfully did not merge Sections~5.1--5.3 into a single subsection.} Each answers a distinct question (physical baseline vs.\ learned graphs; single learned graphs; the sparsity confound) and uses a different evidence block (main tables vs.\ controls tables). Merging them would either hide the sparsity control or force a long undifferentiated Results narrative. Repeating the same numeric table under three headings was avoided; 5.1 and 5.2 share Tables~2--3 without restating all cells.
 
-\textbf{Tie-back to the Introduction.} The opening frames physical proximity versus data-dependent association and asks whether the adjacency should be estimated from traffic data. The primary claim is that a learned adjacency can outperform the physical road-network graph, and that on Los-loop this gain cannot be explained by sparsity alone. Section~5.1 and Section~5.4 develop that claim; Section~6.1 (``Learned Structure versus the Physical Graph'') returns to the proximity-versus-association framing explicitly. The graph-free baseline is a control used to judge the contribution of spatial structure; it is not presented as the paper's main result. The old ``spatial graph versus temporal dependency graph'' resolution section from the submitted manuscript is not retained; that role is now played by the contemporaneous-versus-multi-lag distinction in Method and by the Discussion, without the temporal-DAG claim (see R1-W4).
+\textbf{Tie-back to the Introduction.} The opening frames physical proximity versus data-dependent association and asks whether the adjacency should be estimated from traffic data. The primary claim is that a learned adjacency can outperform the physical road-network graph, and that on Los-loop this gain cannot be explained by sparsity alone. Section~5.1 and Section~5.4 develop that claim; Section~6.1 (``Learned Structure versus the Physical Graph'') returns to the proximity-versus-association framing explicitly. The graph-free baseline is a control used to judge the contribution of spatial structure.
+%; it is not presented as the paper's main result.
+ The old ``spatial graph versus temporal dependency graph'' resolution section from the submitted manuscript is not retained; that role is now played by the contemporaneous-versus-multi-lag distinction in Method and by the Discussion, without the temporal-DAG claim (see R1-W4).
 
 \textbf{Location:} Sections~5.1--5.6 (Results); Section~6.1 (Discussion); Introduction (framing).
 }
@@ -485,7 +492,7 @@ Empirically, the \textbf{same multi-lag artifacts} used per timestep in T-GCN an
 }
 
 \response{
-The submitted abstract's ``21.6\% and 24.7\%'' figures were inconsistent with the results tables and are \textbf{removed}. The revised abstract reports a \textbf{43.0\% maximum relative RMSE reduction versus the physical T-GCN baseline} on Los-loop across horizons 1--4, describes matched edge-budget controls that show the gain is not explained by sparsity alone, and states that a graph-free identity baseline is included as a reference control. The SZ-Taxi boundary (nearly empty multi-lag structure; much smaller improvements) is stated in the same abstract. Because the graph-estimation and training pipeline was revised, these numbers are not required to match the submitted tables. The more specific \textbf{14.5\%} relative reduction versus the graph-free baseline on Los-loop PH1 (T-GCN-MultiGSL-Mix) is given in Section~5.4 and Conclusion item~3.
+The previous submitted abstract's ``21.6\% and 24.7\%'' figures were inconsistent with the results tables and are \textbf{removed}. The revised abstract reports a \textbf{43.0\% maximum relative RMSE reduction versus the physical T-GCN baseline} on Los-loop across horizons 1--4, describes matched edge-budget controls that show the gain is not explained by sparsity alone, and states that a graph-free identity baseline is included as a reference control. The SZ-Taxi boundary (nearly empty multi-lag structure; much smaller improvements) is stated in the same abstract. Because the graph-estimation and training pipeline was revised, these numbers are not required to match the submitted tables. The more specific \textbf{14.5\%} relative reduction versus the graph-free baseline on Los-loop PH1 (T-GCN-MultiGSL-Mix) is given in Section~5.4 and Conclusion item~3.
 
 \textbf{Location:} Abstract; Results Sections~5.3--5.4; Conclusion.
 }
