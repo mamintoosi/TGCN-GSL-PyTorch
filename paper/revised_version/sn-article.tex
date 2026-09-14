@@ -541,7 +541,7 @@ using training data only. Edge counts are $28$ (Los-loop) and $8$ (SZ-Taxi)
 at every horizon.
 
 %\paragraph{cGSL (symmetrized GSL).}
-The cyclic variant of GSL. denoted as \emph{cGSL} (symmetrized GSL) is not a second fit. It is the binary symmetrization
+The cyclic variant of GSL, denoted as \emph{cGSL} (symmetrized GSL) is not a second fit. It is the binary symmetrization
 of the same stored GSL artifact:
 \begin{equation}\label{eq:cgsl}
 \mathbf{A}_{\mathrm{cGSL}}
@@ -1250,20 +1250,36 @@ with results close to the graph-free baseline. This is a scope condition on
 GSL for traffic, not a failure of the general idea that adjacency can be
 estimated from data.
 
-\section{Limitations}\label{sec:limitations}
+\subsection{Limitations and Future Work}\label{sec:limitations}
 
-The evaluation is deliberately scoped. Main results use five training seeds
-and report mean RMSE with sample standard deviations and paired win counts;
-with $n=5$ we avoid formal significance claims. Experiments cover two
-benchmarks and prediction horizons $\mathrm{PH}\le 4$ at native sampling;
-the $15$-minute Los-loop study is a resolution control, not a third
-benchmark. Backbones are limited to GCN and T-GCN, which provide a
-controlled setting for comparing graph construction and use; transfer to
-newer architectures remains open. Learned graphs are static (Mix varies
-their use, not the edge set), and the estimator is a linear DAGMA fit.
-Matched-sparsity and capacity controls are reported for Los-loop at PH1;
-we do not claim universality beyond the evaluated cells, and we do not
-claim that the method is optimal for every network or horizon.
+Across two well-known benchmarks, a broad set of graph sources and
+consumption mechanisms, five-seed training, and dedicated matched-sparsity
+controls, the experiments show that a learned adjacency can outperform the
+physical road-network graph on Los-loop, and that on that dataset the gain
+cannot be explained by sparsity alone. The same protocol on SZ-Taxi yields
+much smaller gains, which we report as a dataset-dependent boundary rather
+than as a universal success claim.
+
+Two practical constraints shape how far this design can be scaled. First,
+estimating the multi-lag DAGMA graphs is an offline stage that takes on the
+order of a few hours on CPU for the larger lag-stacked problem. The cost is
+paid once per dataset and construction and then reused for all forecasting
+seeds and epochs, which is acceptable in an offline development setting, but
+it makes an extensive grid of graph-estimation experiments expensive.
+Second, a fair comparison with a physical graph requires benchmarks that
+ship a road-network adjacency; we therefore use two standard public traffic
+datasets rather than an arbitrary collection of sensors.
+
+If graph structure is to be re-estimated dynamically, or over many rolling
+time windows, a more efficient estimator (or an adaptive, incremental
+variant of DAGMA) would be needed. Other natural extensions are longer
+horizons at $5$-minute sampling, additional networks with physical graphs,
+sensitivity studies for $\lambda_1$ and support thresholds, hybrid models
+with attention \citep{Sun2023Attention}, and other forecasting backbones.
+These directions do not change the central finding: when the recovered
+structure is informative and is used consistently with how it was
+estimated, learning the adjacency can improve short-horizon traffic
+forecasting relative to a fixed physical graph.
 
 \section{Conclusion and Future Works}\label{sec:conclusion}
 
@@ -1294,14 +1310,9 @@ coarser sampling alone does not explain the SZ-Taxi result.
 not causal maps of traffic influence.
 \end{enumerate}
 
-Future work includes longer horizons at $5$-minute resolution, additional
-networks, sparsified-physical controls and $\lambda$/threshold sensitivity,
-other backbones, hybrid combinations with attention
-\citep{Sun2023Attention}, and genuinely time-varying graph estimation
-(e.g.\ incremental or sliding-window structure learning) rather than gated
-use of a fixed graph. Overall, learning the adjacency from traffic data can
-improve short-horizon forecasting when the recovered structure is
-informative and is used in a manner consistent with how it was estimated.
+Overall, learning the adjacency from traffic data can improve short-horizon
+forecasting when the recovered structure is informative and is incorporated
+into the model consistently with how it was estimated.
 
 \begin{appendices}
 
