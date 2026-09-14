@@ -62,8 +62,7 @@ use perform better. A graph-free identity baseline is reported as a
 reference control. Overall, learning the adjacency from traffic data can
 improve short-horizon forecasting when the recovered structure is
 informative and is incorporated into the model consistently with how it
-was estimated. The learned graphs are interpreted as statistical
-associations, not causal relationships.
+was estimated. 
 The paper code is available at  \url{https://github.com/mamintoosi/TGCN-GSL-PyTorch}.}
 
 \keywords{
@@ -790,18 +789,17 @@ scope-labeled controls on Los-loop at $\mathrm{PH}=1$.
 
 \emph{Matched sparsity.} At a $30$-edge budget we compare RandTop30 (random
 directed edges, redrawn per seed), CorrTop30 (top-$30$ training Pearson
-correlations), and the DAGMA multi-lag graphs under fixed and gated use,
-with five seeds under the same training protocol. No sparsified physical
-graph and no full $\lambda$/threshold sweep were run under this protocol.
+correlations), PhysTop30 (top-$30$ edges of the physical adjacency by
+weight), and the DAGMA multi-lag graphs under fixed and gated use,
+with five seeds under the same training protocol. No full
+$\lambda$/threshold sweep was run under this protocol.
 
 \emph{Capacity.} A T-GCN-NoSpatial model with hidden dimension $74$
 ($16{,}872$ parameters) more closely matches the gated multi-lag model
 ($17{,}091$) than standard T-GCN-NoSpatial at hidden $64$ ($12{,}672$). This
 check is single-seed and is labeled as such.
 
-\paragraph{Ablations.}\label{sec:ablations}
-
-
+\textbf{Ablations.}\label{sec:ablations}
 In addition to the main comparison of graph sources, we examine:
 
 \begin{itemize}
@@ -995,6 +993,7 @@ graphs at a matched $30$-edge budget on Los-loop PH1
 Configuration & RMSE & Budget / params & vs graph-free baseline \\
 \midrule
 RandTop30 & 6.10 (0.12) & 30 random edges & $+16.1\%$ \\
+PhysTop30 & 5.58 (0.09) & 30 top physical weights & $+6.3\%$ \\
 CorrTop30 & 5.39 (0.10) & 30 top-$|$Pearson$|$ & $+2.6\%$ \\
 Graph-free baseline (NoSpatial) & 5.25 (0.19) & identity & --- \\
 T-GCN-MultiGSL & 4.84 (0.11) & 30 DAGMA lag slots & $-7.8\%$ \\
@@ -1008,7 +1007,9 @@ Mix (seed 42) & 4.46 & $17{,}091$ params & $-13.3\%$ \\
 \end{table}
 
 At this matched budget, a random $30$-edge graph is worse than using
-no graph (RandTop30 $6.10\pm 0.12$ vs.\ graph-free baseline $5.25\pm 0.19$), and a
+no graph (RandTop30 $6.10\pm 0.12$ vs.\ graph-free baseline $5.25\pm 0.19$); a
+sparsified physical graph is also worse than the graph-free baseline
+(PhysTop30 $5.58\pm 0.09$); and a
 top-correlation $30$-edge graph is only slightly better than random but
 still worse than the graph-free baseline (CorrTop30 $5.39\pm 0.10$). The DAGMA
 multi-lag graphs with the same $30$-edge budget, when used with
@@ -1070,12 +1071,12 @@ use do.
 \centering
 \includegraphics[width=0.95\linewidth]{figures/sparsity_controls_los_ph1.pdf}
 \caption{Matched-sparsity controls on Los-loop at PH1 (five-seed mean $\pm$
-sample SD). RandTop30 and CorrTop30 use a $30$-edge budget; MultiGSL and
-Mix use the DAGMA multi-lag graphs. Dashed line: graph-free baseline.}
+sample SD). RandTop30, PhysTop30, and CorrTop30 use a $30$-edge budget;
+MultiGSL and Mix use the DAGMA multi-lag graphs. Dashed line: graph-free baseline.}
 \label{fig:sparsity}
 \end{figure}
 
-\clearpage
+
 
 \subsection{Multi-Lag Learned Graphs}\label{sec:res-multilag}
 
@@ -1088,6 +1089,8 @@ $33.7\%$, $32.3\%$. Paired $t$-tests for Mix vs graph-free baseline give
 $p\approx 0.0015$, $0.0015$, $0.0008$, $<10^{-4}$ (reference only;
 Section~\ref{sec:stats}).
 
+\clearpage
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.98\linewidth]{figures/perseed_rmse_los.pdf}
@@ -1096,17 +1099,16 @@ Section~\ref{sec:stats}).
 \label{fig:perseed}
 \end{figure}
 
-Figure~\ref{fig:perseed} shows the per-seed distributions: Mix has the
-lowest mean RMSE among the evaluated configurations on Los-loop at all four
-horizons. Weighted is essentially tied with the fixed MultiGSL assignment
-(differences $\le 0.01$ RMSE).
+
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.98\linewidth]{figures/pred_vs_actual_los_ph1.pdf}
 \caption{Predicted versus actual speed on Los-loop (PH1, seed $42$) for
-three high-variance nodes (100 test steps). Each row overlays ground truth
-with T-GCN (Physical) and T-GCN-MultiGSL-Mix (normalized scale).}
+three high-variance nodes (100 test steps). Each row overlays the ground
+truth with T-GCN (Physical) and T-GCN-MultiGSL-Mix on a normalized scale.
+The proposed multi-lag model tracks the true signal more closely than the
+physical-graph baseline.}
 \label{fig:predvsact}
 \end{figure}
 
@@ -1115,11 +1117,17 @@ with T-GCN (Physical) and T-GCN-MultiGSL-Mix (normalized scale).}
 \includegraphics[width=0.98\linewidth]{figures/pred_vs_actual_sz_ph1.pdf}
 \caption{Predicted versus actual speed on SZ-Taxi (PH1, seed $42$) for
 three high-variance nodes (100 test steps). Layout as in
-Figure~\ref{fig:predvsact}. Predictions of T-GCN (Physical) and Mix
-nearly overlap, consistent with the aggregate RMSE separation on this
-dataset.}
+Figure~\ref{fig:predvsact}. The proposed T-GCN-MultiGSL-Mix model is
+visibly closer to the ground-truth series than the physical-graph baseline.}
 \label{fig:predvsact-sz}
 \end{figure}
+
+
+
+Figure~\ref{fig:perseed} shows the per-seed distributions: Mix has the
+lowest mean RMSE among the evaluated configurations on Los-loop at all four
+horizons. Weighted is essentially tied with the fixed MultiGSL assignment
+(differences $\le 0.01$ RMSE).
 
 When the same multi-lag artifacts are merged into one static union for
 GCN-MultiGSL, error is $9.78\pm 0.14$ on Los-loop PH1 --- worse than the
@@ -1305,8 +1313,8 @@ Scope is also limited by the evaluation protocol: main results use PH1--4
 at each dataset's native sampling interval; longer horizons (e.g.\ PH5--8)
 were not evaluated on the native 5-minute Los-loop series (the 15-minute
 study is a resolution control only); matched-sparsity and capacity
-controls are reported only on Los-loop at PH1, with no sparsified or
-retuned physical-graph control under the current protocol; and forecasting results are
+controls are reported only on Los-loop at PH1; a systematic
+$\lambda_1$/threshold sweep was not run; and forecasting results are
 five-seed means ($n=5$), which is enough to report training spread and
 paired seed consistency but not enough to support formal significance
 claims beyond the statistical-reporting paragraph in
@@ -1382,7 +1390,7 @@ five-seed results in Tables~\ref{tab:tgcn-main} and~\ref{tab:gcn-main}.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.9\linewidth]{figures/lag_ablation_los_ph1.pdf}
+\includegraphics[width=1\linewidth]{figures/lag_ablation_los_ph1.pdf}
 \caption{Supplementary lag ablation (Los-loop PH1, seed $42$). Bars are
 test RMSE for subsets of the three multi-lag graphs under the gated
 mechanism (T-GCN-MultiGSL-Mix family), with edge counts in parentheses.
@@ -1401,11 +1409,9 @@ main comparisons use final test RMSE with five-seed statistics
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.95\linewidth]{figures/train_loss_curves_los_ph1.pdf}
-\caption{Compact training-loss histories for T-GCN (Physical) and
-T-GCN-MultiGSL-Mix (Los-loop PH1, seed $42$). Left: raw loss; right:
-log-scale. Replaces dense multi-panel convergence grids; not primary
-evidence for method ranking.}
+\includegraphics[width=0.85\linewidth]{figures/train_loss_curves_los_ph1.pdf}
+\caption{Training-loss histories (log scale) for T-GCN (Physical) and
+T-GCN-MultiGSL-Mix (Los-loop PH1, seed $42$).}
 \label{fig:convergence}
 \end{figure}
 

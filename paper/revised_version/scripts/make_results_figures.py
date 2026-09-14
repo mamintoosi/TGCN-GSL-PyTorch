@@ -496,7 +496,7 @@ def fig_lag_ablation():
 
 
 def fig_train_loss():
-    """Training-loss: Physical vs winning Mix (fallback: MultiGSL if Physical missing)."""
+    """Training-loss (log scale): Physical vs winning Mix (fallback: MultiGSL if Physical missing)."""
     phys = CKPT / "los_ph1_seed42_physical" / "train_loss_history.json"
     mix = ("los_ph1_seed42_gated_multi", "T-GCN-MultiGSL-Mix", COLORS["T-GCN-MultiGSL-Mix"])
     if phys.exists():
@@ -510,23 +510,18 @@ def fig_train_loss():
             ("los_ph1_seed42_multi_graph_fixed", "T-GCN-MultiGSL", COLORS["T-GCN-MultiGSL"]),
             mix,
         ]
-    fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.0))
+    fig, ax = plt.subplots(figsize=(5.6, 4.0))
     for folder, name, col in methods:
         hist = json.load(open(CKPT / folder / "train_loss_history.json"))
         losses = hist["train_losses"]
         ep = np.arange(1, len(losses) + 1)
-        axes[0].plot(ep, losses, label=name, color=col, lw=1.6)
-        axes[1].plot(ep, np.log10(np.maximum(losses, 1e-12)), label=name, color=col, lw=1.6)
-    axes[0].set_xlabel("Epoch")
-    axes[0].set_ylabel("Training loss")
-    axes[0].set_title("(a) Training loss (Los PH1, seed 42)")
-    axes[1].set_xlabel("Epoch")
-    axes[1].set_ylabel("log10(loss)")
-    axes[1].set_title("(b) Log-scale")
-    for ax in axes:
-        ax.legend(fontsize=8)
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
+        ax.plot(ep, np.log10(np.maximum(losses, 1e-12)), label=name, color=col, lw=1.6)
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel(r"$\log_{10}$(training loss)")
+    ax.set_title("Training loss (Los-loop PH1, seed 42)")
+    ax.legend(fontsize=8)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
     fig.tight_layout()
     fig.savefig(OUT / "train_loss_curves_los_ph1.pdf", bbox_inches="tight")
     fig.savefig(OUT / "train_loss_curves_los_ph1.png", bbox_inches="tight")

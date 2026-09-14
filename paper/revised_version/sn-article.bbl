@@ -1,6 +1,6 @@
 %% BioMed_Central_Bib_Style_v1.01
 
-\begin{thebibliography}{38}
+\begin{thebibliography}{34}
 % BibTex style file: bmc-mathphys.bst (version 2.1), 2014-07-24
 \ifx \bisbn   \undefined \def \bisbn  #1{ISBN #1}\fi
 \ifx \binits  \undefined \def \binits#1{#1}\fi
@@ -544,65 +544,6 @@ arXiv preprint arXiv:1806.01261
 \endbibitem
 
 %%% 32
-\bibitem[\protect\citeauthoryear{Liu et~al.}{2023}]{LIU2023120748}
-\begin{botherref}
-\oauthor{\bsnm{Liu}, \binits{H.}},
-\oauthor{\bsnm{Wei}, \binits{J.}},
-\oauthor{\bsnm{Xu}, \binits{T.}}:
-Community detection based on community perspective and graph convolutional
-  network.
-Expert Systems with Applications
-\textbf{231}
-(2023)
-\doiurl{10.1016/j.eswa.2023.120748}
-\end{botherref}
-\endbibitem
-
-%%% 33
-\bibitem[\protect\citeauthoryear{Liping~Deng and
-  Zheng}{2024}]{doi:10.1080/09540091.2023.2291995}
-\begin{barticle}
-\bauthor{\bsnm{Liping~Deng}, \binits{B.G.}},
-\bauthor{\bsnm{Zheng}, \binits{W.}}:
-\batitle{{GCN}-based weakly-supervised community detection with updated
-  structure centres selection}.
-\bjtitle{Connection Science}
-\bvolume{36}(\bissue{1}),
-\bfpage{2291995}
-(\byear{2024})
-\doiurl{10.1080/09540091.2023.2291995}
-\end{barticle}
-\endbibitem
-
-%%% 34
-\bibitem[\protect\citeauthoryear{Amintoosi}{2021}]{GCN-JAC2021}
-\begin{barticle}
-\bauthor{\bsnm{Amintoosi}, \binits{M.}}:
-\batitle{Overlapping clusters in cluster graph convolutional networks}.
-\bjtitle{Journal of Algorithms and Computation}
-\bvolume{53}(\bissue{2}),
-\bfpage{33}--\blpage{45}
-(\byear{2021})
-\end{barticle}
-\endbibitem
-
-%%% 35
-\bibitem[\protect\citeauthoryear{Ying et~al.}{2018}]{Ying:2018}
-\begin{bchapter}
-\bauthor{\bsnm{Ying}, \binits{R.}},
-\bauthor{\bsnm{He}, \binits{R.}},
-\bauthor{\bsnm{Chen}, \binits{K.}},
-\bauthor{\bsnm{Eksombatchai}, \binits{P.}},
-\bauthor{\bsnm{Hamilton}, \binits{W.L.}},
-\bauthor{\bsnm{Leskovec}, \binits{J.}}:
-\bctitle{Graph convolutional neural networks for web-scale recommender
-  systems}.
-In: \bbtitle{KDD}
-(\byear{2018})
-\end{bchapter}
-\endbibitem
-
-%%% 36
 \bibitem[\protect\citeauthoryear{Chen and Wu}{2022}]{Chen2022}
 \begin{bbook}
 \bauthor{\bsnm{Chen}, \binits{Y.}},
@@ -621,7 +562,7 @@ pp. \bfpage{297}--\blpage{321}.
 \end{bbook}
 \endbibitem
 
-%%% 37
+%%% 33
 \bibitem[\protect\citeauthoryear{Amintoosi}{2024}]{Amintoosi1403aimc55-GSL}
 \begin{bchapter}
 \bauthor{\bsnm{Amintoosi}, \binits{M.}}:
@@ -637,7 +578,7 @@ pp. \bfpage{145}--\blpage{148}
 \end{bchapter}
 \endbibitem
 
-%%% 38
+%%% 34
 \bibitem[\protect\citeauthoryear{Yu et~al.}{2020}]{YU2020189}
 \begin{barticle}
 \bauthor{\bsnm{Yu}, \binits{B.}},

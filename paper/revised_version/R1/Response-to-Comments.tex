@@ -3,14 +3,26 @@
 \usepackage[T1]{fontenc}
 \usepackage{amsmath, amssymb}
 \usepackage{geometry}
-\geometry{margin=2cm}
+\geometry{margin=2.2cm}
 \usepackage{xcolor}
 \usepackage{tcolorbox}
 \tcbuselibrary{skins, breakable}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
+\usepackage{tikz}
+\usepackage{eso-pic}
 \usepackage[colorlinks,citecolor=blue,urlcolor=blue,linkcolor=blue]{hyperref}
+
+% Page frame on every page
+\AddToShipoutPictureBG{%
+  \begin{tikzpicture}[remember picture,overlay]
+    \draw[black!55, line width=0.7pt, rounded corners=2mm]
+      ([xshift=0.75cm,yshift=0.75cm]current page.south west)
+      rectangle
+      ([xshift=-0.75cm,yshift=-0.75cm]current page.north east);
+  \end{tikzpicture}%
+}
 
 % ------------------------------------------------------
 % Reviewer comment box
@@ -93,7 +105,7 @@ The following experiments and evaluations are new relative to the submitted manu
 
 \begin{enumerate}
     \item \textbf{Five-seed main protocol.} All primary forecasting configurations were retrained under seeds $\{42,43,44,45,46\}$; Tables~2--3 report mean RMSE with sample standard deviations, together with paired per-seed win counts (Section~4.4, ``Statistical reporting'').
-    \item \textbf{Matched-sparsity controls.} On Los-loop PH1, RandTop30 (random directed edges) and CorrTop30 (top training correlations) were compared with the DAGMA multi-lag graphs at the same $30$-edge budget (Table~4; Figure~7).
+    \item \textbf{Matched-sparsity controls.} On Los-loop PH1, RandTop30 (random directed edges), PhysTop30 (sparsified physical graph), and CorrTop30 (top training correlations) were compared with the DAGMA multi-lag graphs at the same $30$-edge budget (Table~4; Figure~7).
     \item \textbf{Edge-budget sweep.} The same heuristic families were evaluated for $K\in\{10,20,30,50,80\}$ directed edges (Table~5; Figure~6).
     \item \textbf{Capacity control.} A graph-free T-GCN with hidden dimension $74$ (parameter-matched to Mix) was trained as a single-seed check that extra gate parameters do not explain the multi-lag gain (Table~4, lower block).
     \item \textbf{Temporal-resolution control.} Los-loop was resampled to $15$-minute steps and the multi-lag comparison was repeated under the same five-seed protocol (Section~4.6; Table~6).
@@ -139,7 +151,9 @@ Consistent gains across two datasets, four horizons, and four metrics, with reas
 }
 
 \response{
-\textbf{Kept and strengthened.} The study still uses SZ-Taxi and Los-loop with PH1--PH4 under a common five-seed protocol. The submitted ``21.6\% / 24.7\%'' percentages are not reused; the revised abstract leads with the maximum reduction versus the physical T-GCN baseline. Absolute values differ from the previous submitted tables because the evaluation and DAGMA code were revised (see the General Response).
+\textbf{Kept and strengthened.} The study still uses SZ-Taxi and Los-loop with PH1--PH4 under a common five-seed protocol.
+% The submitted ``21.6\% / 24.7\%'' percentages are not reused; the revised abstract leads with the maximum reduction versus the physical T-GCN baseline. 
+Note that absolute values differ from the previous submitted tables because the evaluation and DAGMA code were revised (see the General Response).
 
 \textbf{Location:} Section~4 (Experimental Setup); Section~5 (Results), Tables~2--3.
 }
@@ -253,7 +267,7 @@ We agree this was load-bearing and was not demonstrated in the previous submitte
 \response{
 Together with R1-W4, this comment led to a \textbf{major redesign of the evaluation}, with the main question framed as: \emph{does a learned sparse graph help because it is sparse, or because of how its edges are placed and used?}
 
-\textbf{In short:} we report physical vs.\ learned graph density (Figure~5); add matched random/correlation sparse controls and an edge-budget sweep on Los-loop PH1 (Tables~4--5; Figures~6--7); add a capacity check; and scope claims to those controls. A sparsified physical graph and a $\lambda_1$ sweep were not run under the current protocol and are stated as limitations (details in (a)--(c) below).
+\textbf{In short:} we report physical vs.\ learned graph density (Figure~5); add matched random, correlation, and sparsified-physical controls plus an edge-budget sweep on Los-loop PH1 (Tables~4--5; Figures~6--7); add a capacity check; and scope claims to those controls. A systematic $\lambda_1$ sweep was not run under the current protocol and is stated as a limitation (details in (a)--(c) below).
 
 \paragraph{(a) Density of physical vs learned graphs}
 \begin{itemize}
@@ -273,13 +287,14 @@ The paper's primary comparison remains \textbf{learned adjacency vs.\ the physic
     On these data, dropping the physical graph often reduces error. We therefore treat a gain over Physical as necessary but not sufficient, and ask whether a learned graph also beats this control. Single contemporaneous GSL/cGSL \textbf{do not} beat the graph-free baseline on these benchmarks; multi-lag graphs with lag-aligned use on Los-loop \textbf{do}.
 
     \item \textbf{Matched-sparsity controls at a nominal $30$-edge budget (Los-loop PH1 only).}
-    The DAGMA multi-lag construction uses $30$ lag slots (lag blocks $\mathbf{A}_1,\mathbf{A}_2,\mathbf{A}_3$); after consumer thresholding and union this yields $28$ \emph{distinct} directed edges. Heuristic controls (RandTop30, CorrTop30) place exactly $30$ directed edges. The comparison is therefore at the same nominal budget scale, not a claim that every method has an identical final edge count after union/deduplication. On that budget scale:
+    The DAGMA multi-lag construction uses $30$ lag slots (lag blocks $\mathbf{A}_1,\mathbf{A}_2,\mathbf{A}_3$); after consumer thresholding and union this yields $28$ \emph{distinct} directed edges. Heuristic controls place exactly $30$ directed edges. The comparison is therefore at the same nominal budget scale, not a claim that every method has an identical final edge count after union/deduplication. On that budget scale:
     \begin{itemize}
-        \item RandTop30 (random): \textbf{worse} than the graph-free baseline;
-        \item CorrTop30 (top training correlations): \textbf{worse} than the graph-free baseline;
-        \item DAGMA multi-lag edges with lag-aligned use (MultiGSL / Mix): \textbf{better} than the graph-free baseline.
+        \item RandTop30 (random): \textbf{worse} than the graph-free baseline ($6.10\pm 0.12$);
+        \item PhysTop30 (top physical weights, sparsified physical graph): \textbf{worse} than the graph-free baseline ($5.58\pm 0.09$);
+        \item CorrTop30 (top training correlations): \textbf{worse} than the graph-free baseline ($5.39\pm 0.10$);
+        \item DAGMA multi-lag edges with lag-aligned use (MultiGSL / Mix): \textbf{better} than the graph-free baseline ($4.84$ / $4.49$).
     \end{itemize}
-    Thus \textbf{sparsity alone does not explain} the multi-lag result on this cell; \textbf{edge placement and use} matter. We do not claim this for all datasets or horizons.
+    Thus \textbf{sparsity alone does not explain} the multi-lag result on this cell; \textbf{edge placement and use} matter. In particular, simply keeping the strongest physical edges at the same budget does not recover the multi-lag gain. We do not claim this for all datasets or horizons.
 
     \textbf{Edge-budget sweep (new).} We extended this control across $K\in\{10,20,30,50,80\}$ directed edges on Los-loop PH1 (five seeds; Table~5; Figure~6, ``Edge-budget sweep on Los-loop PH1''). For every $K$, both RandTopK and CorrTopK remain \textbf{at or above} the graph-free baseline. At the same nominal $K=30$ budget, the main MultiGSL ($4.84$) and Mix ($4.49$) remain well below both heuristic families and below Physical.
 
@@ -298,11 +313,9 @@ The paper's primary comparison remains \textbf{learned adjacency vs.\ the physic
 \end{itemize}
 
 \paragraph{(c) Hyperparameter optimization / fairer baseline}
-To address the fairness concern, we added a no-graph reference and budget-matched sparse controls (including an edge-budget sweep). These test whether \textbf{random or correlation-placed} sparse graphs of the same size recover the gain; they do \textbf{not} include a sparsified or retuned \textbf{physical} graph, nor a systematic $\lambda_1$/threshold sweep. Those remain explicit limitations (Section~6.5) and future work. Claims in the paper are scoped to \emph{the evaluated controls}, not to an optimal physical baseline.
+To address the fairness concern, we added a no-graph reference and budget-matched sparse controls, including a \textbf{sparsified physical graph} (PhysTop30) and an edge-budget sweep for random/correlation graphs. PhysTop30 ($5.58\pm 0.09$) remains worse than the graph-free baseline, with RMSE substantially higher than MultiGSL/Mix, so a fairer sparse physical baseline does not close the multi-lag gap on Los-loop PH1. We did \textbf{not} run a systematic $\lambda_1$/threshold sweep; that remains an explicit limitation (Section~6.5) and future work. \textit{If the reviewer still considers a minimal $\lambda_1$ sweep essential, we are willing to add it in a further revision under the current protocol.}
 
-If the reviewer still considers a sparsified physical baseline (or a minimal $\lambda_1$ sweep) essential, we are willing to add that control in a further revision under the current protocol.
-
-\textbf{Location:} Section~6.5 (Limitations and Future Work); Conclusion (future work).
+\textbf{Location:} Section~4.5; Table~4; Section~6.5 (Limitations and Future Work); Conclusion (future work).
 
 \paragraph{Summary for R1-W5}
 \begin{center}
@@ -313,8 +326,8 @@ Reviewer concern & How addressed \\
 \midrule
 Learned graphs much sparser & Quantified (edges, mean degree) in Figure~5 and Method Sections~3.2--3.3 \\
 Gains may be oversmoothing only & No-graph reference; no credit vs Physical alone \\
-Gains may be sparsity only & Matched nominal-$30$-edge Rand/Corr vs DAGMA (Los PH1; Table~4, Figure~7; sweep Table~5, Figure~6) \\
-Fairer baseline / HPO & No-graph reference + capacity check + budget sweep; no sparsified/tuned physical graph (offered for a further revision if required) \\
+Gains may be sparsity only & Matched nominal-$30$-edge Rand/Phys/Corr vs DAGMA (Los PH1; Table~4, Figure~7; sweep Table~5, Figure~6) \\
+Fairer baseline / HPO & No-graph reference + PhysTop30 + capacity check + budget sweep; no full $\lambda_1$ sweep (offered for a further revision if required) \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -353,7 +366,7 @@ Forecast horizons of four steps are also used in several standard traffic-foreca
 
 \textbf{Temporal-resolution control (15-minute Los-loop).} Los-loop was resampled to 15-minute steps by averaging consecutive triplets, and the multi-lag comparison was repeated under the same five-seed training protocol (Section~4.6; Table~6). In that variant, $\mathrm{PH}=1,2,3,4$ correspond to \textbf{15, 30, 45, and 60 minutes} ahead. In wall-clock terms these horizons match \textbf{PH3, PH6, PH9, and PH12} on the native 5-minute grid; they are not equivalent to directly evaluating those PH values on the original 5-minute data. On the 15-minute series, Mix reduces RMSE versus the graph-free baseline by $27.4\%$, $21.4\%$, $19.8\%$, and $16.1\%$ at $15$--$60$ minutes, with $5/5$ seed wins at each step (Section~5.5; Table~6). This experiment reports the graph-free baseline, MultiGSL, and Mix only; it does not include separate GSL/cGSL rows.
 
-\textbf{Scope of the claims.} The paper studies the effect of graph structure and its use for short-horizon forecasting at PH1--4. Conclusions are limited to that range. \textbf{We did not report a GSL/cGSL gap at horizons longer than PH4}, either on the native 5-minute series or as a separate analysis on the 15-minute control (which includes only the graph-free baseline, MultiGSL, and Mix). That part of the request is therefore \textbf{not fully answered} in this revision; the manuscript and this letter do not claim otherwise. Long-horizon GSL/cGSL evaluation remains future work (Section~6.5; Conclusion). If the reviewer still requires PH5--8 on the native 5-minute series (including a GSL/cGSL comparison), we are willing to add that experiment in a further revision.
+\textbf{Scope of the claims.} The paper studies the effect of graph structure and its use for short-horizon forecasting at PH1--4. Conclusions are limited to that range. \textbf{We did not report a GSL/cGSL gap at horizons longer than PH4}, either on the native 5-minute series or as a separate analysis on the 15-minute control (which includes only the graph-free baseline, MultiGSL, and Mix). That part of the request is therefore \textbf{not fully answered} in this revision; the manuscript and this letter do not claim otherwise. Long-horizon GSL/cGSL evaluation remains future work (Section~6.5; Conclusion).\textit{ If the reviewer still requires PH5--8 on the native 5-minute series (including a GSL/cGSL comparison), we are willing to add that experiment in a further revision.}
 
 \textbf{Location:} Section~4.6 (Temporal-Resolution Variant); Section~5.5; Table~6; Section~6.5 and Conclusion (future work).
 }
@@ -417,7 +430,7 @@ We shortened the metrics subsection to \textbf{RMSE (primary) and MAE only} (Sec
 }
 
 \response{
-The multi-panel per-epoch grids have been \textbf{removed from the main text}. Primary evidence is \textbf{final RMSE with sample standard deviations} (Tables~2--3; Figures~3--4 for key Los-loop PH1 configurations) plus compact structure and per-seed figures. A \textbf{compact two-panel training-loss figure} (linear and log scale; two methods: T-GCN (Physical) and T-GCN-MultiGSL-Mix; Los-loop PH1 seed $42$) is retained in \textbf{Appendix~A.2} as an optimization diagnostic only, not as a ranking argument.
+The multi-panel per-epoch grids have been \textbf{removed from the main text}. Primary evidence is \textbf{final RMSE with sample standard deviations} (Tables~2--3; Figures~3--4 for key Los-loop PH1 configurations) plus compact structure and per-seed figures. A \textbf{log-scale training-loss figure} (two methods: T-GCN (Physical) and T-GCN-MultiGSL-Mix; Los-loop PH1 seed $42$) is retained in \textbf{Appendix~A.2} as an optimization diagnostic only, not as a ranking argument.
 
 \textbf{Location:} Main Results tables/figures; Appendix~A.2 (Training curves). Supplementary lag ablation is in Appendix~A.1.
 }
@@ -539,7 +552,7 @@ cGSL is now defined in \textbf{Method Section~3.2} (\emph{Contemporaneous Graph 
 }
 
 \response{
-The dense multi-panel per-epoch grids are \textbf{removed from the main text}. Appendix~A.2 retains a compact two-panel training-loss figure (linear and log scale; two methods --- T-GCN (Physical) and T-GCN-MultiGSL-Mix; Los-loop PH1 seed 42) for reproducibility context only. Primary evidence is final RMSE with sample standard deviations (Tables~2--3).
+The dense multi-panel per-epoch grids are \textbf{removed from the main text}. Appendix~A.2 retains a log-scale training-loss figure (two methods --- T-GCN (Physical) and T-GCN-MultiGSL-Mix; Los-loop PH1 seed 42) for reproducibility context only. Primary evidence is final RMSE with sample standard deviations (Tables~2--3).
 
 \textbf{Location:} Appendix~A.2 (Training curves); see also R1-W11 in this letter.
 }

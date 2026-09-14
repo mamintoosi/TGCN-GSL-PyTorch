@@ -5,5 +5,5 @@
 \contentsline {paragraph}{(a) Density of physical vs learned graphs}{6}{section*.3}%
 \contentsline {paragraph}{(b) Sparsity alone does not explain the multi-lag gain (Los-loop PH1)}{6}{section*.4}%
 \contentsline {paragraph}{(c) Hyperparameter optimization / fairer baseline}{7}{section*.5}%
-\contentsline {paragraph}{Summary for R1-W5}{7}{section*.6}%
-\contentsline {section}{\numberline {3}Reviewer 2}{13}{section.3}%
+\contentsline {paragraph}{Summary for R1-W5}{8}{section*.6}%
+\contentsline {section}{\numberline {3}Reviewer 2}{14}{section.3}%
