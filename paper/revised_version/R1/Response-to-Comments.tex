@@ -420,7 +420,7 @@ The Results section has been reorganized so that each subsection answers one que
 \response{
 A dedicated Limitations discussion was added (Section~6.5) and covers the three issues raised, together with other scope conditions of the study.
 
-\textbf{DAGMA scalability and cost.} Graph estimation with DAGMA is the heavier offline stage compared with ordinary forecasting-model training on these data. Measured costs in our runs are on the order of tens of minutes per horizon for a contemporaneous fit with $O(10^2)$ sensors and on the order of a few hours for the $828$-variable multi-lag fit on Los-loop (CPU). For a fixed dataset and construction, the graph is estimated \textbf{once} and reused for every forecasting seed, epoch, and test sample. Scalability to substantially larger road networks remains an open question.
+\textbf{DAGMA scalability and cost.} Graph estimation with DAGMA is the heavier offline stage compared with ordinary forecasting-model training on these data. For a fixed dataset and construction, the graph is estimated \textbf{once} and reused for every forecasting seed, epoch, and test sample. Scalability to substantially larger road networks remains an open question (Section~6.5).
 
 \textbf{Meaning of $\lambda$.} The reviewer's $\lambda$ refers to the DAGMA sparsity regularization coefficient $\lambda_1$. In the revision, $\lambda_1$ is $0.02$ (Los-loop) and $0.01$ (SZ-Taxi) for the contemporaneous construction (Section~3.2), and $0.01$ (both datasets) for the multi-lag construction (Section~3.3). Support thresholds are separate. A \textbf{limited} $\lambda_1$ check on Los-loop PH5--PH6 ($0.01$ versus $0.02$) is reported in Appendix~A.3; ranking relative to MultiGSL and the graph-free control is unchanged. A full $\lambda_1$/threshold grid is listed as future work (Section~6.5 and Conclusion).
 
@@ -494,9 +494,7 @@ These figures are explicitly illustrative and do not replace aggregate RMSE/MAE.
 }
 
 \response{
-In this study the learned graphs are \textbf{static}: they are fitted once on the training split. The Mix gate changes \textbf{how} those fixed lag graphs are used per node and timestep; it does \textbf{not} update the edge set (Method Sections~3.1 and~3.4).
-
-A concrete incremental scheme (e.g.\ \textbf{sliding-window DAGMA} refits on a rolling training window, with support thresholding as in Section~3) is listed as \textbf{future work}. Cost would be dominated by the same offline estimation stage discussed under Limitations (Section~6.5: tens of minutes per contemporaneous fit and a few hours for the multi-lag construction on these data, CPU), multiplied by the number of refits. A full design and overhead analysis is outside the present revision.
+We thank the reviewer for raising the issue of graph-learning cost and possible incremental graph updates. In the current framework, the graph is learned once from the training data and then kept fixed during forecasting; it is not repeatedly re-estimated during inference. An incremental or sliding-window graph-learning scheme would require repeated graph estimation as new observations arrive, introducing additional computational cost. We therefore consider online graph updating an interesting direction for future work rather than part of the current forecasting pipeline.
 
 \textbf{Location:} Method Sections~3.1 and~3.4; Section~6.5; Conclusion (future work).
 }

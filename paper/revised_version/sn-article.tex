@@ -1,6 +1,6 @@
 % ======================================================================
-% FLATTENED revised manuscript (submission-oriented)
-% Sections inlined; compile in this directory with pdflatex/bibtex
+% Graph Structure Learning for Traffic Prediction
+% Compile in this directory with pdflatex/bibtex
 % ======================================================================
 \documentclass[pdflatex,sn-mathphys-num]{sn-jnl}
 
@@ -378,16 +378,7 @@ paper we study that estimated operator both as a single contemporaneous
 graph and as lag-specific blocks, and we evaluate it against physical and
 graph-free references under the same forecasting protocol.
 
-%\subsection{Position of this Work}\label{sec:bg-position}
-
-This work remains a study of GSL for traffic prediction: we ask whether a
-learned adjacency is preferable to a physical one, and under what
-conditions. A graph-free control, an explicit multi-lag construction, and
-an analysis of how that structure is used in the backbone specify those
-conditions without changing the paper's identity.
-
 % ======================================================================
-% Method: revised (this stage). Setup--Conclusion: interim stage drafts
 % Section 3 — Proposed Method
 % ======================================================================
 
@@ -1300,11 +1291,12 @@ much smaller gains, which we report as a dataset-dependent boundary rather
 than as a universal success claim.
 
 Two practical constraints shape how far this design can be scaled. First,
-estimating the multi-lag DAGMA graphs is an offline stage that takes on the
-order of a few hours on CPU for the larger lag-stacked problem. The cost is
-paid once per dataset and construction and then reused for all forecasting
-seeds and epochs, which is acceptable in an offline development setting, but
-it makes an extensive grid of graph-estimation experiments expensive.
+estimating the multi-lag DAGMA graphs is an offline stage that is
+materially more expensive than ordinary forecasting-model training on
+these data. The cost is paid once per dataset and construction and then
+reused for all forecasting seeds and epochs, which is acceptable in an
+offline development setting, but it makes an extensive grid of
+graph-estimation experiments expensive.
 Second, a fair comparison with a physical graph requires benchmarks that
 ship a road-network adjacency; we therefore use two standard public traffic
 datasets rather than an arbitrary collection of sensors.
@@ -1446,8 +1438,8 @@ settings as in the main experiments ($\lambda_1=0.02$ on Los-loop and
 $0.01$ on SZ-Taxi; internal threshold $0.3$; seed $42$). After
 thresholding, Los-loop yields $26$ edges (PH5) and $30$ edges (PH6),
 comparable to PH1--PH4; cGSL is the binary symmetrization of the same
-artifact. Each Los-loop fit is on the order of an hour on CPU, consistent
-with Section~\ref{sec:limitations}.
+artifact. Each such fit is an offline graph-estimation step (see
+Section~\ref{sec:limitations}).
 
 \emph{Multi-lag graphs.} The multi-lag blocks are fitted on the training
 split only and are horizon-independent, so the same artifacts as in the
