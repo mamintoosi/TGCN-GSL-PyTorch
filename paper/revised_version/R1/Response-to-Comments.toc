@@ -6,4 +6,4 @@
 \contentsline {paragraph}{(b) Sparsity alone does not explain the multi-lag gain (Los-loop PH1)}{7}{section*.4}%
 \contentsline {paragraph}{(c) Hyperparameter optimization / fairer baseline}{8}{section*.5}%
 \contentsline {paragraph}{Summary for R1-W5}{8}{section*.6}%
-\contentsline {section}{\numberline {3}Reviewer 2}{15}{section.3}%
+\contentsline {section}{\numberline {3}Reviewer 2}{14}{section.3}%

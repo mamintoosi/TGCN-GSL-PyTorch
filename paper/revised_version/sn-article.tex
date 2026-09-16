@@ -741,21 +741,14 @@ GPU.
 
 \subsection{Evaluation Metrics}\label{sec:metrics}
 
-We report root mean squared error (RMSE, primary) and mean absolute error
-(MAE), computed on the de-normalized speed scale over the full test set:
+We report root mean squared error (RMSE), computed on the de-normalized speed scale over the full test set:
 \begin{align}
-\mathrm{RMSE}
-&=\sqrt{\frac{1}{n}\sum_{i=1}^{n}\bigl(Y_i-\widehat{Y}_i\bigr)^{2}},
-\\
-\mathrm{MAE}
-&=\frac{1}{n}\sum_{i=1}^{n}\bigl|Y_i-\widehat{Y}_i\bigr|.
+\mathrm{RMSE}=\sqrt{\frac{1}{n}\sum_{i=1}^{n}\bigl(Y_i-\widehat{Y}_i\bigr)^{2}},
 \end{align}
 Here $n$ is the total number of evaluated scalar predictions, including
 all test windows, sensors, and output steps for the selected prediction
 horizon. For each PH-specific model, all PH target steps are pooled when
-computing the reported RMSE and MAE (they are not computed separately for
-the final horizon alone). Additional diagnostics used in the code base
-(relative accuracy and $R^2$) are not required for the comparisons below.
+computing the reported RMSE. %Additional diagnostics used in the code base (relative accuracy and $R^2$) are not required for the comparisons below.
 
 \paragraph{Statistical reporting.}\label{sec:stats}
 Main-text numbers are five-seed means with sample standard deviations
@@ -1168,18 +1161,26 @@ Mix wins (of 5) & 5 & 5 & 5 & 5 \\
 \subsection{Summary of Findings}\label{sec:res-summary}
 
 \begin{enumerate}
-\item Learning $\mathbf{A}$ from data can improve on the physical graph,
-but a graph-free control is necessary to judge the contribution of spatial
-structure.
-\item A single contemporaneous learned graph does not beat the graph-free
-control on these benchmarks.
-\item Multi-lag graphs help on Los-loop when used in a lag-aligned way in
-T-GCN; Mix has the lowest mean RMSE among evaluated multi-lag variants.
-Sparsity alone does not explain this gain on the matched-budget cell.
-\item The benefit is dataset-dependent: SZ-Taxi shows little separation
-from the graph-free baseline.
-\end{enumerate}
 
+\item Learning $\mathbf{A}$ from traffic data can improve forecasting over the
+physical graph, demonstrating that data-driven graph structure can capture
+dependencies that are not fully represented by physical proximity.
+
+\item A single contemporaneous learned graph does not consistently improve
+forecasting across the considered settings, motivating the use of multi-lag
+graph structures to represent temporal dependencies.
+
+\item Multi-lag graphs can be beneficial when their temporal alignment is
+preserved in T-GCN; on Los-loop, Mix achieves the lowest mean RMSE among the
+evaluated multi-lag variants. The matched-budget comparison indicates that
+this improvement cannot be attributed to sparsity alone.
+
+\item The effectiveness of graph structure learning and multi-lag modeling is
+dataset-dependent, with smaller performance differences observed on SZ-Taxi.
+The graph-free control provides an additional reference for interpreting the
+role of spatial structure in these results.
+
+\end{enumerate}
 
 %======================================================================
 \section{Discussion}
@@ -1385,6 +1386,17 @@ The dashed line is T-GCN-NoSpatial. Single seed; see Section~\ref{sec:app-lag}.}
 \label{fig:lagablation}
 \end{figure}
 
+
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.5\linewidth]{figures/train_loss_curves_los_ph1.pdf}
+\caption{Training-loss histories (log scale) for T-GCN (Physical) and
+T-GCN-MultiGSL-Mix (Los-loop PH1, seed $42$).}
+\label{fig:convergence}
+\end{figure}
+
 \subsection{Training curves}\label{sec:app-conv}
 
 Figure~\ref{fig:convergence} shows compact training-loss histories from
@@ -1394,13 +1406,6 @@ road-network model (T-GCN) with the proposed gated multi-lag model
 main comparisons use final test RMSE with five-seed statistics
 (Section~\ref{sec:stats}), not per-epoch training curves.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.85\linewidth]{figures/train_loss_curves_los_ph1.pdf}
-\caption{Training-loss histories (log scale) for T-GCN (Physical) and
-T-GCN-MultiGSL-Mix (Los-loop PH1, seed $42$).}
-\label{fig:convergence}
-\end{figure}
 
 \subsection{Trend Across Horizons (PH1--PH6)}
 \label{sec:app-longhorizon}
@@ -1446,7 +1451,7 @@ range.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.98\linewidth]{figures/ph16_tgcn_trends.pdf}
+\includegraphics[width=1\linewidth]{figures/ph16_tgcn_trends.pdf}
 \caption{T-GCN family: mean test RMSE versus prediction horizon
 (PH1--PH6). Panel (a): Los-loop ($5$\,min grid; PH5--6 are $25$--$30$\,min
 ahead). Panel (b): SZ-Taxi ($15$\,min grid; PH5--6 are $75$--$90$\,min
@@ -1502,11 +1507,9 @@ mildly: T-GCN-MultiGSL remains at $6.62$ and $6.88$
 $7.26$--$7.55$. On GCN, denser contemporaneous graphs are not better
 (GCN-GSL $10.46$ at PH5 versus $9.13$ at $\lambda_1=0.02$). Within this
 single setting and these two horizons, ranking relative to the graph-free
-control is unchanged. A full $\lambda_1$ and threshold grid remains
-outside the present study (Section~\ref{sec:limitations}).
+control is unchanged. %A full $\lambda_1$ and threshold grid remains outside the present study (Section~\ref{sec:limitations}).
 
-These extensions cover PH5--PH6 only. Horizons beyond PH6 remain outside
-the evaluated scope.
+%These extensions cover PH5--PH6 only. Horizons beyond PH6 remain outside the evaluated scope.
 
 
 

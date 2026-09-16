@@ -110,7 +110,7 @@ The following experiments and evaluations are new relative to the submitted manu
     \item \textbf{Capacity control.} A graph-free T-GCN with hidden dimension $74$ (parameter-matched to Mix) was trained as a single-seed check that extra gate parameters do not explain the multi-lag gain (Table~4, lower block).
     \item \textbf{Temporal-resolution control.} Los-loop was resampled to $15$-minute steps and the multi-lag comparison was repeated under the same five-seed protocol (Section~4.6; Table~6).
     \item \textbf{Longer horizons (PH5--PH6).} The main protocol was extended to PH5 and PH6 on both native grids (Los-loop at $25$--$30$\,min; SZ-Taxi at $75$--$90$\,min), including GSL/cGSL, and is summarized in a two-panel PH1--PH6 trend figure (Appendix~A.3).
-    \item \textbf{Limited $\lambda_1$ check.} On Los-loop PH5--PH6, contemporaneous DAGMA was refit with $\lambda_1=0.01$ (SZ-Taxi default) versus the Los-loop value $0.02$ (Appendix~A.3).
+    \item \textbf{Limited $\lambda_1$ check.} On Los-loop, contemporaneous DAGMA was refit with $\lambda_1=0.01$ (SZ-Taxi default) versus the Los-loop value $0.02$ (Appendix~A.3).
     \item \textbf{Structure and qualitative figures.} Physical vs.\ learned multi-lag graph structure with degree histograms (Figure~5); per-seed RMSE distributions (Figure~8); predicted-vs-actual overlays on Los-loop and SZ-Taxi (Figures~9--10).
     \item \textbf{Reference adjacencies.} In addition to the physical road-network graph, all main tables include an identity (no off-diagonal structure) reference so that a gain over Physical is not treated as sufficient evidence by itself.
 \end{enumerate}
@@ -257,7 +257,7 @@ We agree this was load-bearing and was not demonstrated in the previous submitte
     The submitted ``spatial graph vs temporal dependency graph'' paradox section is not in the revised paper. The GSL/cGSL asymmetry is discussed only as an aggregation-compatibility observation (Discussion Section~6.2).
 
     \item \textbf{Contemporaneous vs lagged evidence (also relevant to Q4).}
-    The two constructions are specified side by side in Sections~3.2--3.3; Results Section~5.4 compares single contemporaneous graphs with multi-lag graphs and with static-union vs lag-aligned use of the \textbf{same} multi-lag artifacts (Tables~2--3).
+    The two constructions are specified side by side in Sections~3.2--3.3; Results Section~5.4 compares single contemporaneous graphs with multi-lag graphs and with static-union vs lag-aligned use of the \textbf{same} multi-lag artifacts (Tables~2, 3).
 \end{enumerate}
 
 \textbf{Location:} Method Sections~3.2--3.3; Discussion Section~6.2.
@@ -377,12 +377,14 @@ Contemporaneous GSL is re-estimated for PH5 and PH6 because its input depends on
 \textbf{What the longer horizons show.}
 \begin{enumerate}
     \item \textbf{Los-loop T-GCN:} ranking is stable through PH6. T-GCN-MultiGSL-Mix has the lowest mean RMSE at every horizon; the physical graph remains the worst of the listed methods. The advantage of multi-lag use over the graph-free control \textbf{persists but shrinks}: Mix reduces RMSE by about $9$--$15\%$ at PH1--PH4 and by $8.0\%$ and $9.1\%$ at PH5 and PH6 (ungated MultiGSL: $2.3\%$ and $3.9\%$ at PH5--PH6).
-    \item \textbf{GSL vs.\ cGSL (the focus of the question):} on T-GCN the two variants stay close at every horizon through PH6 (difference at most $0.06$ RMSE; at PH5--PH6, $|{\Delta}|=0.01$, well inside the five-seed spreads). The directed-versus-symmetrized gap does \textbf{not} widen as the horizon grows.
+    \item \textbf{GSL vs.\ cGSL:} on T-GCN the two variants stay close at every horizon through PH6 (difference at most $0.06$ RMSE; at PH5--PH6, $|{\Delta}|=0.01$, well inside the five-seed spreads). The directed-versus-symmetrized gap does \textbf{not} widen as the horizon grows.
     \item \textbf{Los-loop GCN at PH5--PH6:} the PH1--PH4 pattern continues---cGSL is the strongest learned contemporaneous variant, while MultiGSL as a static union remains worse than the physical GCN.
-    \item \textbf{SZ-Taxi at PH5--PH6:} learned variants stay close to the graph-free control (MultiGSL within $0.02$--$0.04$ RMSE); the Los-loop multi-lag gain does not transfer to $75$--$90$ minutes on SZ-Taxi.
+    \item \textbf{SZ-Taxi at PH5--PH6:} learned variants stay close to the graph-free control (MultiGSL within $0.02$--$0.04$ RMSE).
+    %; the Los-loop multi-lag gain does not transfer to $75$--$90$ minutes on SZ-Taxi.
 \end{enumerate}
 
-\textbf{Scope.} We evaluate through \textbf{PH6} on both native grids. Horizons beyond PH6 are not claimed (Section~6.5; Conclusion). The separate $15$-minute Los-loop resampling control (Section~4.6; Table~6) is unchanged and remains a resolution study, not a substitute for PH5--PH6 on the native $5$-minute series.
+\textbf{Scope.} We evaluate through \textbf{PH6} on both native grids. Horizons beyond PH6 are not claimed (Section~6.5; Conclusion). 
+%The separate $15$-minute Los-loop resampling control (Section~4.6; Table~6) is unchanged and remains a resolution study, not a substitute for PH5--PH6 on the native $5$-minute series.
 
 \textbf{Location:} Appendix~A.3 (protocol, PH1--PH6 trend figure, GCN/SZ notes); Section~6.5 (horizon scope); Conclusion.
 }
@@ -420,15 +422,15 @@ The Results section has been reorganized so that each subsection answers one que
 \response{
 A dedicated Limitations discussion was added (Section~6.5) and covers the three issues raised, together with other scope conditions of the study.
 
-\textbf{DAGMA scalability and cost.} Graph estimation with DAGMA is the heavier offline stage compared with ordinary forecasting-model training on these data. For a fixed dataset and construction, the graph is estimated \textbf{once} and reused for every forecasting seed, epoch, and test sample. Scalability to substantially larger road networks remains an open question (Section~6.5).
+%\textbf{DAGMA scalability and cost.} Graph estimation with DAGMA is the heavier offline stage compared with ordinary forecasting-model training on these data. For a fixed dataset and construction, the graph is estimated \textbf{once} and reused for every forecasting seed, epoch, and test sample. Scalability to substantially larger road networks remains an open question (Section~6.5).
 
-\textbf{Meaning of $\lambda$.} The reviewer's $\lambda$ refers to the DAGMA sparsity regularization coefficient $\lambda_1$. In the revision, $\lambda_1$ is $0.02$ (Los-loop) and $0.01$ (SZ-Taxi) for the contemporaneous construction (Section~3.2), and $0.01$ (both datasets) for the multi-lag construction (Section~3.3). Support thresholds are separate. A \textbf{limited} $\lambda_1$ check on Los-loop PH5--PH6 ($0.01$ versus $0.02$) is reported in Appendix~A.3; ranking relative to MultiGSL and the graph-free control is unchanged. A full $\lambda_1$/threshold grid is listed as future work (Section~6.5 and Conclusion).
-
-\textbf{Backbone coverage.} The study uses GCN and T-GCN as relatively established spatial and spatiotemporal backbones, providing a controlled setting for comparing graph construction and how the graph is used. Results should not be generalized automatically to all newer attention-based, adaptive-graph, or transformer-style models; evaluating the same constructions on those architectures is a natural extension.
-
-\textbf{Other limitations (concise).} Two datasets; horizons through \textbf{PH6} on the native grids (Appendix~A.3; beyond PH6 not evaluated); matched-sparsity/capacity controls only on Los-loop PH1; static learned graphs (Mix changes use, not the edge set); five forecasting seeds ($n=5$).
-
-\textbf{Location:} Section~6.5 (Limitations and Future Work); Appendix~A.3; Conclusion (future work: fuller $\lambda_1$/threshold grid, horizons beyond PH6, other backbones).
+%\textbf{Meaning of $\lambda$.} The reviewer's $\lambda$ refers to the DAGMA sparsity regularization coefficient $\lambda_1$. In the revision, $\lambda_1$ is $0.02$ (Los-loop) and $0.01$ (SZ-Taxi) for the contemporaneous construction (Section~3.2), and $0.01$ (both datasets) for the multi-lag construction (Section~3.3). Support thresholds are separate. A \textbf{limited} $\lambda_1$ check on Los-loop PH5--PH6 ($0.01$ versus $0.02$) is reported in Appendix~A.3; ranking relative to MultiGSL and the graph-free control is unchanged. A full $\lambda_1$/threshold grid is listed as future work (Section~6.5 and Conclusion).
+%
+%\textbf{Backbone coverage.} The study uses GCN and T-GCN as relatively established spatial and spatiotemporal backbones, providing a controlled setting for comparing graph construction and how the graph is used. Results should not be generalized automatically to all newer attention-based, adaptive-graph, or transformer-style models; evaluating the same constructions on those architectures is a natural extension.
+%
+%\textbf{Other limitations (concise).} Two datasets; horizons through \textbf{PH6} on the native grids (Appendix~A.3; beyond PH6 not evaluated); matched-sparsity/capacity controls only on Los-loop PH1; static learned graphs (Mix changes use, not the edge set); five forecasting seeds ($n=5$).
+%
+%\textbf{Location:} Section~6.5 (Limitations and Future Work); Appendix~A.3; Conclusion (future work: fuller $\lambda_1$/threshold grid, horizons beyond PH6, other backbones).
 }
 
 \reviewercomment{
@@ -436,7 +438,9 @@ A dedicated Limitations discussion was added (Section~6.5) and covers the three 
 }
 
 \response{
-We shortened the metrics subsection to \textbf{RMSE (primary) and MAE only} (Section~4.4), with compact formulas and a one-line definition of the evaluation set size $n$. Accuracy and $R^{2}$ are no longer expanded in the main text (they remain in the code base only). RMSE remains the primary metric in the main tables. There is no separate MAE appendix; additional appendix material is limited to lag ablation and training curves (Appendix~A) and bibliometrics (Appendix~B).
+We shortened the metrics subsection to \textbf{RMSE} (Section~4.4) and a one-line definition of the evaluation set size $n$. 
+%Accuracy and $R^{2}$ are no longer expanded in the main text (they remain in the code base only). RMSE remains the primary metric in the main tables. There is no separate MAE appendix; 
+Additional appendix material is limited to lag ablation and training curves (Appendix~A) and bibliometrics (Appendix~B).
 
 \textbf{Location:} Section~4.4 (Evaluation Metrics).
 }
@@ -446,7 +450,7 @@ We shortened the metrics subsection to \textbf{RMSE (primary) and MAE only} (Sec
 }
 
 \response{
-The multi-panel per-epoch grids have been \textbf{removed from the main text}. Primary evidence is \textbf{final RMSE with sample standard deviations} (Tables~2--3; Figures~3--4 for key Los-loop PH1 configurations) plus compact structure and per-seed figures. A \textbf{log-scale training-loss figure} (two methods: T-GCN (Physical) and T-GCN-MultiGSL-Mix; Los-loop PH1 seed $42$) is retained in \textbf{Appendix~A.2} as an optimization diagnostic only, not as a ranking argument.
+The multi-panel per-epoch grids have been \textbf{removed from the main text}. Primary evidence is \textbf{final RMSE with sample standard deviations} (Tables~2--3; Figures~3--4 for key Los-loop PH1 configurations) plus compact structure and per-seed figures. A \textbf{log-scale training-loss figure} (two methods: T-GCN (Physical) and T-GCN-MultiGSL-Mix; Los-loop PH1 seed $42$) is retained in \textbf{Appendix~A.2} as an optimization diagnostic only. %, not as a ranking argument.
 
 \textbf{Location:} Main Results tables/figures; Appendix~A.2 (Training curves). Supplementary lag ablation is in Appendix~A.1.
 }
@@ -474,7 +478,7 @@ We include a structure figure that contrasts the \textbf{physical road-network a
 }
 
 \reviewercomment{
-\textbf{R1-Q2.} Could you add example plots of predicted vs.\ actual traffic speed time series for a few individual road nodes, to complement the aggregate RMSE/MAE tables with a qualitative sense of where the learned graph helps or hurts?
+\textbf{R1-Q2.} Could you add example plots of predicted vs.\ actual traffic speed time series for a few individual road nodes, to complement the aggregate RMSE tables with a qualitative sense of where the learned graph helps or hurts?
 }
 
 \response{
@@ -484,7 +488,7 @@ We added qualitative figures of \textbf{predicted versus actual speeds} on Los-l
 
 \textbf{Figure~10}, caption ``Predicted versus actual speed on SZ-Taxi \ldots'', uses the same layout and the same two predictors. Here as well the proposed multi-lag model is visibly closer to the ground-truth series than the physical-graph baseline on the high-variance nodes shown.
 
-These figures are explicitly illustrative and do not replace aggregate RMSE/MAE.
+These figures are explicitly illustrative and do not replace aggregate RMSE.
 
 \textbf{Location:} Figures~9--10 (Results, Multi-Lag Learned Graphs and Dataset Dependence).
 }
@@ -546,9 +550,11 @@ For visualization, \textbf{Figure~5} shows the physical adjacency versus the mul
 }
 
 \response{
-The reviewer is correct: the graph is fitted \textbf{once} and does not change over time. The contradictory ``adapts to changing traffic'' wording is \textbf{removed}. The revised Method states that learned adjacencies are static (Section~3.1); the Mix gate changes \textbf{how} those fixed lag graphs are used per node and timestep, not the edge set (Section~3.4).
+
+The reviewer is correct: the graph is fitted \textbf{once} and does not change over time. The contradictory ``adapts to changing traffic'' wording is \textbf{removed}. The revised Method states that learned adjacencies are static (Section~3.1); the Mix gate changes \textbf{how} those fixed lag graphs are used per node and timestep, not the edge set (Section~3.4). Adapting the graph structure itself to evolving traffic patterns would require repeated or incremental graph estimation, which is not part of the current forecasting pipeline and is left as future work.
 
 \textbf{Location:} Method Sections~3.1 and~3.4; Section~6.5; Conclusion (time-varying graphs as future work).
+
 }
 
 \reviewercomment{
