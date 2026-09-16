@@ -1309,13 +1309,14 @@ Second, a fair comparison with a physical graph requires benchmarks that
 ship a road-network adjacency; we therefore use two standard public traffic
 datasets rather than an arbitrary collection of sensors.
 
-Scope is also limited by the evaluation protocol: main results use PH1--4
-at each dataset's native sampling interval; the extension in
-Appendix~\ref{sec:app-longhorizon} adds PH5--PH6 on the native 5-minute
-Los-loop series, and horizons beyond PH6 were not evaluated (the 15-minute
-study is a resolution control only); matched-sparsity and capacity
-controls are reported only on Los-loop at PH1; a systematic
-$\lambda_1$/threshold sweep was not run; and forecasting results are
+Scope is also limited by the evaluation protocol: the main tables use
+PH1--4 at each dataset's native sampling interval. Appendix~\ref{sec:app-longhorizon}
+extends the same protocol to PH5--PH6 on both benchmarks (Los-loop at
+$25$--$30$\,min ahead; SZ-Taxi at $75$--$90$\,min ahead); horizons beyond
+PH6 were not evaluated. Matched-sparsity and capacity controls are
+reported only on Los-loop at PH1. A limited $\lambda_1$ check at
+PH5--PH6 on Los-loop is reported in the same appendix, but a systematic
+$\lambda_1$/threshold grid was not run. Forecasting results are
 five-seed means ($n=5$), which is enough to report training spread and
 paired seed consistency but not enough to support formal significance
 claims beyond the statistical-reporting paragraph in
@@ -1323,9 +1324,9 @@ Section~\ref{sec:metrics}.
 
 If graph structure is to be re-estimated dynamically, or over many rolling
 time windows, a more efficient estimator (or an adaptive, incremental
-variant of DAGMA) would be needed. Other natural extensions are longer
-horizons at $5$-minute sampling, additional networks with physical graphs,
-sensitivity studies for $\lambda_1$ and support thresholds, hybrid models
+variant of DAGMA) would be needed. Other natural extensions are horizons
+beyond PH6 at native sampling, additional networks with physical graphs,
+a fuller grid of $\lambda_1$ and support thresholds, hybrid models
 with attention \citep{Sun2023Attention}, and other forecasting backbones.
 These directions do not change the central finding: when the recovered
 structure is informative and is used consistently with how it was
@@ -1416,88 +1417,113 @@ T-GCN-MultiGSL-Mix (Los-loop PH1, seed $42$).}
 \label{fig:convergence}
 \end{figure}
 
-\subsection{Longer Horizons on the Native 5-Minute Series (PH5--PH6)}
+\subsection{Trend Across Horizons (PH1--PH6)}
 \label{sec:app-longhorizon}
 
-The main evaluation reports horizons PH1--PH4 at the native $5$-minute
-sampling of Los-loop (Sections~\ref{sec:setup}
-and~\ref{sec:res-physical}). To probe how the comparisons behave beyond
-that range, this appendix extends the same evaluation to two longer
-horizons, $\mathrm{PH}=5$ and $\mathrm{PH}=6$, which correspond to $25$
-and $30$ minutes ahead. SZ-Taxi is not included: on its native
-$15$-minute grid these indices would correspond to $75$--$90$ minutes
-ahead, a different forecasting regime.
+The main tables report PH1--PH4 at each dataset's native sampling
+(Sections~\ref{sec:setup} and~\ref{sec:res-physical}). To show how the
+comparisons evolve at longer lookahead without repeating those tables,
+this appendix extends the same protocol to $\mathrm{PH}=5$ and
+$\mathrm{PH}=6$ and plots mean test RMSE against PH for PH1--PH6.
+On the native $5$-minute Los-loop grid, PH5 and PH6 are $25$ and $30$
+minutes ahead. On the native $15$-minute SZ-Taxi grid the same indices
+are $75$ and $90$ minutes ahead and are treated as a separate wall-clock
+regime, not as a direct continuation of the short-horizon tables.
 
-The protocol is identical to the main experiments
-(Section~\ref{sec:setup}): same chronological split and normalization,
-the same input length ($12$ steps), and the same training
-configuration (batch $128$, Adam with learning rate $10^{-3}$, weight
-decay $10^{-4}$, hidden size $64$, $50$ epochs) over five seeds
-($42$--$46$). Two graph sources require comment. First, the
-contemporaneous GSL graph is re-estimated per horizon because its
-input $X = \text{train}[0{:}{:}\mathrm{PH}]$ depends on $\mathrm{PH}$;
-we use exactly the DAGMA settings of the main experiments
-($\lambda_1=0.02$, $w$-threshold $0.3$, library defaults otherwise,
-seed $42$), yielding $26$ (PH5) and $30$ (PH6) edges after
-thresholding---the same sparse scale as at PH1--PH4; each fit took
-about one hour on CPU, consistent with the cost discussion in
-Section~\ref{sec:limitations}. Second, the multi-lag DAGMA artifacts
-are horizon-independent by construction (they are fitted on the
-training split only), so the same artifacts as in the main experiments
-are used; cGSL is the symmetrized version of the same graph, as
-throughout the paper.
+The training protocol is identical to the main experiments
+(Section~\ref{sec:setup}): chronological split and train-split
+normalization, input length $12$, batch $128$, Adam with learning rate
+$10^{-3}$, weight decay $10^{-4}$, hidden size $64$, $50$ epochs, and five
+seeds ($42$--$46$). MultiGSL-Weighted is omitted; at PH1--PH4 it matches
+MultiGSL within $0.01$ RMSE (Table~\ref{tab:tgcn-main}). The gated Mix
+variant is shown on Los-loop only (PH1--PH6). Two graph sources require
+comment.
 
-Table~\ref{tab:longhorizon} reports five-seed test RMSE for PH1--PH6
-(PH1--PH4 repeat Table~\ref{tab:tgcn-main} and are included for
-comparability). Three observations. (i)~All methods degrade
-monotonically as the horizon grows, and no ranking reverses:
-T-GCN-MultiGSL-Mix has the lowest mean RMSE in every column, and the
-learned variants remain well below the physical graph, whose error
-keeps growing ($8.68$ and $8.97$ at PH5 and PH6). (ii)~The advantage over the graph-free baseline persists but shrinks:
-T-GCN-MultiGSL-Mix reduces RMSE relative to the graph-free control by
-$9$--$15\%$ at PH1--PH4 and by $8.0\%$ and $9.1\%$ at PH5 and PH6 (the
-ungated T-GCN-MultiGSL shows the same direction, $2$--$8\%$). (iii)~The GSL/cGSL comparison---
-the focus of the long-horizon question---shows no meaningful
-separation at any horizon: across PH1--PH6 the two variants never
-differ by more than $0.06$ RMSE, and at PH5 and PH6 the difference
-($-0.01$ RMSE in both cases, cGSL slightly lower) is far smaller than
-the five-seed standard deviations ($0.02$--$0.12$). The directed versus
-symmetrized use of the same learned graph is therefore immaterial at
-these horizons, and the gap does not widen as the horizon grows.
+\emph{Contemporaneous GSL/cGSL.} The input
+$X=\mathrm{train}[0::\mathrm{PH}]$ depends on $\mathrm{PH}$, so the
+contemporaneous DAGMA fit is repeated for PH5 and PH6 under the same
+settings as in the main experiments ($\lambda_1=0.02$ on Los-loop and
+$0.01$ on SZ-Taxi; internal threshold $0.3$; seed $42$). After
+thresholding, Los-loop yields $26$ edges (PH5) and $30$ edges (PH6),
+comparable to PH1--PH4; cGSL is the binary symmetrization of the same
+artifact. Each Los-loop fit is on the order of an hour on CPU, consistent
+with Section~\ref{sec:limitations}.
 
-These results cover PH5--PH6 on one dataset; horizons beyond PH6 and
-the SZ-Taxi long-horizon regime remain outside the evaluated scope
-(Section~\ref{sec:limitations}).
+\emph{Multi-lag graphs.} The multi-lag blocks are fitted on the training
+split only and are horizon-independent, so the same artifacts as in the
+main experiments are reused.
 
-\begin{table}[t]
+Figure~\ref{fig:ph16-trends} summarizes the T-GCN family (means over five
+seeds; sample standard deviations for PH1--PH4 are in
+Table~\ref{tab:tgcn-main}, and for PH5--PH6 they are in the same range,
+$0.00$--$0.22$ RMSE). Three patterns are stable across the full horizon
+range.
+
+\begin{figure}[t]
 \centering
-\caption{Long-horizon extension (Los-loop, native $5$\,min grid): test
-RMSE, mean over five seeds with sample standard deviation in
-parentheses. PH5 and PH6 correspond to $25$ and $30$\,min ahead.
-PH1--PH4 repeat Table~\ref{tab:tgcn-main}. Protocol and graph
-estimation are unchanged from the main experiments; the contemporaneous
-GSL graph is re-estimated per horizon ($26$ edges at PH5, $30$ at PH6).
-The italic first row is the graph-free control (not a proposed method).
-Bold: lowest mean per column among the compared methods.
-MultiGSL-Weighted was not part of this extension; at PH1--PH4 it
-matches MultiGSL within $0.01$ RMSE (Table~\ref{tab:tgcn-main}).}
-\label{tab:longhorizon}
-\footnotesize
-\begin{tabular}{lcccccc}
-\toprule
-Method & PH1 & PH2 & PH3 & PH4 & PH5 & PH6 \\
-\midrule
-\textit{Graph-free baseline (NoSpatial)} & \textit{5.25 (0.19)} & \textit{5.76 (0.08)} & \textit{6.11 (0.07)} & \textit{6.58 (0.12)} & \textit{6.77 (0.11)} & \textit{7.16 (0.02)} \\
-\midrule
-T-GCN (Physical) & 7.88 (0.28) & 8.13 (0.09) & 8.37 (0.17) & 8.66 (0.16) & 8.68 (0.22) & 8.97 (0.07) \\
-T-GCN-GSL & 5.86 (0.21) & 6.30 (0.06) & 6.66 (0.12) & 7.04 (0.09) & 7.22 (0.12) & 7.62 (0.04) \\
-T-GCN-cGSL & 5.82 (0.23) & 6.35 (0.12) & 6.67 (0.11) & 7.09 (0.12) & 7.21 (0.10) & 7.60 (0.02) \\
-T-GCN-MultiGSL & 4.84 (0.11) & 5.45 (0.14) & 5.94 (0.03) & 6.26 (0.03) & 6.61 (0.05) & 6.88 (0.04) \\
-T-GCN-MultiGSL-Weighted & 4.83 (0.11) & 5.44 (0.13) & 5.93 (0.03) & 6.25 (0.03) & -- & -- \\
-T-GCN-MultiGSL-Mix & \textbf{4.49 (0.14)} & \textbf{5.08 (0.15)} & \textbf{5.55 (0.16)} & \textbf{5.86 (0.07)} & \textbf{6.23 (0.07)} & \textbf{6.51 (0.11)} \\
-\bottomrule
-\end{tabular}
-\end{table}
+\includegraphics[width=0.98\linewidth]{figures/ph16_tgcn_trends.pdf}
+\caption{T-GCN family: mean test RMSE versus prediction horizon
+(PH1--PH6). Panel (a): Los-loop ($5$\,min grid; PH5--6 are $25$--$30$\,min
+ahead). Panel (b): SZ-Taxi ($15$\,min grid; PH5--6 are $75$--$90$\,min
+ahead). PH1--PH4 match Table~\ref{tab:tgcn-main}; PH5--PH6 use the same
+protocol with contemporaneous graphs re-estimated per horizon. The
+graph-free curve is a reference control. MultiGSL-Mix is shown on
+Los-loop only.}
+\label{fig:ph16-trends}
+\end{figure}
+
+\paragraph{Los-loop}
+Error grows with PH and the ranking is stable: T-GCN-MultiGSL-Mix has the
+lowest mean RMSE at every horizon, MultiGSL is second among the listed
+methods, and the physical graph remains the worst. The advantage of
+multi-lag use over the graph-free control persists but shrinks: Mix
+reduces RMSE relative to the graph-free baseline by about $9$--$15\%$ at
+PH1--PH4 and by $8.0\%$ and $9.1\%$ at PH5 and PH6 (ungated MultiGSL:
+$2.3\%$ and $3.9\%$ at PH5--PH6). GSL and cGSL remain close at every
+horizon (difference at most $0.06$ RMSE through PH6; at PH5--PH6,
+$|{\Delta}|=0.01$, well inside the five-seed spreads). Directed versus
+symmetrized use of the same contemporaneous graph therefore does not
+separate at longer horizons, and the gap does not grow with PH.
+
+On the GCN family at PH5--PH6 (same protocol and graph artifacts as
+Table~\ref{tab:gcn-main}), the PH1--PH4 pattern continues: cGSL is the
+strongest learned contemporaneous variant (mean RMSE $6.99$ and $7.50$),
+while MultiGSL as a static union remains worse than the physical GCN
+($10.37$ and $10.59$ versus $8.85$ and $9.16$). This is consistent with
+Section~\ref{sec:res-multilag}: multi-lag structure is useful when
+consumed per timestep in T-GCN, not when merged into one static operator.
+
+\paragraph{SZ-Taxi}
+At PH5--PH6 the physical graph is clearly worse than the graph-free
+control, but learned variants stay close to (graph-free) or only modestly
+better than that control: on T-GCN, MultiGSL is within $0.02$--$0.04$
+RMSE of NoSpatial. This matches the short-horizon SZ-Taxi finding that
+the recovered multi-lag structure is nearly empty
+(Section~\ref{sec:res-boundaries}) and that the Los-loop multi-lag gain
+does not transfer to this dataset. GSL and cGSL again differ only
+slightly on T-GCN; on GCN, cGSL is stronger than directed GSL, as at
+PH1--PH4.
+
+\paragraph{Sensitivity to the DAGMA sparsity coefficient}
+As a limited check of $\lambda_1$, we refit the contemporaneous Los-loop
+graphs at PH5--PH6 with $\lambda_1=0.01$ (the SZ-Taxi default) instead of
+the Los-loop value $0.02$, and retrained the same T-GCN and GCN
+configurations under the same five-seed protocol. The weaker penalty
+yields denser contemporaneous graphs ($63$ and $65$ directed edges at PH5
+and PH6, versus $26$ and $30$ at $\lambda_1=0.02$). Multi-lag artifacts
+are unchanged (they are fitted separately). Forecasting results shift only
+mildly: T-GCN-MultiGSL remains at $6.62$ and $6.88$
+(vs.\ $6.61$ and $6.88$ at $\lambda_1=0.02$), and T-GCN-GSL stays near
+$7.26$--$7.55$. On GCN, denser contemporaneous graphs are not better
+(GCN-GSL $10.46$ at PH5 versus $9.13$ at $\lambda_1=0.02$). Within this
+single setting and these two horizons, ranking relative to the graph-free
+control is unchanged. A full $\lambda_1$ and threshold grid remains
+outside the present study (Section~\ref{sec:limitations}).
+
+These extensions cover PH5--PH6 only. Horizons beyond PH6 remain outside
+the evaluated scope.
+
+
 
 \section{Bibliometric Analysis Methodology}\label{sec:Bibliometric-Methodology}
 
