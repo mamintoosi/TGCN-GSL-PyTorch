@@ -11,9 +11,9 @@ five-seed training, and matched-sparsity controls.
 **Main result (short):** on Los-loop, lag-specific learned graphs used in a
 lag-aligned way inside T-GCN reduce RMSE by up to **43% relative to the
 physical adjacency** (PH1–4). Matched 30-edge random/correlation graphs do
-not recover that gain, so sparsity alone is not the explanation. On SZ-Taxi
-the recovered multi-lag structure is nearly empty and improvements over the
-physical graph are much smaller.
+not recover that gain, so sparsity alone is not the explanation. On SZ-Taxi,
+improvements over the physical graph are much smaller and only marginal
+relative to the graph-free reference.
 
 ---
 
@@ -38,14 +38,16 @@ utils/                 # graph Laplacian, losses, logging
 tasks/                 # SupervisedForecastTask (training + eval)
 src/                   # experiment and figure scripts
 configs/               # YAML configs (legacy main.py)
-results/               # experiment artifacts used by the paper
-paper/revised_version/ # manuscript, figures, and response letter
+results/               # experiment artifacts
+tools/                 # optional diagnostics (e.g. DAGMA runtime check)
+paper/                 # placeholder only (see paper/README.md)
+archive/               # historical stages, notes, one-off runners
 run_experiments.sh     # entry point for experiments and figures
 ```
 
-Historical stage reports and older drafts live under
-`archive/repo_cleanup_20260913/` and are **not** required to reproduce the
-paper. See `archive/repo_cleanup_20260913/CLEANUP_REPORT.md`.
+Historical stage reports, older drafts, reviewer-era notes, and one-off
+supplementary runners live under `archive/` and are **not** required to
+reproduce the main experiment matrix.
 
 ---
 
@@ -74,7 +76,7 @@ bash run_experiments.sh los15        # 15-min Los-loop variant
 bash run_experiments.sh sparse       # matched-30-edge controls
 bash run_experiments.sh sweep        # edge-budget sweep
 bash run_experiments.sh physical     # Physical T-GCN preds + train loss
-bash run_experiments.sh figures      # regenerate all paper figures
+bash run_experiments.sh figures      # regenerate figures
 ```
 
 Equivalent Python entry points are under `src/`
@@ -89,7 +91,6 @@ Equivalent Python entry points are under `src/`
 | `dagma` / `gsl` | DAGMA graphs under `results/stage26_validation/`, `stage33_gsl_canonical/` |
 | `sparse` | matched-sparsity control results |
 | `sweep` | `results/stage58_sparsity_sweep/full.csv` |
-| `figures` | `paper/revised_version/figures/*.pdf` |
 
 ---
 
@@ -116,16 +117,15 @@ forecasting models is sufficient for the published runs.
   replicable. Training still involves stochastic elements (e.g. weight
   initialization), which is why results are reported as mean ± std over five
   seeds.
-- DAGMA is deterministic for a given dataset, construction, and
-  hyperparameters: the graph is fitted once and shared across forecasting
-  seeds.
+- DAGMA graphs are fitted once per dataset/construction and then shared
+  across forecasting seeds (training-seed variability only).
 
 ### Hyperparameters
 
 | Setting | Value |
 |---------|--------|
 | Historical window $T$ | 12 |
-| Prediction horizons | 1, 2, 3, 4 |
+| Prediction horizons | 1, 2, 3, 4 (main protocol) |
 | Optimizer | Adam |
 | Learning rate | $10^{-3}$ |
 | Weight decay | $10^{-4}$ |
@@ -136,32 +136,13 @@ forecasting models is sufficient for the published runs.
 | Loss (T-GCN) | $\ell_2$ with weight penalty $\lambda_{\mathrm{reg}}=1.5\times 10^{-3}$ |
 | Structure learning | DAGMA (contemporaneous and multi-lag) |
 
-Training protocol details are in `paper/revised_version/sn-article.tex`
-§4.3 (*Training Protocol*).
-
-### Approximate cost
-
-- Contemporaneous DAGMA: tens of minutes per horizon with $O(10^2)$ sensors.
-- Multi-lag DAGMA on Los-loop ($828$ variables): a few hours on CPU.
-- Exact wall-clock times depend on the machine.
-
 ---
 
 ## Paper
 
-- Source: `paper/revised_version/sn-article.tex`
-  (plus `commands.tex`, `sn-jnl.cls`, `MyReferences.bib`)
-- Figures: `paper/revised_version/figures/`
-- Point-by-point response letter: `paper/revised_version/R1/Response-to-Comments.tex`
-
-Compile from `paper/revised_version/`:
-
-```bash
-pdflatex sn-article.tex
-bibtex sn-article
-pdflatex sn-article.tex
-pdflatex sn-article.tex
-```
+The journal manuscript is not maintained in this working tree. See
+`paper/README.md`. Historical paper folders and reviewer-era materials are
+under `archive/`.
 
 ---
 
