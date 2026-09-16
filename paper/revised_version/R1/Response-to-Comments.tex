@@ -351,7 +351,7 @@ The submitted version reported essentially single-run numbers; the revision adds
 
 \textbf{Paired $t$-tests (secondary only).} For one Los-loop Mix-vs-baseline discussion we also computed paired $t$-tests on per-seed RMSE differences as a secondary diagnostic (Section~5.4; statistical-reporting paragraph of Section~4.4). With $n=5$ these are not treated as formal proof and are not used as the primary evidence; the tables and claims rest on means, spreads, and paired win counts.
 
-\textbf{Significance language.} With $n=5$, the exact two-sided Wilcoxon signed-rank test cannot attain $p<0.0625$. We therefore avoid definitive ``statistically significant'' claims and state this limitation in the statistical-reporting policy (Section~4.4) and under Limitations (Section~6.5).
+\textbf{Significance language.} With only five training seeds, we avoid definitive ``statistically significant'' claims and state this limitation in the statistical-reporting policy (Section~4.4) and under Limitations (Section~6.5).
 
 A per-seed distribution figure on Los-loop (\textbf{Figure~8}, ``Los-loop per-seed test RMSE for the multi-lag use ladder'') complements the tables; its means match Table~2.
 
@@ -379,7 +379,7 @@ Contemporaneous GSL is re-estimated for PH5 and PH6 because its input depends on
     \item \textbf{Los-loop T-GCN:} ranking is stable through PH6. T-GCN-MultiGSL-Mix has the lowest mean RMSE at every horizon; the physical graph remains the worst of the listed methods. The advantage of multi-lag use over the graph-free control \textbf{persists but shrinks}: Mix reduces RMSE by about $9$--$15\%$ at PH1--PH4 and by $8.0\%$ and $9.1\%$ at PH5 and PH6 (ungated MultiGSL: $2.3\%$ and $3.9\%$ at PH5--PH6).
     \item \textbf{GSL vs.\ cGSL (the focus of the question):} on T-GCN the two variants stay close at every horizon through PH6 (difference at most $0.06$ RMSE; at PH5--PH6, $|{\Delta}|=0.01$, well inside the five-seed spreads). The directed-versus-symmetrized gap does \textbf{not} widen as the horizon grows.
     \item \textbf{Los-loop GCN at PH5--PH6:} the PH1--PH4 pattern continues---cGSL is the strongest learned contemporaneous variant, while MultiGSL as a static union remains worse than the physical GCN.
-    \item \textbf{SZ-Taxi at PH5--PH6:} learned variants stay close to the graph-free control (MultiGSL within $0.02$--$0.04$ RMSE), consistent with the nearly empty multi-lag structure on this dataset. The Los-loop multi-lag gain does not transfer to $75$--$90$ minutes on SZ-Taxi.
+    \item \textbf{SZ-Taxi at PH5--PH6:} learned variants stay close to the graph-free control (MultiGSL within $0.02$--$0.04$ RMSE); the Los-loop multi-lag gain does not transfer to $75$--$90$ minutes on SZ-Taxi.
 \end{enumerate}
 
 \textbf{Scope.} We evaluate through \textbf{PH6} on both native grids. Horizons beyond PH6 are not claimed (Section~6.5; Conclusion). The separate $15$-minute Los-loop resampling control (Section~4.6; Table~6) is unchanged and remains a resolution study, not a substitute for PH5--PH6 on the native $5$-minute series.
@@ -524,7 +524,7 @@ Empirically, the \textbf{same multi-lag artifacts} used per timestep in T-GCN an
 }
 
 \response{
-The previous submitted abstract's ``21.6\% and 24.7\%'' figures were inconsistent with the results tables and are \textbf{removed}. The revised abstract reports a \textbf{maximum relative RMSE reduction of $43.0\%$ versus the physical T-GCN baseline among the evaluated Los-loop horizons PH1--PH4} (i.e.\ the largest of the four horizon-wise reductions, not a constant $43\%$ at every horizon), describes matched edge-budget controls that show the gain is not explained by sparsity alone, and states that a graph-free identity baseline is included as a reference control. The SZ-Taxi boundary (nearly empty multi-lag structure; much smaller improvements) is stated in the same abstract. Because the graph-estimation and training pipeline was revised, these numbers are not required to match the submitted tables. The more specific \textbf{14.5\%} relative reduction versus the graph-free baseline on Los-loop PH1 (T-GCN-MultiGSL-Mix) is given in Section~5.4 and Conclusion item~3.
+The previous submitted abstract's ``21.6\% and 24.7\%'' figures were inconsistent with the results tables and are \textbf{removed}. The revised abstract reports a \textbf{maximum relative RMSE reduction of $43.0\%$ versus the physical T-GCN baseline among the evaluated Los-loop horizons PH1--PH4} (i.e.\ the largest of the four horizon-wise reductions, not a constant $43\%$ at every horizon), describes matched edge-budget controls that show the gain is not explained by sparsity alone, and states that a graph-free identity baseline is included as a reference control. The SZ-Taxi boundary (much smaller, only marginal improvements versus the physical graph and the graph-free reference) is stated in the same abstract. Because the graph-estimation and training pipeline was revised, these numbers are not required to match the submitted tables. The more specific \textbf{14.5\%} relative reduction versus the graph-free baseline on Los-loop PH1 (T-GCN-MultiGSL-Mix) is given in Section~5.4 and Conclusion item~3.
 
 \textbf{Location:} Abstract; Results Sections~5.3--5.4; Conclusion.
 }
