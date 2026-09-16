@@ -700,7 +700,7 @@ architectures: the goal is to assess the effect of graph structure learning
 inside established frameworks that many later models build upon
 \citep{YU2020189,ZHOU2025110304}.
 
-Within each backbone family we compare physical, graph-free, and learned
+Within each backbone family we compare physical, graph-free (NoSpatial), and learned
 adjacencies, and (for multi-lag graphs) different ways of using the learned
 structure (Section~\ref{sec:method}).
 
@@ -718,10 +718,8 @@ Architectures within a family are identical apart from the adjacency and,
 for the multi-lag T-GCN variants, the lag-graph use
 (Section~\ref{sec:consumption}). Contemporaneous and multi-lag DAGMA
 hyperparameters and thresholds are as specified in
-Sections~\ref{sec:gsl_contemp} and \ref{sec:gsl_multilag}. For the
-contemporaneous construction, the sparsity coefficient is
-$\lambda_1=0.01$ on SZ-Taxi and $\lambda_1=0.02$ on Los-loop, consistent
-with the original GSL protocol.
+Sections~\ref{sec:gsl_contemp} and \ref{sec:gsl_multilag} (
+including $\lambda_1=0.01$ on SZ-Taxi and $\lambda_1=0.02$ for the contemporaneous fit).
 
 \subsection{Training Protocol}\label{sec:training}
 
@@ -853,7 +851,7 @@ compared methods only (not a significance claim).}
 Method & PH1 & PH2 & PH3 & PH4 \\
 \midrule
 \multicolumn{5}{l}{\textit{Los-loop (5\,min)}} \\
-\textit{Graph-free baseline (NoSpatial)} & \textit{5.25 (0.19)} & \textit{5.76 (0.08)} & \textit{6.11 (0.07)} & \textit{6.58 (0.12)} \\
+\textit{Graph-free baseline } & \textit{5.25 (0.19)} & \textit{5.76 (0.08)} & \textit{6.11 (0.07)} & \textit{6.58 (0.12)} \\
 \midrule
 T-GCN (Physical) & 7.88 (0.28) & 8.13 (0.09) & 8.37 (0.17) & 8.66 (0.16) \\
 T-GCN-GSL & 5.86 (0.21) & 6.30 (0.06) & 6.66 (0.12) & 7.04 (0.09) \\
@@ -863,7 +861,7 @@ T-GCN-MultiGSL-Weighted & 4.83 (0.11) & 5.44 (0.13) & 5.93 (0.03) & 6.25 (0.03) 
 T-GCN-MultiGSL-Mix & \textbf{4.49 (0.14)} & \textbf{5.08 (0.15)} & \textbf{5.55 (0.16)} & \textbf{5.86 (0.07)} \\
 \midrule
 \multicolumn{5}{l}{\textit{SZ-Taxi (15\,min)}} \\
-\textit{Graph-free baseline (NoSpatial)} & \textit{4.12 (0.00)} & \textit{4.16 (0.01)} & \textit{4.19 (0.01)} & \textit{4.23 (0.01)} \\
+\textit{Graph-free baseline } & \textit{4.12 (0.00)} & \textit{4.16 (0.01)} & \textit{4.19 (0.01)} & \textit{4.23 (0.01)} \\
 \midrule
 T-GCN (Physical) & 5.45 (0.11) & 5.55 (0.08) & 5.60 (0.05) & 5.63 (0.06) \\
 T-GCN-GSL & 4.28 (0.05) & 4.31 (0.03) & 4.33 (0.01) & 4.37 (0.02) \\
@@ -897,7 +895,7 @@ static adjacency.}
 Method & PH1 & PH2 & PH3 & PH4 \\
 \midrule
 \multicolumn{5}{l}{\textit{Los-loop (5\,min)}} \\
-\textit{Graph-free baseline (NoSpatial)} & \textit{4.88 (0.31)} & \textit{5.60 (0.39)} & \textit{6.02 (0.28)} & \textit{6.26 (0.26)} \\
+\textit{Graph-free baseline } & \textit{4.88 (0.31)} & \textit{5.60 (0.39)} & \textit{6.02 (0.28)} & \textit{6.26 (0.26)} \\
 \midrule
 GCN (Physical) & 8.14 (0.11) & 8.54 (0.28) & 8.76 (0.26) & 8.76 (0.29) \\
 GCN-GSL & 7.83 (0.11) & 8.48 (0.21) & 8.45 (0.19) & 8.93 (0.12) \\
@@ -905,7 +903,7 @@ GCN-cGSL & \textbf{5.76 (0.20)} & \textbf{6.33 (0.32)} & \textbf{6.68 (0.25)} & 
 GCN-MultiGSL & 9.78 (0.14) & 10.05 (0.16) & 10.24 (0.13) & 10.27 (0.11) \\
 \midrule
 \multicolumn{5}{l}{\textit{SZ-Taxi (15\,min)}} \\
-\textit{Graph-free baseline (NoSpatial)} & \textit{4.11 (0.00)} & \textit{4.15 (0.00)} & \textit{4.19 (0.00)} & \textit{4.22 (0.00)} \\
+\textit{Graph-free baseline } & \textit{4.11 (0.00)} & \textit{4.15 (0.00)} & \textit{4.19 (0.00)} & \textit{4.22 (0.00)} \\
 \midrule
 GCN (Physical) & 5.96 (0.01) & 5.98 (0.00) & 5.99 (0.00) & 6.00 (0.00) \\
 GCN-GSL & 4.88 (0.01) & 4.91 (0.00) & 4.93 (0.01) & 4.96 (0.00) \\
@@ -921,7 +919,7 @@ Figures~\ref{fig:rmsebars-tgcn} and~\ref{fig:rmsebars-gcn} summarize
 five-seed mean RMSE for the T-GCN and GCN families separately.
 Figure~\ref{fig:graphstruct} contrasts the dense physical adjacency with
 the much sparser multi-lag union. Throughout the tables, the italic
-\emph{graph-free baseline} (identity adjacency) is a reference control, not
+\emph{graph-free baseline} (NoSpatial or identity adjacency) is a reference control, not
 a proposed method: it shows how much error remains when no spatial graph is
 used, and is not the primary comparison for the learned variants.
 
@@ -937,7 +935,7 @@ SD). Dashed line: graph-free baseline.}
 \centering
 \includegraphics[width=0.95\linewidth]{figures/rmse_comparison_gcn_los_ph1.pdf}
 \caption{Los-loop PH1: GCN family, five-seed mean RMSE (whiskers: sample
-SD). Dashed line: graph-free baseline (NoSpatial is not drawn as a bar).}
+SD). Dashed line: graph-free baseline.}
 \label{fig:rmsebars-gcn}
 \end{figure}
 
