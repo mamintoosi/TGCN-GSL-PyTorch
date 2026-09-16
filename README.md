@@ -38,7 +38,8 @@ utils/                 # graph Laplacian, losses, logging
 tasks/                 # SupervisedForecastTask (training + eval)
 src/                   # experiment and figure scripts
 configs/               # YAML configs (legacy main.py)
-results/               # experiment artifacts
+results/               # experiment artifacts (gitignored; regenerate)
+demo/                  # tiny assets + plot script for Figures 9–10
 tools/                 # optional diagnostics (e.g. DAGMA runtime check)
 paper/                 # placeholder only (see paper/README.md)
 archive/               # historical stages, notes, one-off runners
@@ -91,6 +92,28 @@ Equivalent Python entry points are under `src/`
 | `dagma` / `gsl` | DAGMA graphs under `results/stage26_validation/`, `stage33_gsl_canonical/` |
 | `sparse` | matched-sparsity control results |
 | `sweep` | `results/stage58_sparsity_sweep/full.csv` |
+
+### `results/` is not in git
+
+The full `results/` tree (~150 MB of training JSONs, graphs, and checkpoints)
+is **gitignored**. Intermediate files are **not** shipped with the repository;
+re-run the commands above to regenerate them.
+
+A **tiny** subset for the predicted-vs-actual overlays (paper Figures 9–10)
+is committed under `demo/`:
+
+```bash
+# only needs matplotlib + numpy (no training)
+python demo/plot_pred_vs_actual.py
+# writes demo/figures/pred_vs_actual_{los,sz}_ph1_seed42.{png,pdf}
+```
+
+To rebuild those compact arrays from a local `results/stage26_checkpoint/`
+(after training):
+
+```bash
+python demo/build_pred_vs_actual_assets.py
+```
 
 ---
 
