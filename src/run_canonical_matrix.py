@@ -7,7 +7,12 @@ Resumable launcher covering:
   GCN    : Physical, NoSpatial, GSL, cGSL
 
 Datasets  : losloop, shenzhen
-PHs       : 1, 2, 3, 4
+PHs       : 1, 2, 3, 4 (canonical) -- 5, 6 supported as the long-horizon
+            extension (Reviewer 1 W7): pass e.g. --phs 5 6.  Multi-lag graphs
+            are the PH-independent Stage 26 artifacts (no refit); GSL/cGSL
+            need one contemporaneous DAGMA fit per PH, prepared by
+            src/run_ph56_horizon.py --phase graphs (see
+            run_horizon_experiment_ph5_ph6.sh).
 Seeds     : 42, 43, 44, 45, 46
 
 Reuses all existing DAGMA outputs (multilag blocks from stage26, contemporaneous
@@ -143,19 +148,40 @@ def set_seed(seed):
 # DAGMA graph loading (reuse existing outputs)
 # ======================================================================
 def load_multilag_graphs(dataset, ph, threshold=0.1, n_lags=3):
-    """Load existing multi-lag DAGMA blocks and threshold them."""
+    """Load existing multi-lag DAGMA blocks and threshold them.
+
+    The Stage 26 multi-lag DAGMA fit is PH-independent: its input Z is built
+    from the training split only (no PH subsampling), so the stored blocks are
+    byte-identical across PH1-PH4 (checksum-verified).  If the PH-specific
+    file is missing (e.g. PH=5/6), the PH=1 artifact is reused as the same
+    PH-independent graph.  Returns (lag_list, source_ph); source_ph records
+    which PH artifact the blocks were read from so it can be logged in the
+    result JSON.  Returns (None, None) when no artifact can be resolved.
+    """
     cfg = DATASET_CONFIGS[dataset]
     prefix = cfg["prefix"]
     lag_blocks_dir = PROJECT_ROOT / "results" / "stage26_validation"
+
+    def block_path(source_ph, lag):
+        return lag_blocks_dir / f"{prefix}_ph{source_ph}_seed42_L{n_lags}_lag_{lag}.npy"
+
+    source_ph = ph
+    if not block_path(ph, 1).exists():
+        if not block_path(1, 1).exists():
+            return None, None  # missing entirely
+        source_ph = 1
+        print(f"  [NOTE] {dataset} PH={ph}: no PH-specific multi-lag blocks; "
+              f"reusing the PH-independent PH=1 DAGMA artifact (fit input is "
+              f"training data only; blocks byte-identical across PH1-4).")
     lag_list = []
     for l in range(1, n_lags + 1):
-        path = lag_blocks_dir / f"{prefix}_ph{ph}_seed42_L{n_lags}_lag_{l}.npy"
+        path = block_path(source_ph, l)
         if not path.exists():
-            return None  # missing
+            return None, None  # missing
         W = np.load(path)
         A = binary_graph(W, threshold)
         lag_list.append(A)
-    return lag_list
+    return lag_list, source_ph
 
 
 def load_contemporaneous_graph(dataset, ph, threshold=0.3):
@@ -317,16 +343,19 @@ def run_experiment(variant, dataset, ph, seed, args, log_file=None):
 
     # Load DAGMA graphs
     multilag_graphs = None
+    multilag_source_ph = None
     contemporaneous_A = None
     if v["dagma"] in ("multilag", "multilag_union"):
-        multilag_graphs = load_multilag_graphs(dataset, ph, v["dagma_thr"])
+        multilag_graphs, multilag_source_ph = load_multilag_graphs(dataset, ph, v["dagma_thr"])
         if multilag_graphs is None:
-            print(f"  [FAIL] {variant} {dataset} PH={ph} seed={seed}: multilag DAGMA blocks missing")
+            print(f"  [FAIL] {variant} {dataset} PH={ph} seed={seed}: multilag DAGMA blocks missing; "
+                  f"fit them with: python src/run_multilag_dagma.py --dataset {dataset} --ph 1")
             return "missing_dagma"
     elif v["dagma"] == "contemporaneous":
         contemporaneous_A = load_contemporaneous_graph(dataset, ph, v["dagma_thr"])
         if contemporaneous_A is None:
-            print(f"  [FAIL] {variant} {dataset} PH={ph} seed={seed}: contemporaneous DAGMA missing")
+            print(f"  [FAIL] {variant} {dataset} PH={ph} seed={seed}: contemporaneous DAGMA missing; "
+                  f"fit it with: python src/run_ph56_horizon.py --phase graphs --datasets {dataset} --phs {ph}")
             return "missing_dagma"
 
     # Build adjacency for the variant
@@ -335,7 +364,8 @@ def run_experiment(variant, dataset, ph, seed, args, log_file=None):
     elif v["adj_type"] == "single":
         if v.get("symmetrize"):
             if contemporaneous_A is None:
-                print(f"  [FAIL] {variant} {dataset} PH={ph}: cGSL needs contemporaneous DAGMA")
+                print(f"  [FAIL] {variant} {dataset} PH={ph}: cGSL needs contemporaneous DAGMA; "
+                      f"fit it with: python src/run_ph56_horizon.py --phase graphs --datasets {dataset} --phs {ph}")
                 return "missing_dagma"
             adj_model = contemporaneous_A + contemporaneous_A.T
             adj_model = (adj_model > 0).astype(np.float32)
@@ -394,6 +424,7 @@ def run_experiment(variant, dataset, ph, seed, args, log_file=None):
         "dataset": dataset,
         "ph": ph,
         "seed": seed,
+        "dagma_multilag_source_ph": multilag_source_ph,
         "n_edges": n_edges,
         "n_params": metrics["n_params"],
         "rmse": round(metrics["RMSE"], 4),

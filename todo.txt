@@ -1,0 +1,173 @@
+You are working inside the currently opened repository directory. You are not familiar with the history of this project, so first inspect the repository and reconstruct the relevant context from the files themselves.
+
+Your task is to prepare, but NOT execute, an additional forecasting experiment for prediction horizons PH=5 and PH=6.
+
+## 1. Inspect the relevant files
+
+Carefully read and cross-check these files:
+
+1. Revised manuscript:
+   paper/revised_version/sn-article.tex
+
+2. Reviewer comments:
+   paper/revised_version/Reviewers-comments.txt
+
+3. Response to Reviewer 1:
+   paper/revised_version/R1/Response-to-Comments.tex
+
+Also inspect the currently available code, configuration files, experiment scripts, data-loading code, model implementations, and result-writing utilities that are relevant to the existing resolution/horizon experiments.
+
+In particular, locate and understand the experiment corresponding to:
+
+archive/repo_cleanup_20260913/run_resolution_experiment.sh
+
+Do not assume that the current implementation is identical to the submitted version. Trace the actual current code path and determine:
+
+- how PH1–PH4 are currently defined;
+- how prediction targets are constructed;
+- how the data are split;
+- how GSL and cGSL graphs are loaded or generated;
+- whether DAGMA is rerun or an existing graph artifact is reused;
+- which forecasting models are evaluated;
+- which seeds, metrics, and output files are used;
+- how the existing resolution experiment differs from the main experiments.
+
+Do not modify files during this inspection phase.
+
+## 2. Understand the scientific objective
+
+The relevant reviewer concern is about the behavior of GSL and cGSL at longer prediction horizons.
+
+The proposed additional experiment should extend the existing native-resolution experiment to:
+
+- PH=5
+- PH=6
+
+This must be a direct extension of the existing horizon definition and must not be replaced by temporal resampling unless the current code explicitly defines the experiment that way.
+
+Preserve the existing experimental protocol as much as possible:
+
+- same datasets;
+- same train/validation/test split;
+- same preprocessing;
+- same forecasting model(s);
+- same graph artifacts or graph-construction procedure;
+- same hyperparameters;
+- same evaluation metrics;
+- same random seeds;
+- same output conventions.
+
+Do not introduce new methodological changes merely to obtain better results.
+
+## 3. Implement the experiment
+
+After understanding the current code, write the minimum necessary code/configuration changes needed to support PH=5 and PH=6.
+
+Prefer reusing existing functions, scripts, configuration mechanisms, and result parsers. Avoid duplicating large sections of code.
+
+Before making changes:
+
+- explain which files need to be modified or added;
+- explain why each change is necessary;
+- identify any ambiguity or risk in the current implementation.
+
+Then implement the required code.
+
+The implementation must:
+
+- support PH=5 and PH=6 explicitly;
+- make the selected horizons visible in the command line or configuration;
+- preserve the existing PH1–PH4 behavior;
+- avoid silently changing the definition of PH;
+- fail clearly if required graph artifacts or data files are missing;
+- record the dataset, horizon, model, graph type, seed, and configuration in the outputs;
+- use the existing project conventions for output directories and filenames.
+
+Do not run the experiment.
+
+## 4. Prepare a bash script
+
+Create a bash script analogous to:
+
+archive/repo_cleanup_20260913/run_resolution_experiment.sh
+
+The new script should run the PH=5 and PH=6 experiment when executed by me.
+
+Choose a clear filename, for example:
+
+run_horizon_experiment_ph5_ph6.sh
+
+Use the repository’s existing conventions. The script should:
+
+- use strict shell options where appropriate;
+- resolve paths relative to the repository/script location;
+- activate or select the correct Python environment only if the existing script does so;
+- expose the selected datasets, horizons, models, graph variants, and seeds clearly;
+- write stdout/stderr to an appropriate log file if that is consistent with the existing workflow;
+- avoid overwriting previous results unless the existing convention explicitly allows it;
+- print the exact command(s) that will be executed;
+- stop on errors;
+- not contain placeholder commands;
+- not execute automatically during this task.
+
+If the experiment requires multiple commands, include them explicitly and explain their order.
+
+## 5. Important: do not execute the experiment
+
+You may inspect files and perform static checks such as syntax validation, help output, or compilation checks if these do not launch the expensive experiment. However:
+
+- do not run PH=5 or PH=6;
+- do not run DAGMA;
+- do not train forecasting models;
+- do not launch the new bash script;
+- do not modify or delete existing result files.
+
+## 6. Give me the exact execution instructions
+
+After creating the code and bash script, report:
+
+1. Files added or modified.
+2. A concise explanation of the implementation.
+3. The exact command I should run manually.
+4. Expected output directories and result files.
+5. How I can verify that PH=5 and PH=6 were actually evaluated.
+6. Any assumptions, limitations, or unresolved issues.
+
+The response must clearly distinguish between:
+
+- inspected;
+- modified;
+- statically checked;
+- not executed.
+
+## 7. Investigate the original approximately two-minute DAGMA claim
+
+After preparing the PH=5/PH=6 code and script—but without executing the new experiment—inspect:
+
+archive/repo_cleanup_20260913/paper/submitted_version/sn-article.tex
+
+Find the original statement concerning the DAGMA graph-learning or graph-construction time, which I vaguely remember being approximately two minutes.
+
+Then trace the current implementation and determine what the original statement actually measured. In particular, determine whether it referred to:
+
+- one contemporaneous DAGMA fit;
+- one multi-lag DAGMA construction;
+- one dataset;
+- one horizon;
+- one graph artifact;
+- the complete experiment;
+- or some other operation.
+
+Compare the original claim with the current code and available documentation/logs. Do not merely repeat the number from the submitted manuscript.
+
+If possible, perform only a static or analytical reconstruction from existing logs, timestamps, scripts, and documented settings. Do not launch DAGMA or any expensive experiment solely for this investigation.
+
+Report:
+
+- the exact original wording and its location;
+- what operation it appears to describe;
+- whether the approximately two-minute interpretation is supported;
+- what is uncertain;
+- the most defensible wording for the revised response to Reviewer 1.
+
+Do not silently edit the manuscript or response letter for this final timing investigation unless explicitly requested. 

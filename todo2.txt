@@ -1,0 +1,104 @@
+Please prepare a small, self-contained diagnostic script to measure the runtime of the ORIGINAL DAGMA structure-learning procedure described in the submitted version of the paper.
+
+Do not run the script. I will execute it manually.
+
+## Files to inspect first
+
+Read and cross-check:
+
+1. archive/repo_cleanup_20260913/paper/submitted_version/sn-article.tex
+2. paper/revised_version/sn-article.tex
+3. src/run_gsl_canonical.py
+4. all relevant DAGMA utilities, data-loading functions, preprocessing code, and existing logs
+
+The purpose is to test whether the approximately two-minute DAGMA runtime reported in the submitted manuscript can be reproduced on the current machine.
+
+## Requirements
+
+1. Locate the exact original statement about the approximately two-minute structure-learning runtime in the submitted manuscript.
+2. Determine precisely what the original experiment measured:
+   - dataset;
+   - number of variables/sensors;
+   - input matrix;
+   - contemporaneous or multi-lag graph;
+   - preprocessing;
+   - subsampling;
+   - DAGMA model and hyperparameters;
+   - thresholding;
+   - CPU/GPU usage;
+   - number of repetitions.
+3. Trace the original or closest currently available implementation.
+4. Do not silently substitute the revised canonical protocol for the original one.
+5. If the original code is unavailable, clearly identify the closest reconstruction and every assumption.
+
+## Diagnostic script
+
+Create a small script, for example:
+
+    tools/check_original_dagma_runtime.py
+
+The script must:
+
+- implement or call the closest faithful version of the ORIGINAL DAGMA procedure;
+- use the same dataset and input construction as the original protocol;
+- measure wall-clock time with `time.perf_counter()`;
+- report:
+  - data-loading time;
+  - preprocessing/input-construction time;
+  - DAGMA fitting time;
+  - thresholding/postprocessing time;
+  - total time;
+  - input matrix shape;
+  - number of variables;
+  - number of observations;
+  - CPU/GPU/device information;
+  - relevant DAGMA hyperparameters;
+  - output graph shape and number of nonzero entries;
+- print a clear warning if the script is only an approximation of the original experiment;
+- fail clearly if required data or dependencies are missing;
+- avoid modifying existing files or result artifacts;
+- write no large intermediate files unless absolutely necessary;
+- optionally save only a small JSON timing report in a new diagnostic output directory.
+
+The script must not run DAGMA during this task.
+
+## Execution wrapper
+
+Create a small bash wrapper, for example:
+
+    tools/check_original_dagma_runtime.sh
+
+It should:
+
+- use strict shell options;
+- resolve paths relative to the repository root;
+- print the exact Python command;
+- record stdout/stderr to a timestamped log;
+- avoid overwriting existing logs;
+- stop on errors;
+- not execute automatically.
+
+## Static validation
+
+You may run only non-expensive checks such as:
+
+- `python -m py_compile`;
+- shell syntax checking with `bash -n`;
+- import or argument checks that do not fit a DAGMA model.
+
+Do not execute the diagnostic script, DAGMA, model training, or any expensive data-processing operation.
+
+## Final report
+
+Report:
+
+1. The exact original wording and location in the submitted manuscript.
+2. The files inspected.
+3. The files created or modified.
+4. The exact protocol implemented by the diagnostic script.
+5. Any differences between the original protocol and the current implementation.
+6. The exact command I should execute manually.
+7. What timing result would be comparable to the original approximately-two-minute claim.
+8. Which parts of the measured time should and should not be reported in the response to Reviewer 1.
+
+Be conservative: do not claim that the original two-minute figure is wrong merely because the revised multi-lag or canonical experiment is slower. First establish whether the two measurements refer to the same operation.

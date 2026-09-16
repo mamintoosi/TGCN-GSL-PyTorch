@@ -1,0 +1,235 @@
+I still did not run your last bash file responding to 'todo4.txt', so you can update them. I wait until your new response. please consider these notes:
+Please revise the supplementary PH5–PH6 experiment implementation according to the decisions below.
+
+## 1. Remove T-GCN-MultiGSL-Weighted from the supplementary experiments
+
+We have decided that `T-GCN-MultiGSL-Weighted` is not necessary for the PH5–PH6 supplementary appendix.
+
+Therefore:
+
+- Do not run `T-GCN-MultiGSL-Weighted` for PH5 or PH6.
+- Remove `multi_gsl_weighted` from the supplementary experiment matrix.
+- Remove it from all default training commands.
+- Remove it from the reported expected cell counts.
+- Ensure the aggregation script does not expect or report this variant for PH5–PH6.
+- Do not delete or modify its existing PH1–PH4 canonical results.
+- Do not modify the main-paper tables or the existing canonical pipeline.
+
+The supplementary experiment matrix should contain these 10 variants:
+
+### T-GCN family
+
+- `no_spatial`
+- `physical`
+- `gsl`
+- `cgsl`
+- `multi_gsl`
+
+### GCN family
+
+- `gcn_no_spatial`
+- `gcn_physical`
+- `gcn_gsl`
+- `gcn_cgsl`
+- `gcn_multigsl`
+
+Both GCN and T-GCN families must remain included. The purpose is to demonstrate that the main conclusion is not restricted to only one model family.
+
+## 2. Reuse existing DAGMA results whenever possible
+
+The expensive part is DAGMA graph estimation. Model training is relatively inexpensive.
+
+Before changing the code, inspect the existing canonical graph artifacts and determine whether copying them into the isolated supplementary directory makes the implementation simpler and safer.
+
+Use the following policy:
+
+### Canonical lambda values
+
+- Los-loop canonical lambda_1 = 0.02
+- SZ-Taxi canonical lambda_1 = 0.01
+
+### For the canonical-completion PH5–PH6 experiments
+
+- Los-loop PH5 and PH6 GSL graphs at lambda_1 = 0.02 already exist.
+- SZ-Taxi PH5 and PH6 GSL graphs at lambda_1 = 0.01 may require fresh DAGMA fitting.
+- Multi-lag graph blocks are PH-independent and should be reused read-only.
+- cGSL is derived from the corresponding GSL graph and does not require a new DAGMA fit.
+
+If copying existing artifacts into the supplementary directory is useful, implement a safe, explicit reuse step. The copied files must preserve provenance, including:
+
+- original source path
+- source SHA-256 or MD5 checksum
+- dataset
+- PH
+- lambda_1
+- graph type
+- copy timestamp
+- statement that the source artifact was not modified
+
+Do not silently copy files without recording their origin.
+
+Prefer one of these safe approaches:
+
+1. Read canonical artifacts directly in read-only mode and write only provenance metadata under the supplementary root; or
+2. Copy them into a separate supplementary directory using a guarded copy function.
+
+Do not use symlinks unless the existing code explicitly supports them and the provenance is clear.
+
+## 3. Keep the lambda_1 = 0.01 sensitivity experiment isolated
+
+The additional lambda sensitivity experiment is required only for:
+
+- dataset: Los-loop
+- PH: 5 and 6
+- lambda_1 = 0.01
+
+This is different from the Los-loop canonical value lambda_1 = 0.02.
+
+The sensitivity experiment must use a separate output tree, for example:
+
+    results/supplementary_ph56_lambda001/
+
+or a clearly equivalent isolated directory.
+
+Do not overwrite:
+
+- canonical lambda_1 = 0.02 DAGMA artifacts
+- canonical PH1–PH4 results
+- canonical PH5–PH6 results
+- the supplementary canonical-completion results
+- any existing logs, reports, or tables
+
+Use lambda-specific directory names and filenames. Every sensitivity result must clearly identify:
+
+- dataset
+- PH
+- lambda value
+- graph type
+- model variant
+- seed
+
+The code must verify that lambda_1 = 0.01 is actually passed to the DAGMA fitting call. Merely recording the value in metadata is insufficient.
+
+## 4. Reduce duplicated training where safe
+
+Inspect whether the current supplementary runner unnecessarily reruns already completed Los-loop canonical lambda_1 = 0.02 T-GCN experiments.
+
+If the existing canonical results are compatible with the supplementary protocol, do not rerun them merely to duplicate them. Instead:
+
+- reuse them read-only, or
+- copy them into the supplementary result tree with provenance metadata.
+
+However, the missing GCN-family PH5–PH6 experiments must be run.
+
+The supplementary output must remain self-contained enough for aggregation, but it must be clear which results were:
+
+- newly trained
+- copied from canonical results
+- read directly from canonical results
+- not available
+
+Do not treat missing results as zero.
+
+## 5. Update the experiment counts
+
+Recalculate all experiment counts after removing `T-GCN-MultiGSL-Weighted`.
+
+For the 10-variant matrix, the expected canonical-completion count is:
+
+    2 datasets × 2 PH values × 10 variants × 5 seeds = 200 cells
+
+The Los-loop lambda_1 = 0.01 sensitivity experiment contains:
+
+    1 dataset × 2 PH values × 10 variants × 5 seeds = 100 cells
+
+If some cells are reused from existing canonical results, report separately:
+
+- total logical cells
+- newly executed cells
+- reused/copied cells
+- missing or blocked cells
+
+Do not use the old 11-variant counts.
+
+## 6. Update all scripts and reports
+
+Modify the supplementary implementation consistently:
+
+- `src/run_supplementary_training.py`
+- `src/run_supplementary_graphs.py`
+- `src/aggregate_supplementary_results.py`
+- `run_supplementary_ph5_ph6.sh`
+- any shared configuration or variant lists that are necessary
+
+Also update:
+
+- plan output
+- expected output tree
+- cell counts
+- report summaries
+- comments and documentation
+
+Do not modify the main canonical runner unless absolutely necessary. If a shared file must be changed, preserve its default behavior and explain the change.
+
+## 7. Required validation
+
+Do not execute DAGMA or model training.
+
+Perform only static and lightweight validation:
+
+- Python syntax checks
+- shell syntax checks
+- plan-only execution
+- verification that `multi_gsl_weighted` is absent from the supplementary matrix
+- verification that exactly 10 variants are listed
+- verification of the recalculated cell counts
+- verification of output-path isolation
+- verification that lambda_1 = 0.01 and lambda_1 = 0.02 cannot collide
+- verification that canonical files are never opened for writing
+- verification of overwrite protection
+- verification that the aggregator reports missing cells explicitly
+
+Search the repository for all occurrences of:
+
+    multi_gsl_weighted
+    T-GCN-MultiGSL-Weighted
+
+and distinguish between:
+
+- canonical/main-experiment references that must remain untouched
+- supplementary references that must be removed or updated
+
+## 8. Important output-path requirement
+
+The following directories or other paths that are related to the main results in the paper, must never be used as output destinations by the supplementary scripts:
+
+- `results/stage26_validation/`
+- `results/stage33_gsl_canonical/`
+- `results/stage40_canonical/`
+- `results/stage59_ph56_horizon/`
+- `results/`
+
+The supplementary scripts must write only below their dedicated supplementary root.
+
+If the implementation copies canonical DAGMA artifacts, the copy operation must be read-only with respect to the source. It must fail safely if the destination already exists, unless an explicit overwrite option is supplied.
+
+
+## 9. Final response required
+
+Return:
+
+1. A concise explanation of the changes.
+2. The complete updated code for every modified file.
+3. The exact commands I should run manually.
+4. The updated experiment matrix.
+5. The corrected cell counts.
+6. The updated expected output directory tree.
+7. A clear list of reused versus newly computed DAGMA artifacts.
+8. A list of all files modified or created.
+9. The results of static validation.
+10. A clear statement that no DAGMA fitting or model training was executed.
+11. write down your log in a file with clear instructions/bash files that I have to run.
+
+Do not claim that any experiment has been executed.
+```
+

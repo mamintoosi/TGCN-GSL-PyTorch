@@ -1,0 +1,26 @@
+1- I got error:
+---
+(base) mahmood@MTH-EG-C725-1:/data/git/mamintoosi/TGCN-GSL-PyTorch$ conda activate pytorch
+(/data/python-envs/pytorch) mahmood@MTH-EG-C725-1:/data/git/mamintoosi/TGCN-GSL-PyTorch$ bash tools/check_original_dagma_runtime.sh --dataset losloop --pre-len 1
+===================================================================
+Diagnostic: ORIGINAL DAGMA structure-learning runtime
+Repo root : /data/git/mamintoosi/TGCN-GSL-PyTorch
+Log file  : /data/git/mamintoosi/TGCN-GSL-PyTorch/results/diag_original_dagma_runtime/logs/original_dagma_runtime_20260915_165318.log
+Command   : python3 /data/git/mamintoosi/TGCN-GSL-PyTorch/tools/check_original_dagma_runtime.py --dataset losloop --pre-len 1
+===================================================================
+
+==============================================================================
+DIAGNOSTIC: original DAGMA structure-learning runtime
+Reproduces the committed submitted-version protocol (utils/data/spatiotemporal_csv_data.py).
+The manuscript's 'approximately 2 minutes' does not specify dataset/horizon/operation —
+compare only the DAGMA fit() wall-clock against that claim (see comparability note at the end).
+==============================================================================
+[FATAL] Cannot import the original preprocessing module: No module named 'utils'
+(utils/data/__init__.py pulls in dagma via spatiotemporal_csv_data; ensure the dagma package is installed and that you run this from the repository root.)
+---
+Please debug it and inform me to re-run the code 
+
+
+2- I did ran the previous code when submitting the paper on this machine (but on windows, currently on linux). The code related to submit time is in '/data/git/mamintoosi/TGCN-GSL-PyTorch-old' and the DAGMA code is in '/data/git/mamintoosi/TGCN-GSL-PyTorch-old/spatiotemporal_csv_data.py'
+
+3- This code is finished: '(/data/python-envs/pytorch) mahmood@MTH-EG-C725-1:/data/git/mamintoosi/TGCN-GSL-PyTorch$ ./run_horizon_experiment_ph5_ph6.sh '. please check the results and create for example an appendix in the paper '/data/git/mamintoosi/TGCN-GSL-PyTorch/paper/revised_version/sn-article.tex' for doing the reviewer1 comment.  After approving the results, we will update the response to reviewers.

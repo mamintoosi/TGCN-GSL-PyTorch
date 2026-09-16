@@ -1,0 +1,212 @@
+================================================================================
+SAVED RESPONSES — DAGMA runtime diagnostic (todo2.txt)
+Date: 2026-09-15
+Contains: RESPONSE 1 = previous turn (final todo2 report)
+          RESPONSE 2 = this turn (safety audit of the diagnostic/wrapper)
+================================================================================
+
+
+================================================================================
+RESPONSE 1 — Final report for todo2.txt
+================================================================================
+
+1. THE ORIGINAL CLAIM — exact wording and location
+--------------------------------------------------------------------------------
+archive/repo_cleanup_20260913/paper/submitted_version/sn-article.tex, line 519
+(§Model Configurations):
+
+  "The graph structure learning process leverages the DAGMA method
+   [Bello2024DAGMA], which builds on prior work [zheng2018dags] to efficiently
+   estimate adjacency matrices. This process is computationally efficient,
+   taking approximately 2 minutes on standard hardware."
+
+A commented-out repeat exists at line 966 (limitations checklist).
+An identical copy of the file sits one level deeper at
+archive/repo_cleanup_20260913/paper/submitted_version/submitted_version/sn-article.tex
+(lines 519/966). The revised manuscript (paper/revised_version/sn-article.tex)
+does NOT contain the two-minute claim; its R1 response and §6.5 already report
+measured figures (tens of minutes per contemporaneous fit; few hours for the
+multi-lag fit, CPU).
+
+2. FILES INSPECTED
+--------------------------------------------------------------------------------
+- archive/repo_cleanup_20260913/paper/submitted_version/sn-article.tex (lines ~495-540, 966)
+- paper/revised_version/sn-article.tex (timing wording: R1 letter lines 407, 483)
+- utils/data/spatiotemporal_csv_data.py   (the ORIGINAL DAGMA procedure)
+- utils/data/functions.py                 (original loader/preprocessing)
+- src/run_gsl_canonical.py                (current canonical protocol, for contrast)
+- data shapes verified: los_speed.csv 2016x207; sz_speed.csv 2976x156 (headerless)
+- archive/historical_submission/W_est_{losloop,shenzhen}_pre_len{1..4}.npy (metadata only)
+- results/stage33_gsl_canonical/ (earlier measured canonical GSL runtimes, context)
+
+3. FILES CREATED (no existing file modified; no experiment executed)
+--------------------------------------------------------------------------------
+- tools/check_original_dagma_runtime.py   (diagnostic; stdlib-only --help)
+- tools/check_original_dagma_runtime.sh   (strict-mode wrapper, timestamped logs)
+(Transient --help smoke-test logs were created and then deleted; the
+ results/diag_original_dagma_runtime/ directory does not currently exist and is
+ recreated by the wrapper on first real run.)
+
+4. PROTOCOL IMPLEMENTED BY THE DIAGNOSTIC (= the ORIGINAL protocol, verbatim)
+--------------------------------------------------------------------------------
+- Dataset:  data/los_speed.csv (2016x207) or data/sz_speed.csv (2976x156),
+            loaded via the original utils.data.functions.load_features.
+- Preprocessing (original generate_torch_datasets):
+    * normalize=True -> divide by max over the FULL series
+      (global max == train max on both committed datasets: los 70.0, sz 86.4292)
+    * 80/20 chronological split; sliding windows seq_len=12, pre_len=PH.
+- DAGMA input (the original two lines, verbatim): the FIRST time step of every
+  sliding window -> (num_windows, N) contemporaneous snapshot matrix;
+  per-offset subsets data[i::PH], i in 0..PH-1.
+- DAGMA (verbatim): DagmaLinear(loss_type='l2'); one fit per offset;
+  lambda1 = 0.01 (shenzhen) / 0.02 (losloop); fit(X, lambda1=...) with NO
+  w_threshold and NO warm_iter/max_iter overrides -> DAGMA library defaults
+  (w_threshold=0.3 zeroing |W|<0.3 INSIDE fit(); defaults 30000/60000 iters).
+  Cost: PH fits per (dataset, PH) pair; PH=1 = exactly one fit on all
+  training rows (los PH1: 1597 rows x 207 vars; sz PH1: 2364 x 156).
+- Thresholding (original semantics): A = 1(any_i(W[:,:,i] > 0)) (use_gsl=1);
+  cyclic variant A + A^T (use_gsl=2). Measured and reported, not saved.
+- Script reports: data-load, preprocessing, DAGMA-fit, thresholding, total
+  times (time.perf_counter); input shape, N, num observations; CPU/GPU info;
+  DAGMA hyperparameters incl. introspected library defaults; graph shape and
+  nonzero counts; per-offset details; JSON report (timestamped, no matrices).
+
+5. DIFFERENCES original protocol vs diagnostic (and vs the canonical rerun)
+--------------------------------------------------------------------------------
+Diagnostic vs ORIGINAL code path (the only behavioural deviation):
+  a) The original compute_adjacency_matrix() short-circuits when
+     archive/historical_submission/W_est_<ds>_pre_len<PH>.npy exists (it
+     loads and never fits). To time the fit, the diagnostic must re-fit and
+     therefore skips that shortcut.
+  b) Optional --warm-iter/--max-iter flags, IF passed, add kwargs the original
+     did not pass (default: not passed).
+  c) Optional --threads pins thread counts for timing hygiene (original used
+     default threading).
+Everything else is executed through the original committed functions.
+
+ORIGINAL protocol vs CURRENT canonical protocol (must not be conflated — the
+diagnostic implements the ORIGINAL, not the canonical):
+  * Input:      original = first timestep of each window (single-lag,
+                contemporaneous), PH DAGMA fits per PH, merged by np.any.
+                canonical = one offset-0 fit per PH (documented deviation in
+                run_gsl_canonical.py; per-offset edge sets were identical).
+  * Normalization: original = max over FULL series; canonical = train max only
+                (numerically identical on committed data).
+  * Threshold/support: original = fit()'s internal 0.3 cut then W>0;
+                canonical = explicit w_threshold=0.3, support 1(|W|>0),
+                diagonal removed (coincides numerically on this data).
+  * Purpose:    canonical artifacts feed re-training under the canonical
+                protocol and are NOT the object of the two-minute claim.
+The diagnostic therefore does NOT silently substitute the canonical protocol.
+
+6. EXACT COMMAND TO EXECUTE MANUALLY
+--------------------------------------------------------------------------------
+Recommended minimal reproduction (one fit, Los-loop, ~the most likely reading):
+    bash tools/check_original_dagma_runtime.sh --dataset losloop --pre-len 1
+Full sweep (8 fits total; budget accordingly — can be hours on CPU):
+    bash tools/check_original_dagma_runtime.sh --dataset losloop shenzhen --pre-len 1 2 3 4
+Timing-hygiene variant:
+    bash tools/check_original_dagma_runtime.sh --dataset shenzhen --pre-len 1 --threads 8
+
+7. WHAT RESULT WOULD BE COMPARABLE TO THE "~2 MINUTES" CLAIM
+--------------------------------------------------------------------------------
+Comparable: the wall-clock of the DagmaLinear.fit() call(s) itself (the
+"dagma_fit_s" field; per-fit times in per_offset), for a single (dataset, PH)
+pair on the original input construction.
+NOT comparable: data loading, windowing/input construction, thresholding,
+model training, or the canonical 828-variable multi-lag fits (different
+operation entirely), or aggregated totals across PHs/datasets.
+Reading: fit time ~ minutes => claim consistent for that pair; far larger =>
+not reproduced on this machine, but that alone does not falsify the claim
+(original hardware table: Intel Core i3 9th-gen CPU, 16 GB RAM, RTX 3090;
+the claim also leaves dataset/horizon unspecified).
+
+8. WHAT TO REPORT TO REVIEWER 1 (and what not)
+--------------------------------------------------------------------------------
+REPORT:
+  - the measured DAGMA fit() wall-clock per (dataset, PH) from this diagnostic,
+    with machine specs, thread count, and library version;
+  - the caveat that the original claim did not specify dataset/horizon/what
+    was timed, and that the artifact shortcut means the original generation
+    run is not directly re-measurable;
+  - if the measurement comes out >> 2 min: say the submitted wording
+    understated the cost on the committed protocol for this machine, and point
+    to the revised manuscript's already-measured figures (tens of minutes per
+    contemporaneous fit; a few hours for the multi-lag fit, CPU).
+DO NOT REPORT:
+  - data-loading/preprocessing/thresholding times as "DAGMA time";
+  - the canonical multi-lag (828-variable) or Stage-33 canonical fit times as
+    if they were the original two-minute operation (different constructions);
+  - any cross-dataset or cross-PH average as a single number;
+  - a flat assertion that "the paper was wrong" based on one machine.
+Conservative bottom line: the diagnostic establishes what the ORIGINAL
+operation costs on THIS machine; it does not, by itself, establish what it
+cost on the original authors' hardware.
+
+
+================================================================================
+RESPONSE 2 — Safety audit: can running the diagnostic damage saved DAGMA results?
+================================================================================
+
+Short answer: NO — running tools/check_original_dagma_runtime.sh cannot
+damage any saved DAGMA results. I audited every write path in both files to
+confirm. Details:
+
+EVIDENCE FROM THE AUDIT (verified by grep + read, 2026-09-15)
+--------------------------------------------------------------------------------
+1. The Python script contains EXACTLY ONE filesystem write:
+       tools/check_original_dagma_runtime.py, line ~446:
+           with open(out_path, "w") as f:   # the JSON timing report
+   preceded by os.makedirs(args.out_dir, exist_ok=True). No np.save, no
+   torch.save, no to_csv, no shutil/rename/remove anywhere in the file.
+2. That single JSON goes to a NEW directory:
+       results/diag_original_dagma_runtime/original_dagma_timing_<ts>.json
+   which does not exist yet in the repo — it is created on first run. It
+   holds a few KB of timing metadata only (no graph matrices).
+3. The wrapper writes only its own timestamped logs into
+       results/diag_original_dagma_runtime/logs/
+   with a collision-avoidance suffix loop (never overwrites an existing log).
+4. Read-only paths: data/los_speed.csv, data/sz_speed.csv (pd.read_csv) and
+   the committed functions in utils/data/functions.py. The script NEVER calls
+   compute_adjacency_matrix() — the only original function that SAVES
+   W_est files — it replicates the fitting loop inside its own scope and
+   saves nothing. All fitted models (W_est, w_est) stay in memory and are
+   deleted after timing (del model); nothing is ever written.
+5. Explicitly untouched: data/, archive/historical_submission/
+   (the committed original W_est_{dataset}_pre_len{PH}.npy artifacts),
+   results/stage26_validation/, results/stage33_gsl_canonical/,
+   results/stage40_canonical/ — all read-only for this script.
+6. Import side effects checked: utils/__init__.py is empty;
+   utils/data/__init__.py only re-imports classes (no writes). (I also fixed
+   a robustness gap this audit exposed: the utils.data import chain pulls in
+   dagma at module level, so that import is now wrapped to fail cleanly with
+   an actionable message if dagma is missing. py_compile + --help re-verified
+   after the fix.)
+
+RESIDUAL, NON-DAMAGING SIDE EFFECTS (for full transparency)
+--------------------------------------------------------------------------------
+- __pycache__/ directories from imports (gitignored, harmless).
+- CPU/RAM usage while a fit runs (Los-loop N=207: a (1597, 207) fit; trivial
+  memory, potentially tens of minutes of CPU). No disk writes during the fit;
+  the JSON is written only at the very end.
+- Trivial corner case: two diagnostic runs started within the same second
+  would overwrite each other's JSON report — but only inside the NEW
+  diagnostic directory, never any existing result.
+- If you run other experiments concurrently, the fits may slow each other
+  down (CPU contention) — timing noise, not data risk.
+
+HOW TO BE 100% SAFE ANYWAY (optional)
+--------------------------------------------------------------------------------
+- git status before/after: the only changes you should ever see are the new
+  untracked tools/ files and results/diag_original_dagma_runtime/ content.
+- Run with --no-json to produce literally zero files (logs only, and skip the
+  wrapper's log by piping to the terminal if you want zero bytes on disk).
+- Checksum the artifacts first if you want a hard guarantee:
+      md5sum archive/historical_submission/W_est_*.npy > /tmp/before.md5
+  ... run the diagnostic ... and diff. Nothing should change.
+
+Bottom line: the diagnostic reads the committed data, re-fits DAGMA in
+memory to time it, and emits one small JSON in a new directory. The saved
+DAGMA results (original W_est artifacts, Stage 26/33/40 outputs) cannot be
+modified, moved, or deleted by it.
+================================================================================

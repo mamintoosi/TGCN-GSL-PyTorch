@@ -1,0 +1,283 @@
+You are working on the repository for the paper
+“Graph Structure Learning for Traffic Prediction”.
+
+Your task is to prepare, but do not execute, the additional experiments required to complete the supplementary PH5–PH6 appendix.
+
+## Main objectives
+
+1. Inspect the current repository and identify the canonical experiment pipeline.
+2. Reuse the existing implementation as much as possible.
+3. Prepare code and shell commands for the following PH values:
+
+   PH = 5 and PH = 6
+
+4. For both datasets, if supported by the existing pipeline:
+
+   - Los-loop
+   - SZ-Taxi
+
+5. For each PH value, evaluate both model families:
+
+   ### GCN family
+   - GCN-GraphFree
+   - GCN-Physical
+   - GCN-GSL
+   - GCN-cGSL
+   - GCN-MultiGSL
+
+   ### T-GCN family
+   - T-GCN-GraphFree
+   - T-GCN-Physical
+   - T-GCN-GSL
+   - T-GCN-cGSL
+   - T-GCN-MultiGSL
+
+6. Also inspect whether `T-GCN-MultiGSL-Weighted` can be executed with little additional effort by reusing the existing implementation. If it is straightforward and does not require a new expensive DAGMA computation, include it in the experiment plan. Otherwise, explain precisely why it should remain unevaluated for PH5–PH6.
+
+
+
+## Important distinction about DAGMA
+
+The expensive part of the pipeline is DAGMA graph estimation. Model training itself is relatively inexpensive.
+
+Before writing new code, determine exactly:
+
+- Which graphs are independent of PH.
+- Which graphs must be re-estimated for each PH.
+- Which graph files are currently used by each method.
+- Whether the existing multi-lag graphs can safely be reused for PH5 and PH6.
+- Whether contemporaneous GSL and cGSL graphs must be estimated separately for PH5 and PH6.
+- Whether `T-GCN-MultiGSL-Weighted` uses the same already-computed multi-lag graphs or requires additional graph estimation.
+
+Document these findings before proposing code changes.
+
+## Lambda sensitivity experiment
+
+If the repository supports a controlled DAGMA sparsity-parameter experiment, prepare an additional experiment only on los-loop using:
+
+    lambda_1 = 0.01
+
+The existing canonical value is believed to be:
+
+    lambda_1 = 0.02
+
+The new lambda experiment is intended only as a supplementary sensitivity check for another appendix.
+
+This experiment must be completely isolated from the existing results.
+
+Use a clearly separate directory, for example:
+
+    results/supplementary_lambda001_ph5_ph6/
+
+or another repository-consistent directory name.
+
+The new experiment must not overwrite, modify, delete, or reuse output paths that could overwrite the existing results. In particular:
+
+- Do not overwrite the DAGMA files generated with lambda_1 = 0.02.
+- Do not overwrite the canonical PH5–PH6 graph files.
+- Do not overwrite any PH1–PH4 graph files.
+- Do not overwrite existing training results.
+- Do not overwrite existing reports, summaries, logs, or tables.
+
+Use separate filenames that explicitly encode at least:
+
+- dataset
+- PH
+- lambda value
+- graph type
+- seed, where applicable
+
+For example:
+
+    los_ph5_lambda001_gsl_A_binary.npy
+    sz_ph6_lambda001_cgsl_A_binary.npy
+
+Before creating any new file, inspect the target path and make the code fail safely if an existing file would be overwritten. Prefer an explicit `--output-root` argument and make the output root mandatory or clearly visible.
+
+## Required workflow
+
+### Step 1 — Repository audit
+
+Inspect:
+
+- the current canonical experiment scripts
+- graph-estimation scripts
+- DAGMA-related code
+- GCN and T-GCN model implementations
+- configuration files
+- existing PH1–PH4 results
+- existing PH5–PH6 results
+- result aggregation scripts
+- shell scripts
+- README or experiment documentation
+- Git status
+
+Do not modify files during this audit.
+
+Determine the exact commands currently used for:
+
+- graph estimation
+- canonical training
+- result aggregation
+- supplementary experiments
+
+### Step 2 — Design the experiment matrix
+
+Prepare a precise matrix containing:
+
+- dataset
+- PH
+- model family
+- graph variant
+- seed
+- graph source
+- whether DAGMA must be rerun
+- expected output directory
+- expected output filename
+
+Use the existing seed convention. If the canonical experiments use seeds 42–46, preserve that convention.
+
+Do not silently change:
+
+- data split
+- normalization
+- sequence length
+- prediction horizon definition
+- batch size
+- optimizer
+- learning rate
+- weight decay
+- hidden dimension
+- number of epochs
+- evaluation metrics
+
+If any setting is uncertain, report it and locate the authoritative source in the repository.
+
+### Step 3 — Implement isolated graph estimation
+
+If PH5–PH6 graph estimation is missing, write the smallest possible script or modify an existing script in a backward-compatible way.
+
+The script must:
+
+- accept dataset, PH, lambda, graph type, and output root as arguments
+- print all effective settings before running
+- save outputs only under the specified output root
+- save a metadata JSON file beside every graph artifact
+- record:
+  - dataset
+  - PH
+  - lambda_1
+  - graph type
+  - threshold
+  - number of nodes
+  - number of retained directed edges
+  - source data shape
+  - fitting time
+  - software/environment information if already available
+- refuse to overwrite existing files unless an explicit `--overwrite` flag is provided
+- default to no overwrite
+- distinguish clearly between:
+  - canonical lambda_1 = 0.02
+  - supplementary lambda_1 = 0.01
+
+If the current graph-estimation code cannot safely support this isolation, write a wrapper or a new dedicated script instead of making a risky change to the canonical pipeline.
+
+### Step 4 — Implement or prepare model training
+
+Prepare a dedicated PH5–PH6 supplementary training script or a safe extension of the canonical runner.
+
+The script must:
+
+- accept `--phs 5 6`
+- accept an explicit `--output-root`
+- accept an explicit graph-result root
+- preserve the canonical training protocol
+- run both GCN and T-GCN families
+- include the methods listed above
+- optionally include `T-GCN-MultiGSL-Weighted` if its implementation is already available and inexpensive
+- use the canonical seeds
+- save one result file per dataset, PH, seed, and variant
+- save the effective configuration with each result
+- never write into the main canonical result directory unless explicitly requested
+
+The script must print a complete experiment plan before training begins.
+
+### Step 5 — Aggregation and comparison
+
+Prepare a separate aggregation script for the supplementary results.
+
+It must:
+
+- read only from the supplementary output root
+- compute mean and standard deviation over the canonical seeds
+- generate a clear CSV or JSON summary
+- preserve the distinction between:
+  - canonical lambda_1 = 0.02
+  - supplementary lambda_1 = 0.01
+- report missing experiments explicitly
+- never silently treat missing results as zero
+- never overwrite the existing main-paper tables
+
+The summary should include, where available:
+
+- dataset
+- PH
+- method
+- lambda_1
+- mean RMSE
+- standard deviation
+- individual seed results
+- graph edge count
+- graph-estimation time
+- status
+
+### Step 6 — Validation
+
+Before giving me the final commands, perform static validation only unless execution is explicitly requested.
+
+Check:
+
+- Python syntax
+- shell-script syntax
+- imports
+- argument names
+- output-path construction
+- filename uniqueness
+- overwrite protection
+- compatibility with existing result formats
+- whether every method maps to a valid implementation
+- whether `T-GCN-MultiGSL-Weighted` actually requires additional DAGMA fitting
+- whether PH5 and PH6 use the intended target construction
+- whether lambda_1 is passed to the actual DAGMA fitting call rather than merely recorded in metadata
+
+Do not launch expensive DAGMA fitting or model training.
+
+## Required final response
+
+Return the following items:
+
+1. A concise audit of the current repository and the existing canonical pipeline.
+2. A precise recommendation about:
+   - whether to run `T-GCN-MultiGSL-Weighted` for PH5–PH6
+   - whether both GCN and T-GCN families should be evaluated
+   - whether the lambda_1 = 0.01 experiment is technically safe
+3. The complete code for every new or modified file.
+4. Complete shell commands for:
+   - canonical PH5–PH6 supplementary graph estimation
+   - canonical PH5–PH6 training
+   - optional `T-GCN-MultiGSL-Weighted` training
+   - lambda_1 = 0.01 graph estimation
+   - lambda_1 = 0.01 supplementary training
+   - aggregation
+5. The exact expected output directory tree.
+6. A list of all files that would be modified or created.
+7. A list of all commands that I should execute manually.
+8. A short explanation of how the new output paths guarantee that existing results cannot be overwritten.
+9. write down your log in a file with clear instructions/bash files that I have to run.
+
+Do not claim that the experiments were executed. Clearly distinguish:
+
+- inspected
+- implemented
+- statically validated
+- not executed

@@ -1,0 +1,255 @@
+================================================================================
+INSTRUCTIONS & REPORT — Supplementary PH5/PH6 experiments (todo4.txt)
+Date: 2026-09-15
+
+>>> SUPERSEDED (2026-09-15, later the same day): this file describes the
+>>> rev1 implementation (11 variants incl. MultiGSL-Weighted, single root).
+>>> The revised implementation per todo5 (10 variants, two isolated roots,
+>>> copy-based reuse with provenance) is documented in
+>>>     INSTRUCTIONS_supplementary_ph56_rev2.txt
+>>> and is the one to follow. Kept only for the record.
+
+Status legend: [INSPECTED] read only | [IMPLEMENTED] code written |
+               [VALIDATED] static checks passed | [NOT EXECUTED] no DAGMA /
+               no training was run in this session
+================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PART A — COMMANDS YOU MUST RUN (in this order, on the experiment machine,
+%          inside `conda activate pytorch`)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+cd /data/git/mamintoosi/TGCN-GSL-PyTorch
+conda activate pytorch
+
+# (0) OPTIONAL but recommended: inspect the plan (no computation, safe anywhere)
+bash run_supplementary_ph5_ph6.sh plan
+
+# (1) Graph estimation stage — 4 fresh DAGMA fits (SZ PH5/PH6 gsl at lambda
+#     0.01, ~40-70 min each on CPU) + losloop lambda001 sensitivity fits
+#     (PH5/PH6, ~1 h each). Los-loop lambda002 graphs are READ from the
+#     canonical stage33/59 artifacts (no refit).
+#     Estimated total: ~3-5 h CPU. Fully resumable; re-run continues.
+bash run_supplementary_ph5_ph6.sh graphs
+
+# (2) Training stage — 220 cells total:
+#     canonical-completion matrix (lambda per dataset: los 0.02, sz 0.01):
+#       2 datasets x 2 PHs x 11 variants x 5 seeds = 220 cells
+#       MINUS the 60 losloop cells already in results/stage40_canonical
+#       (auto-skipped? NO - they live in the canonical dir; the supplementary
+#       run RE-RUNS losloop under its own root, except gsl/cgsl/multilag
+#       which reuse canonical graphs. If you want to skip those 60, see NOTE.)
+#     lambda001 sensitivity: losloop only, same 110-cell shape
+#     GPU: roughly 1-2 min/cell (~4-7 h); CPU: proportionally longer.
+bash run_supplementary_ph5_ph6.sh train
+
+# (3) Aggregation — writes supplementary_summary.{json,csv} under the
+#     supplementary root; never touches main-paper tables.
+bash run_supplementary_ph5_ph6.sh report
+
+# Or run everything in sequence (same as 1->2->3):
+# bash run_supplementary_ph5_ph6.sh all
+
+NOTE (optional skip of duplicate losloop lambda002 training): the todo4
+matrix includes losloop at lambda002, which was already run canonically
+(stage40/stage59: no_spatial, physical, gsl, cgsl, multi_gsl — but NOT
+multi_gsl_weighted nor the GCN family). The supplementary run re-executes
+them under the isolated root for self-contained comparisons. If you prefer
+to skip the T-GCN duplicates (but keep the NEW GCN cells + Weighted):
+  python3 src/run_supplementary_training.py --datasets losloop shenzhen \
+      --phs 5 6 \
+      --variants gcn_no_spatial gcn_physical gcn_gsl gcn_cgsl gcn_multigsl \
+                 multi_gsl_weighted
+(then run the default command for SZ + lambda001 as above; plans show
+skipped cells automatically either way).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PART B — FILES CREATED / MODIFIED  [IMPLEMENTED + VALIDATED]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+NEW (5):
+  src/supp_paths.py                    isolation + guarded save helpers (stdlib-only)
+  src/run_supplementary_graphs.py      isolated graph estimation (lambda-aware)
+  src/run_supplementary_training.py    isolated training (both families)
+  src/aggregate_supplementary_results.py  stdlib-only aggregation
+  run_supplementary_ph5_ph6.sh         staged wrapper (plan|graphs|train|report|all)
+
+MODIFIED (2, backward-compatible):
+  src/run_gsl_canonical.py             learn_gsl_graph(..., lambda1=None):
+                                       optional override; fit() now receives
+                                       the EFFECTIVE lambda (bug found and
+                                       fixed: metadata recorded the override
+                                       but DAGMA still got the canonical
+                                       value); meta records lambda1 +
+                                       lambda1_canonical. Default behaviour
+                                       unchanged (None -> canonical value).
+  (paper/revised_version/sn-article.tex was modified in the PREVIOUS session
+   (appendix) and is not part of this task.)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PART C — AUDIT SUMMARY  [INSPECTED]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+C.1 Canonical pipeline (src/run_canonical_matrix.py, Stage 40)
+  - 12 variants in VARIANTS (7 T-GCN + 4 GCN + gcn_multigsl), protocol:
+    80/20 chronological split, train-max normalization, seq_len 12, batch 128,
+    Adam lr 1e-3, wd 1e-4, hidden 64, 50 epochs, seeds 42-46, atomic resumable
+    JSONs under results/stage40_canonical/training/.
+  - Output paths are module-level constants (no --output-root) => a dedicated
+    isolated runner was the safe choice for supplementary work.
+
+C.2 DAGMA PH-dependence (the todo4 "Important distinction", verified):
+  - Multi-lag blocks (results/stage26_validation/{los,sz}_ph1_seed42_L3_lag_{
+    1,2,3}.npy): PH-INDEPENDENT. Fit input Z is built from the training split
+    only; blocks are byte-identical across PH1-4 (md5-verified earlier).
+    => NO refit for PH5/PH6; a provenance sidecar with sha256 checksums is
+       written per (dataset, PH, lambda tag) instead.
+  - Contemporaneous GSL (X = train_norm[0::PH]): PH-DEPENDENT => one fresh
+    DAGMA fit per (dataset, PH, lambda). THIS is the only expensive step.
+  - cGSL: DERIVED (symmetrization of the GSL W_est) => never a fit.
+  - Los-loop PH5/PH6 gsl at lambda 0.02 already exist canonically
+    (results/stage33_gsl_canonical/los_gsl_ph{5,6}_seed42_*.npy, 26/30 edges,
+    fitted at ~3558/3784 s in stage59) => READ (read-only) when lambda equals
+    the canonical value; a provenance sidecar records this.
+  - SZ PH5/PH6 gsl at lambda 0.01 do NOT exist anywhere => fresh fits needed.
+  - MultiGSL-Weighted: uses the SAME pre-computed multi-lag blocks
+    (WeightedMultiGraphTGCN, models/multigsl.py:148) => NO additional DAGMA.
+
+C.3 Lambda values (authoritative source: DATASET_CONFIGS in
+    src/run_canonical_matrix.py):
+    losloop  canonical lambda_1 = 0.02 ; shenzhen canonical lambda_1 = 0.01.
+    The todo4 sensitivity experiment uses lambda_1 = 0.01 on LOS-LOOP only
+    (a non-canonical value there), fully isolated; SZ already runs its
+    canonical 0.01 in the completion matrix.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PART D — EXPERIMENT MATRIX (Step 2)  [IMPLEMENTED as code + plans]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Per (dataset, PH in {5,6}, lambda tag):
+  graph artifacts (graphs_<tag>/):
+    los|sz_ph{PH}_lambda00X_gsl_A_binary.npy / _W_est.npy / _meta.json
+    los|sz_ph{PH}_lambda00X_cgsl_A_binary.npy / _meta.json
+    los|sz_ph{PH}_lambda00X_multilag_reuse_meta.json
+  training (training_lambda00X/, one JSON per cell):
+    {dataset}_ph{PH}_seed{seed}_{variant}_lambda00X.json
+
+  variants (11 per dataset per PH per seed; "GraphFree" = no_spatial):
+    T-GCN family : no_spatial, physical, gsl, cgsl, multi_gsl,
+                   multi_gsl_weighted (included: no extra DAGMA, see C.2)
+    GCN family   : gcn_no_spatial, gcn_physical, gcn_gsl, gcn_cgsl,
+                   gcn_multigsl (union of the 3 blocks as one static graph)
+  graph sources per variant:
+    no_spatial -> identity (no DAGMA) | physical -> data/*_adj.csv (no DAGMA)
+    gsl/cgsl   -> supplementary graphs_<tag> artifact, or the canonical
+                  artifact read-only when lambda == canonical
+    multi_gsl, multi_gsl_weighted, gcn_multigsl -> Stage 26 blocks
+                  (PH-independent reuse, |W|>0.1 consumer threshold)
+  seeds: 42-46 (canonical convention, preserved).
+  NOTHING changed: split, normalization, seq_len, PH definition, batch,
+  optimizer, lr, wd, hidden dim, epochs, metrics (all inherited from
+  src/run_canonical_matrix.py by import).
+
+Cell counts:
+  completion matrix (lambda = canonical per dataset): 2 x 2 x 11 x 5 = 220
+  lambda001 sensitivity (losloop):                    1 x 2 x 11 x 5 = 110
+  Plan verified: "180 to run, 0 complete, 40 blocked" before graphs; the 40
+  blocked = SZ gsl/cgsl cells awaiting their fresh fits. (After the losloop
+  NOTE above, the completion run for losloop would be 50 NEW cells:
+  2 GCN-family x 5 variants x 5 seeds... see plan output for the exact list.)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PART E — EXPECTED OUTPUT TREE (Step 5 of the report)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+results/supplementary_ph56/
+├── logs/
+│   ├── supplementary_plan_<ts>.log
+│   ├── supplementary_graphs_<ts>.log
+│   ├── supplementary_train_<ts>.log
+│   └── supplementary_report_<ts>.log
+├── graphs_lambda002/                     # canonical-completion graphs
+│   ├── los_ph5_lambda002_gsl_meta.json   # reuse-of-canonical provenance
+│   ├── los_ph5_lambda002_cgsl_A_binary.npy + _meta.json
+│   ├── los_ph5_lambda002_multilag_reuse_meta.json
+│   ├── los_ph6_lambda002_*               (same shape)
+│   ├── sz_ph5_lambda001_gsl_A_binary.npy / _W_est.npy / _meta.json
+│   ├── sz_ph5_lambda001_cgsl_A_binary.npy / _meta.json
+│   ├── sz_ph5_lambda001_multilag_reuse_meta.json
+│   └── sz_ph6_lambda001_*                (same shape)
+├── graphs_lambda001/                     # losloop SENSITIVITY graphs (fresh)
+│   ├── los_ph5_lambda001_gsl_A_binary.npy / _W_est.npy / _meta.json
+│   ├── los_ph5_lambda001_cgsl_A_binary.npy / _meta.json
+│   ├── los_ph5_lambda001_multilag_reuse_meta.json
+│   └── los_ph6_lambda001_*               (same shape)
+├── training_lambda002/                   # completion matrix results
+│   ├── losloop_ph5_seed42_no_spatial_lambda002.json   (...x variants/seeds/PHs)
+│   ├── shenzhen_ph5_seed42_gsl_lambda001.json         (SZ canonical lambda)
+│   └── ...
+├── training_lambda001/                   # losloop sensitivity results
+│   └── losloop_ph5_seed42_no_spatial_lambda001.json   (...)
+├── supplementary_summary.json            # aggregation (after `report`)
+└── supplementary_summary.csv
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PART F — HOW EXISTING RESULTS CANNOT BE OVERWRITTEN (item 8)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+1. Separate root: every supplementary write goes under
+   --output-root (default results/supplementary_ph56/), a directory that does
+   not intersect any canonical tree.
+2. Root safety check: src/supp_paths.check_root_safety() REFUSES any
+   --output-root that equals or lies inside results/stage26_validation,
+   results/stage33_gsl_canonical, results/stage40_canonical,
+   results/stage59_ph56_horizon, or results/ itself (validated: pointing the
+   scripts at results/stage40_canonical raises ValueError).
+3. No-overwrite default: atomic_save_npy/atomic_save_json call guard_output(),
+   which raises FileExistsError if the target exists unless --overwrite is
+   passed (validated by unit test). Existing supplementary artifacts are
+   therefore REUSED, not clobbered, on re-runs.
+4. Lambda-tagged filenames: graphs live in graphs_lambda002/ vs
+   graphs_lambda001/; results in training_lambda002/ vs training_lambda001/;
+   every filename contains dataset + PH + lambda tag + type (+ seed), so the
+   0.01 and 0.02 runs can never collide with each other or with canonical
+   names (which carry no lambda tag at all).
+5. Canonical reads are read-only: the canonical-reuse path only ever
+   np.loads stage26/stage33 files (checksums recorded in sidecars); no
+   canonical path is ever passed to a save helper.
+6. Aggregator reads ONLY the supplementary root and writes only
+   supplementary_summary.{json,csv} there; main-paper tables are untouched.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PART G — STATIC VALIDATION PERFORMED  [VALIDATED, nothing expensive executed]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+- python3 -m py_compile on all 4 new scripts + both modified scripts: PASS
+- bash -n run_supplementary_ph5_ph6.sh: PASS
+- --print-plan-only runs for graphs (default + lambda001) and training
+  (default + lambda001) WITHOUT numpy/torch installed: PASS
+- wrapper `plan` stage end-to-end: PASS (plans print, log written)
+- root-safety refusal test (--output-root results/stage40_canonical): PASS
+- overwrite-protection unit test (FileExistsError on second save): PASS
+- aggregation smoke test on a synthetic tree in /tmp: PASS (complete,
+  partial-with-missing-seeds, and absent cells all handled; JSON+CSV written;
+  means verified against an independent computation)
+- lambda-to-DAGMA wiring: grep + source check that model.fit(X,
+  lambda1=<effective>, ...) receives the override (bug found & fixed).
+- [NOT EXECUTED] No DAGMA fit, no model training, no GPU/CPU-heavy run was
+  launched. The only filesystem changes this session made are the new code
+  files and results/supplementary_ph56/logs/*plan*.log.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PART H — RECOMMENDATIONS (report item 2)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+1. T-GCN-MultiGSL-Weighted: RUN IT. It reuses the same pre-computed Stage 26
+   multi-lag blocks (no additional DAGMA); the class already exists
+   (WeightedMultiGraphTGCN) and ran canonically on SZ. Included by default.
+2. Both families: YES. GCN family cells for PH5/6 are missing canonically
+   and the matrix includes all 5 GCN variants per dataset/PH/seed.
+3. lambda_1 = 0.01 experiment: TECHNICALLY SAFE. It is isolated under
+   graphs_lambda001/ + training_lambda001/ with tagged filenames; DAGMA
+   receives 0.01 in the actual fit call (verified); canonical 0.02 artifacts
+   are never modified and the losloop 0.01 runs cannot be confused with
+   shenzhen's canonical 0.01 (dataset field + separate directories).
+4. Budget: graphs ~3-5 h CPU (4-6 fits), training ~4-7 h GPU / longer CPU.
+   Everything is resumable; plans print before any expensive step.
+================================================================================

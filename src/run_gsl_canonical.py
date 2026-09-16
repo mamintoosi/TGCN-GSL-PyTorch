@@ -142,8 +142,15 @@ def set_seed(seed):
 # ============================================================
 # ORIGINAL-FORMULATION SINGLE-GRAPH GSL (training data only)
 # ============================================================
-def learn_gsl_graph(dataset, ph, seed, dagma_kwargs):
+def learn_gsl_graph(dataset, ph, seed, dagma_kwargs, lambda1=None):
     """Fit DAGMA exactly as the original pipeline did; return binary adjacency.
+
+    lambda1: optional override of DATASET_CONFIGS[dataset]["lambda1"]. None
+    (default) keeps the canonical per-dataset value, so every existing caller
+    (Stage 33 / Stage 59) behaves exactly as before. The override exists for
+    the isolated lambda-sensitivity experiment (supplementary lambda_1=0.01
+    on Los-loop), whose artifacts go to a separate output root and never
+    touch the canonical files.
 
     Input:  X = train_norm[0::ph] — the same per-PH subsampling of the training
             snapshots used by the original SpatioTemporalCSVData
@@ -167,6 +174,8 @@ def learn_gsl_graph(dataset, ph, seed, dagma_kwargs):
     """
     config = DATASET_CONFIGS[dataset]
     N = config["N"]
+    if lambda1 is None:
+        lambda1 = config["lambda1"]  # canonical value (unchanged default)
     train_norm, _, _, feat_max = load_data(dataset)  # normalized by train max only
 
     # Per-PH subsampling of contemporaneous snapshots (original construction)
@@ -177,7 +186,7 @@ def learn_gsl_graph(dataset, ph, seed, dagma_kwargs):
     model = DagmaLinear(loss_type="l2", verbose=False)
     # w_threshold=0.3 = the ORIGINAL effective protocol (library default that
     # the original fit() call relied on); see module docstring for evidence.
-    W_est = model.fit(X, lambda1=config["lambda1"], w_threshold=0.3,
+    W_est = model.fit(X, lambda1=lambda1, w_threshold=0.3,
                       warm_iter=dagma_kwargs["warm_iter"],
                       max_iter=dagma_kwargs["max_iter"])
     runtime = time.time() - t0
@@ -190,7 +199,8 @@ def learn_gsl_graph(dataset, ph, seed, dagma_kwargs):
     n_neg = int((W_est < 0).sum())
     meta = {
         "dataset": dataset, "ph": ph, "seed": seed,
-        "lambda1": config["lambda1"], "loss_type": "l2",
+        "lambda1": lambda1,  # effective value (canonical or explicit override)
+        "lambda1_canonical": config["lambda1"],  # recorded for provenance
         "w_threshold": 0.3,  # original protocol: DAGMA library default
         "threshold_rule": "abs(W) >= w_threshold, applied inside DAGMA fit()",
         "support_rule": "A = 1(|W| > 0), diagonal removed (Stage 36 canonical "
